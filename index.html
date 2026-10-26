@@ -3317,7 +3317,7 @@ document.addEventListener('touchstart', e => {
   if (e.touches.length !== 1 || byId('sheet-root').classList.contains('open') || !byId('spop').hidden) return;
   const t = e.touches[0];
   if (e.target.closest('input,select,textarea,.mstep,.stepper,.trip-head,.grip')) return;
-  if (t.clientX < 20 || t.clientX > window.innerWidth - 20) return;
+  if (t.clientX < 12 || t.clientX > window.innerWidth - 12) return;
   const el = swipeEl(); if (!el) return;
   sw = {x: t.clientX, y: t.clientY, t: Date.now(), el, lock: null, dx: 0};
 }, {passive: true});
@@ -3325,8 +3325,9 @@ document.addEventListener('touchmove', e => {
   if (!sw) return;
   const t = e.touches[0], dx = t.clientX - sw.x, dy = t.clientY - sw.y;
   if (!sw.lock) {
-    if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
-    sw.lock = Math.abs(dx) > Math.abs(dy) * 1.2 ? 'x' : 'y';
+    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+    // a thumb swipe arcs, so a mostly-sideways move counts as a swipe
+    sw.lock = Math.abs(dx) > Math.abs(dy) * 0.9 ? 'x' : 'y';
     if (sw.lock === 'x') { sw.el.style.transition = 'none'; sw.el.style.willChange = 'transform'; if (lp) { clearTimeout(lp.t); lp = null; } }
   }
   if (sw.lock !== 'x') return;
@@ -3339,8 +3340,8 @@ function endSwipe() {
   if (!sw) return; const s = sw; sw = null;
   if (s.lock !== 'x') return;
   const el = s.el, dir = s.dx > 0 ? 1 : -1, next = swipeTarget(dir), w = window.innerWidth;
-  const fast = Math.abs(s.dx) / Math.max(1, Date.now() - s.t) > 0.5;
-  if (next && (Math.abs(s.dx) > w * 0.22 || (fast && Math.abs(s.dx) > 40))) {
+  const fast = Math.abs(s.dx) / Math.max(1, Date.now() - s.t) > 0.3;
+  if (next && (Math.abs(s.dx) > w * 0.18 || (fast && Math.abs(s.dx) > 30))) {
     el.style.transition = 'transform .16s ease-in, opacity .16s ease-in';
     el.style.transform = 'translateX(' + dir * w * 0.7 + 'px)'; el.style.opacity = '0';
     setTimeout(() => { clearDrag(el); if (S.view === 'trip') setTab(next, dir); else if (S.view === 'home') setHomeTab(next, dir); }, 160);
