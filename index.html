@@ -267,6 +267,8 @@ span.chip{cursor:default}
 .tabs-band .wrap{padding-block:12px 8px}
 .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:5px;border-radius:22px;background:var(--surface);box-shadow:var(--shadow-sm)}
 .tabs.two{grid-template-columns:repeat(2,1fr)}
+.tabs.four{grid-template-columns:repeat(4,1fr);gap:3px}
+.tabs.four button{font-size:13px;padding-inline:2px}
 .tabs button{min-height:42px;border-radius:17px;font-family:var(--f-display);font-weight:500;font-size:14.5px;line-height:1.15;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:5px;color:var(--muted);padding-inline:4px;transition:background .18s,color .18s}
 .tabs button[aria-selected="true"]{background:var(--accent-soft);color:var(--accent-ink);font-weight:700}
 .tabs:not(.two) button{flex-direction:column;gap:4px;min-height:62px;font-size:14px}
@@ -277,7 +279,7 @@ span.chip{cursor:default}
 /* Board */
 .board{display:grid;gap:20px;padding-block:8px 96px}
 @media (max-width:959px){.col:not(.on){display:none}.col .col-head .label{display:none}}
-@media (min-width:960px){.board{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:start;gap:24px;padding-top:20px}#col-group{grid-row:1/span 2}}
+@media (min-width:960px){.board{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:start;gap:24px;padding-top:20px}#col-group{grid-row:1/span 3}}
 .board.solo-board{max-width:780px;grid-template-columns:minmax(0,1fr)}
 .col{display:flex;flex-direction:column;gap:14px;min-width:0}
 .col-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -291,6 +293,8 @@ span.chip{cursor:default}
 .panel{background:var(--surface);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow-sm)}
 .col-panel{display:flex;flex-direction:column;gap:14px}
 .prog-slot:empty{display:none}
+.ask-buy{margin:-6px 0 4px;color:var(--muted);font-weight:600}
+.tag.buy{background:var(--accent-soft);color:var(--accent-ink)}
 .bank-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .bank-top .btn.sm{min-height:34px;padding:0 14px;font-size:14px}
 .item.has-grip{grid-template-columns:auto minmax(0,1fr) auto}
@@ -645,6 +649,7 @@ const ICON = {
   gear:'<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.5A7.5 7.5 0 0 0 7 6.5l-2.4-1-2 3.4 2 1.6a7.6 7.6 0 0 0 0 3l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 2.6 1.5l.4 2.5h4l.4-2.5a7.5 7.5 0 0 0 2.6-1.5l2.4 1 2-3.4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
   search:'<svg width="17" height="17" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.7" cy="8.7" r="5.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.2 4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   up:'<svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 12l5-5 5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  tshop:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 4.5h2.3l2 10.2a1.6 1.6 0 0 0 1.6 1.3h7.3a1.6 1.6 0 0 0 1.6-1.2l1.4-6.3H6.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="19.5" r="1.4" fill="currentColor"/><circle cx="16.8" cy="19.5" r="1.4" fill="currentColor"/></svg>',
   tlist:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 9.5l1.6 1.6L12.6 8M8 15h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   tmine:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 19.5c1-3.6 3.8-5.4 7-5.4s6 1.8 7 5.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
   tpeople:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="16.6" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 19c.8-3.2 3-4.8 5.5-4.8s4.7 1.6 5.5 4.8M15 14.6c2.6-.3 4.7 1.1 5.4 4.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
@@ -827,14 +832,14 @@ const S = {af: {},
   view: 'home', events: [], templates: [], solos: [], eventsLoaded: false, templatesLoaded: false, solosLoaded: false,
   tripId: null, guests: [], items: [], expenses: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false,
   soloId: null, soloItems: [], soloItemsLoaded: false,
-  tab: ['people', 'mine'].includes(lsGet('tab')) ? lsGet('tab') : 'group', cover: null, filter: 'all', soloFilter: 'all', bankOpen: null, homeTab: lsGet('htab') === 'money' ? 'money' : 'lists',
+  tab: ['people', 'shop', 'mine'].includes(lsGet('tab')) ? lsGet('tab') : 'group', cover: null, filter: 'all', soloFilter: 'all', bankOpen: null, homeTab: lsGet('htab') === 'money' ? 'money' : 'lists',
   tplId: null, q: '', me: null, lastCat: CAT[lsGet('cat')] ? lsGet('cat') : 'general',
   deep: window.MM_DEEP || ''
 };
 let preTpl = null, ntMe = '', ntGuests = [], afterPick = null, viewUnsubs = [], undoStack = [];
 const tripSoloCache = {};
 let Assets = null, mineUnsub = null;
-const TABS = ['group', 'people', 'mine'];
+const TABS = ['group', 'people', 'shop', 'mine'];
 /* The one sound left in the app: "שולם" when a debt is settled — a festive cash register. */
 const PAID_SOUND = 'register';
 let AC = null;
@@ -1341,7 +1346,7 @@ function shellTrip() {
     + (ro ? '' : '<div class="nav-actions"><button class="btn sm" data-act="invite">הזמנה</button><button class="btn sm" data-act="edit-trip">עריכה</button></div>')
     + '</div><div class="hnote" id="r-hnote"><div><p class="tab-note tn-mine">' + ICON.lock + 'הרשימה האישית גלויה רק לך</p></div></div><div id="r-head"></div></div></header>'
     + '<div id="r-body">'
-    + '<div class="tabs-band"><div class="wrap"><div class="tabs" role="tablist" id="r-tabs"></div></div></div>'
+    + '<div class="tabs-band"><div class="wrap"><div class="tabs four" role="tablist" id="r-tabs"></div></div></div>'
     + '<main class="wrap board">'
     + '<section class="col" id="col-group"><div class="panel col-panel">'
     + '<div class="col-head"><h2 class="label">רשימה משותפת</h2><div class="viewbar"><span class="view-lbl">תצוגה:</span><div class="seg" id="r-filter"></div></div>' + searchBtn() + '</div>'
@@ -1352,6 +1357,9 @@ function shellTrip() {
     + '<div class="col-head"><h2 class="label">מי מביא מה</h2><div class="viewbar"><span class="view-lbl">תצוגה:</span><div class="seg" id="r-pfilter"></div></div>' + searchBtn() + '</div>'
     + '<div id="r-lanes" class="lanes"></div>'
     + '</div></section>'
+    + '<section class="col" id="col-shop"><div class="panel col-panel">'
+    + '<div class="col-head"><h2 class="label">קניות</h2></div>'
+    + '<div id="r-shprog" class="prog-slot"></div><div id="r-shop"></div></div></section>'
     + '<section class="col" id="col-mine"><div class="panel col-panel">'
     + '<div class="col-head"><h2 class="label">רשימה אישית</h2>' + searchBtn() + '</div>'
     + foldOpen('mine') + '<form class="add-row" data-form="add-mine" id="mine-form" autocomplete="off">' + nameInput('am-name-' + e, 'am-qty-' + e, 'הוספת פריט') + miniStep('am-qty-' + e) + '<button class="btn primary" type="submit">הוספה</button></form>'
@@ -1394,6 +1402,20 @@ function personalDblRow(i, T) {
 }
 // The shared list's missing items, as they look in the shared list
 function missingHTML(T) { const f = S.filter; S.filter = 'need'; try { return groupHTML(T); } finally { S.filter = f; } }
+// My shopping list: what I said I'd bring and still need to buy, by category; bought ones sink to the bottom
+function shopHTML(list) {
+  if (!S.itemsLoaded) return '<p class="muted pad">נטען…</p>';
+  if (!list.length) return '<p class="empty-in">אין מה לקנות</p>';
+  return CATS.map(c => {
+    const xs = list.filter(i => catOf(i) === c.id).sort((a, b) => (!!a.bought - !!b.bought) || posOf(a) - posOf(b)); if (!xs.length) return '';
+    return '<div class="cat"><div class="cat-head">' + catPill(c) + '<span class="cat-count">' + xs.filter(i => i.bought).length + '/' + xs.length + '</span></div><ul class="items">' + xs.map(shopRow).join('') + '</ul></div>';
+  }).join('');
+}
+function shopRow(i) {
+  const q = amountHTML(i), ro = S.readOnly;
+  return '<li class="item' + (i.bought ? ' packed' : '') + '"><button class="pk' + (i.bought ? ' on' : '') + '" data-bought="' + esc(i.id) + '" aria-pressed="' + !!i.bought + '" aria-label="נקנה: ' + esc(dispName(i)) + '"' + (ro ? ' disabled' : '') + '>' + ICON.check + '</button>'
+    + '<button class="item-main" data-edit="' + esc(i.id) + '"' + (ro ? ' disabled' : '') + '><span class="item-name">' + esc(dispName(i)) + '</span>' + (q ? '<span class="qty">' + q + '</span>' : '') + '</button></li>';
+}
 function groupHTML(T) {
   if (!S.itemsLoaded) return '<p class="muted pad">נטען…</p>';
   if (!T.lines.length) return '<p class="empty-in">הרשימה ריקה</p>';
@@ -1447,7 +1469,7 @@ function essHTML(T) {
 function laneRow(i, T) {
   const ro = S.readOnly || foreign(i), pro = S.readOnly || othersOwn(i), q = amountHTML(i), c = catOf(i), drag = !ro && !SEL.ctx;
   return '<li class="item' + (i.packed ? ' packed' : '') + (drag ? ' has-grip' : '') + '" data-iid="' + esc(i.id) + '"><button class="pk' + (i.packed ? ' on' : '') + '" data-pack="' + esc(i.id) + '" aria-pressed="' + !!i.packed + '" aria-label="ארוז: ' + esc(dispName(i)) + '"' + (pro ? ' disabled' : '') + '>' + ICON.check + '</button>'
-    + '<button class="item-main" data-edit="' + esc(i.id) + '"' + (ro ? ' disabled' : '') + '>' + '<span class="item-name">' + esc(dispName(i)) + '</span>' + (q ? '<span class="qty">' + q + '</span>' : '') + (i.scope === 'p' ? '<span class="tag">אישי</span>' : '') + (T.itemDbl(i) ? '<span class="flag">כפילות</span>' : '') + '</button>'
+    + '<button class="item-main" data-edit="' + esc(i.id) + '"' + (ro ? ' disabled' : '') + '>' + '<span class="item-name">' + esc(dispName(i)) + '</span>' + (q ? '<span class="qty">' + q + '</span>' : '') + (i.scope === 'p' ? '<span class="tag">אישי</span>' : '') + (i.buy && !i.bought ? '<span class="tag buy">לקנות</span>' : '') + (T.itemDbl(i) ? '<span class="flag">כפילות</span>' : '') + '</button>'
     + (drag ? '<span class="grip" data-drag="' + esc(i.id) + '" aria-hidden="true">' + ICON.grip + '</span>' : '') + '</li>';
 }
 function lane(g, T) {
@@ -1557,8 +1579,8 @@ function updateTrip() {
   if (S.filter === 'dbl' && !T.dblCount) S.filter = 'need';
   if (!TABS.includes(S.tab)) S.tab = 'group';
   const hn = byId('r-hnote'); if (hn) hn.classList.toggle('show', S.tab === 'mine' || window.innerWidth >= 960);
-  const tabLabel = {group: 'רשימה משותפת', mine: 'רשימה אישית', people: 'מי מביא מה'};
-  const tabIcon = {group: ICON.tlist, mine: ICON.tmine, people: ICON.tpeople};
+  const tabLabel = {group: 'רשימה משותפת', mine: 'רשימה אישית', people: 'מי מביא מה', shop: 'קניות'};
+  const tabIcon = {group: ICON.tlist, mine: ICON.tmine, people: ICON.tpeople, shop: ICON.tshop};
   byId('r-tabs').innerHTML = TABS.map(t => '<button role="tab" class="tab-' + t + '" aria-selected="' + (S.tab === t) + '" data-tab="' + t + '">' + tabIcon[t] + '<span>' + tabLabel[t] + '</span></button>').join('');
   TABS.forEach(t => byId('col-' + t).classList.toggle('on', S.tab === t));
   const mItems = S.soloId ? S.soloItems : [];
@@ -1572,6 +1594,9 @@ function updateTrip() {
   byId('r-group').innerHTML = groupHTML(T);
   const ess = byId('r-ess'); if (ess) ess.innerHTML = essHTML(T);
   const eg = byId('eg-chips'); if (eg) eg.innerHTML = egChips();
+  const toBuy = T.items.filter(i => i.buy && S.me && i.owner === S.me);
+  byId('r-shprog').innerHTML = S.itemsLoaded ? progHTML(toBuy.filter(i => i.bought).length, toBuy.length, 'נקנו', 'הכול נקנה') : '';
+  byId('r-shop').innerHTML = shopHTML(toBuy);
 
   const lanesEl = byId('r-lanes');
   if (!S.guestsLoaded) lanesEl.innerHTML = '<p class="muted">נטען…</p>';
@@ -2134,6 +2159,7 @@ function openItemSheet(id) {
     + amountFields
     + '<label class="field"><span>קטגוריה</span><select id="it-cat">' + catOptions(catOf(it)) + '</select></label>'
     + listField
+    + (it.owner && it.owner === S.me && it.scope !== 'p' ? '<div class="field"><span>קנייה</span><div class="seg-radio" role="radiogroup" aria-label="קנייה"><label><input type="radio" name="it-buy" value="0"' + (it.buy ? '' : ' checked') + '><span>יש לי</span></label><label><input type="radio" name="it-buy" value="1"' + (it.buy ? ' checked' : '') + '><span>צריך לקנות</span></label></div></div>' : '')
     + (owned ? '<div class="sheet-tools">'
       + (it.scope !== 'p' ? '<button type="button" class="btn sm" data-putback="' + esc(id) + '">' + (k === 'meat' && (it.src || it.id) !== it.id ? 'הסרה מהרשימה שלי' : 'החזרה לרשימה המשותפת') + '</button>' : '')
       + '<button type="button" class="btn sm" data-exp-item="' + esc(id) + '">+ הוספה להוצאות</button></div>' : '')
@@ -2468,18 +2494,26 @@ async function claim(itemId, n, gid, extra) {
   const have = Q(cur), take = Math.min(have, clampQ(n)), src = cur.src || cur.id;
   const mine = S.items.find(i => i.id !== cur.id && i.scope !== 'p' && i.owner === gid && (i.src || i.id) === src && (i.detail || '') === detail);
   const label = dispName({name: cur.name, detail});
+  let myId = null, msg = '';
   try {
     if (take >= have) {
-      if (mine) { await Store.update(itemPath(mine.id), {qty: Q(mine) + take, packed: false}); await Store.del(path); }
-      else await Store.update(path, Object.assign({owner: gid, packed: false, src, qty: have}, detail ? {detail} : {}));
-      toast(label + ' ברשימה ' + whoseList(gid));
+      if (mine) { await Store.update(itemPath(mine.id), {qty: Q(mine) + take, packed: false}); await Store.del(path); myId = mine.id; }
+      else { await Store.update(path, Object.assign({owner: gid, packed: false, buy: false, bought: false, src, qty: have}, detail ? {detail} : {})); myId = itemId; }
+      msg = label + ' ברשימה ' + whoseList(gid);
     } else {
       await Store.update(path, {qty: have - take, src});
-      if (mine) await Store.update(itemPath(mine.id), {qty: Q(mine) + take, packed: false});
-      else { const id = uid('i'); await Store.set(itemPath(id), itemDoc({name: cur.name, cat: catOf(cur), qty: take, unit: cur.unit || '', scope: 'g', owner: gid, src, detail, created: (cur.created || Date.now()) + 0.001}, id)); }
-      toast(label + ': ' + take + ' ברשימה ' + whoseList(gid) + ' · חסרים ' + (have - take));
+      if (mine) { await Store.update(itemPath(mine.id), {qty: Q(mine) + take, packed: false}); myId = mine.id; }
+      else { const id = uid('i'); await Store.set(itemPath(id), itemDoc({name: cur.name, cat: catOf(cur), qty: take, unit: cur.unit || '', scope: 'g', owner: gid, src, detail, created: (cur.created || Date.now()) + 0.001}, id)); myId = id; }
+      msg = label + ': ' + take + ' ברשימה ' + whoseList(gid) + ' · חסרים ' + (have - take);
     }
-  } catch (e) {}
+  } catch (e) { return; }
+  const merged = myId && myId !== itemId && S.items.find(i => i.id === myId);
+  // taking it myself: the "buy or have it?" sheet says what was taken, so no toast on top of it
+  if (myId && gid === S.me && !(merged && merged.buy)) setTimeout(() => askBuy(myId, label), 320); else if (msg) toast(msg);
+}
+function askBuy(id, label) {
+  openSheet('<div class="stack-form"><h2 class="sheet-title">' + esc(label) + '</h2><p class="ask-buy">צריך לקנות, או שיש לך?</p>'
+    + '<div class="sheet-actions"><button type="button" class="btn" data-close>יש לי</button><button type="button" class="btn primary" data-buy="' + esc(id) + '">' + ICON.tshop.replace('<svg ', '<svg class="ic" ') + 'צריך לקנות</button></div></div>');
 }
 async function putBack(itemId, quiet) {
   if (!quiet) sfx('uncheck');
@@ -2492,7 +2526,7 @@ async function putBack(itemId, quiet) {
       const src = it.src || it.id;
       const open = S.items.find(i => i.id !== it.id && i.scope !== 'p' && !T.owned(i) && (i.src || i.id) === src);
       if (open) { await Store.update(itemPath(open.id), {qty: Q(open) + Q(it)}); await Store.del(path); }
-      else await Store.update(path, {owner: null, packed: false});
+      else await Store.update(path, {owner: null, packed: false, buy: false, bought: false});
     }
     if (!quiet) toast(dispName(it) + ' חזר לרשימה המשותפת');
   } catch (e) {}
@@ -2863,7 +2897,7 @@ document.addEventListener('pointermove', e => { if (!dg || e.pointerId !== dg.pi
 function dropItem(it, t) {
   const T = tripData(), get = id => id && S.items.find(x => x.id === id), prev = get(t.prev), next = get(t.next);
   const patch = {pos: prev && next ? (posOf(prev) + posOf(next)) / 2 : prev ? posOf(prev) + 1000 : next ? posOf(next) - 1000 : posOf(it)};
-  if (t.gid !== it.owner) { if (it.scope === 'p' || !T.gmap[t.gid]) return; patch.owner = t.gid; patch.packed = false; }
+  if (t.gid !== it.owner) { if (it.scope === 'p' || !T.gmap[t.gid]) return; Object.assign(patch, {owner: t.gid, packed: false, buy: false, bought: false}); }
   else if (patch.pos === posOf(it)) return;
   fire(Store.update(itemPath(it.id), patch));
   if (patch.owner) toast('הועבר לרשימה של ' + T.gmap[t.gid].name);
@@ -3040,6 +3074,8 @@ document.addEventListener('click', e => {
   if (d.claim) return startClaim(d.claim);
   if (d.meat) return startMeat(d.meat);
   if (d.covered) return coveredTap(d.covered);
+  if (d.bought) { const it = S.items.find(i => i.id === d.bought); if (it && it.owner === S.me) { sfx(it.bought ? 'uncheck' : 'check'); fire(Store.update(itemPath(it.id), {bought: !it.bought})); } return; }
+  if (d.buy) { const id = d.buy; closeSheet(); fire(Store.update(itemPath(id), {buy: true, bought: false})); toast('נוסף לקניות'); return; }
   if (d.pack) { const it = S.items.find(i => i.id === d.pack); if (it && !othersOwn(it)) sfx(it.packed ? 'uncheck' : 'check'); if (it && !othersOwn(it)) fire(Store.update(itemPath(it.id), {packed: !it.packed})); return; }
   if (d.spack) { const it = S.soloItems.find(i => i.id === d.spack); if (it) sfx(it.packed ? 'uncheck' : 'check'); if (it) fire(Store.update(soloItemPath(it.id), {packed: !it.packed})); return; }
   if (d.sdel) { sfx('delete'); fire(Store.del(soloItemPath(d.sdel))); return; }
@@ -3181,6 +3217,9 @@ const forms = {
     if (k === 'meat' || k === 'salad') patch.cat = 'food';
     const pk = f.querySelector('#it-packed');
     patch.packed = owner && owner === it.owner ? (pk ? pk.checked : !!it.packed) : false;
+    const bb = f.querySelector('input[name="it-buy"]:checked');
+    if (owner !== it.owner) { patch.buy = false; patch.bought = false; }
+    else if (bb) { patch.buy = bb.value === '1'; if (!patch.buy) patch.bought = false; }
     if (patch.cat !== catOf(it)) learnCat(name, patch.cat);
     closeSheet();
     fire(Store.update(itemPath(id), patch));
