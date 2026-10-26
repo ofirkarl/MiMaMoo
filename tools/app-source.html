@@ -1996,7 +1996,9 @@ function openItemSheet(id) {
   if (foreign(it)) { toast('ברשימה של ' + T.gmap[it.owner].name); return; }
   const k = kindOf(it), owned = T.owned(it), me = S.me && T.gmap[S.me];
   const listVal = it.scope === 'p' && owned ? 'p:' + it.owner : (owned ? 'g:' + it.owner : 'g:');
-  const listField = '<label class="field"><span>ברשימה של</span><select id="it-list" data-val="' + esc(listVal) + '"><optgroup label="משותף"><option value="g:">חסר</option>' + (me ? '<option value="g:' + esc(me.id) + '">' + esc(me.name) + '</option>' : '') + '</optgroup>'
+  // anyone in the event can take the item over: me first, then everyone else
+  const people = [...T.guests].sort((a, b) => (b.id === S.me) - (a.id === S.me));
+  const listField = '<label class="field"><span>ברשימה של</span><select id="it-list" data-val="' + esc(listVal) + '"><optgroup label="משותף"><option value="g:">חסר</option>' + people.map(g => '<option value="g:' + esc(g.id) + '">' + esc(g.name) + (g.id === S.me ? ' (אני)' : '') + '</option>').join('') + '</optgroup>'
     + (me ? '<optgroup label="רשימה אישית"><option value="p:' + esc(me.id) + '">' + esc(me.name) + ' (אישי)</option></optgroup>' : '') + '</select></label>';
   const amountFields = k === 'meat'
     ? '<div class="two"><label class="field"><span>סוג</span><input id="it-detail" list="dl-meat" value="' + esc(it.detail || '') + '" maxlength="30"></label><label class="field"><span>גרם</span><input id="it-grams" type="number" inputmode="numeric" min="100" step="100" value="' + esc(it.grams || '') + '"></label></div>'
@@ -2933,8 +2935,8 @@ const forms = {
   item(f) {
     const id = f.dataset.id, it = S.items.find(i => i.id === id), name = f.querySelector('#it-name').value.trim(); if (!name || !it || foreign(it)) return;
     const parts = f.querySelector('#it-list').value.split(':');
-    if (parts[1] && parts[1] !== S.me) return;
     const scope = parts[0] === 'p' ? 'p' : 'g', owner = parts[1] || null;
+    if (owner && (scope === 'p' ? owner !== S.me : !tripData().gmap[owner])) return;
     if (!same(name, it.name) || scope !== it.scope) {
       if (scope === 'g' && dupGroup(name, it.src || it.id)) { dupToast(name); return; }
       if (scope === 'p' && owner && dupPersonal(owner, name, id)) { dupToast(name); return; }
@@ -2948,10 +2950,11 @@ const forms = {
     if (un) patch.unit = un.value;
     if (k === 'meat' || k === 'salad') patch.cat = 'food';
     const pk = f.querySelector('#it-packed');
-    patch.packed = owner ? !!(pk && pk.checked) : false;
+    patch.packed = owner && owner === it.owner ? !!(pk && pk.checked) : false;
     if (patch.cat !== catOf(it)) learnCat(name, patch.cat);
     closeSheet();
     fire(Store.update(itemPath(id), patch));
+    if (owner && owner !== it.owner && owner !== S.me) toast('הועבר לרשימה של ' + tripData().gmap[owner].name);
   },
   'solo-item'(f) {
     const id = f.dataset.id, name = f.querySelector('#si-name').value.trim(); if (!name) return;
