@@ -269,6 +269,39 @@ span.chip{cursor:default}
 .tabs.two{grid-template-columns:repeat(2,1fr)}
 .tabs.four{grid-template-columns:repeat(4,1fr);gap:3px}
 .tabs.four button{font-size:13px;padding-inline:2px}
+.tabs.five{grid-template-columns:repeat(5,1fr);gap:2px;padding:4px}
+.tabs.five button{font-size:12px;padding-inline:1px;min-height:60px;border-radius:15px}
+.tabs.five button svg{width:20px;height:20px}
+.meals-edit{margin-inline-start:auto}
+.meal-day{display:flex;flex-direction:column;gap:10px}
+.meal-day+.meal-day{margin-top:18px}
+.meal-day-h{margin:0;font-family:var(--f-display);font-size:17px;font-weight:600}
+.meal{background:var(--bg);border-radius:var(--r-md);padding:10px 12px}
+.meal-h{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:36px}
+.meal-t{margin:0;font-size:15.5px;font-weight:700}
+.meal-h .btn.sm{min-height:32px;padding:0 12px;font-size:14px}
+.dishes{list-style:none;margin:6px 0 0;padding:0}
+.dish{display:flex;align-items:center;gap:10px;padding-block:8px;border-top:1px solid var(--line)}
+.dish-main{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:start}
+.dish-name{font-weight:700;font-size:16px}
+.dish-items{font-size:13px;color:var(--muted);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dish .who{flex:none}
+.dish .btn.sm{flex:none;min-height:32px;padding:0 12px;font-size:14px}
+.meal-grid{display:flex;flex-direction:column;gap:10px}
+.mg-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.mg-day{font-weight:700;font-size:15px}
+.mg-slots{display:flex;gap:6px}
+.mg-chip{position:relative}
+.mg-chip input{position:absolute;opacity:0;width:1px;height:1px;min-height:0}
+.mg-chip span{display:inline-flex;align-items:center;min-height:38px;padding:0 14px;border-radius:999px;background:var(--sunk);color:var(--muted);font-weight:600;font-size:15px;cursor:pointer}
+.mg-chip input:checked+span{background:var(--accent);color:var(--accent-ink)}
+.mg-chip input:focus-visible+span{outline:2.5px solid var(--ring)}
+.dish-ideas{margin-top:-4px}
+.bchip.on{border-style:solid;background:var(--accent)}
+button.gchip small{font-size:12.5px;font-weight:600;opacity:.65;margin-inline-start:5px}
+.cat-pill.dish-pill{gap:6px}
+.cat-pill.dish-pill small{font-weight:500;opacity:.7;font-size:12.5px}
+span.item-main{cursor:default}
 .tabs button{min-height:42px;border-radius:17px;font-family:var(--f-display);font-weight:500;font-size:14.5px;line-height:1.15;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:5px;color:var(--muted);padding-inline:4px;transition:background .18s,color .18s}
 .tabs button[aria-selected="true"]{background:var(--accent-soft);color:var(--accent-ink);font-weight:700}
 .tabs:not(.two) button{flex-direction:column;gap:4px;min-height:62px;font-size:14px}
@@ -649,6 +682,7 @@ const ICON = {
   gear:'<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.5A7.5 7.5 0 0 0 7 6.5l-2.4-1-2 3.4 2 1.6a7.6 7.6 0 0 0 0 3l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 2.6 1.5l.4 2.5h4l.4-2.5a7.5 7.5 0 0 0 2.6-1.5l2.4 1 2-3.4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
   search:'<svg width="17" height="17" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.7" cy="8.7" r="5.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.2 4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   up:'<svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 12l5-5 5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  tmeals:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5v6.2M4.8 3.5v4.4a2.2 2.2 0 0 0 4.4 0V3.5M7 9.9v10.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.2 20.5V3.6c-2.3.7-3.8 3.4-3.8 7v2.6h3.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   tshop:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 4.5h2.3l2 10.2a1.6 1.6 0 0 0 1.6 1.3h7.3a1.6 1.6 0 0 0 1.6-1.2l1.4-6.3H6.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="19.5" r="1.4" fill="currentColor"/><circle cx="16.8" cy="19.5" r="1.4" fill="currentColor"/></svg>',
   tlist:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 9.5l1.6 1.6L12.6 8M8 15h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   tmine:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 19.5c1-3.6 3.8-5.4 7-5.4s6 1.8 7 5.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
@@ -832,14 +866,15 @@ const S = {af: {},
   view: 'home', events: [], templates: [], solos: [], eventsLoaded: false, templatesLoaded: false, solosLoaded: false,
   tripId: null, guests: [], items: [], expenses: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false,
   soloId: null, soloItems: [], soloItemsLoaded: false,
-  tab: ['people', 'shop', 'mine'].includes(lsGet('tab')) ? lsGet('tab') : 'group', cover: null, filter: 'all', soloFilter: 'all', bankOpen: null, homeTab: lsGet('htab') === 'money' ? 'money' : 'lists',
+  tab: ['people', 'meals', 'shop', 'mine'].includes(lsGet('tab')) ? lsGet('tab') : 'group', cover: null, filter: 'all', soloFilter: 'all', bankOpen: null, homeTab: lsGet('htab') === 'money' ? 'money' : 'lists',
   tplId: null, q: '', me: null, lastCat: CAT[lsGet('cat')] ? lsGet('cat') : 'general',
   deep: window.MM_DEEP || ''
 };
 let preTpl = null, ntMe = '', ntGuests = [], afterPick = null, viewUnsubs = [], undoStack = [];
 const tripSoloCache = {};
 let Assets = null, mineUnsub = null;
-const TABS = ['group', 'people', 'shop', 'mine'];
+const ALL_TABS = ['group', 'people', 'meals', 'shop', 'mine'];
+let TABS = ALL_TABS.filter(t => t !== 'meals');
 /* The one sound left in the app: "שולם" when a debt is settled — a festive cash register. */
 const PAID_SOUND = 'register';
 let AC = null;
@@ -1357,6 +1392,9 @@ function shellTrip() {
     + '<div class="col-head"><h2 class="label">מי מביא מה</h2><div class="viewbar"><span class="view-lbl">תצוגה:</span><div class="seg" id="r-pfilter"></div></div>' + searchBtn() + '</div>'
     + '<div id="r-lanes" class="lanes"></div>'
     + '</div></section>'
+    + '<section class="col" id="col-meals"><div class="panel col-panel">'
+    + '<div class="col-head"><h2 class="label">ארוחות</h2>' + (ro ? '' : '<button type="button" class="btn sm meals-edit" data-act="meals-plan">בחירת ארוחות</button>') + '</div>'
+    + '<div id="r-meals"></div></div></section>'
     + '<section class="col" id="col-shop"><div class="panel col-panel">'
     + '<div class="col-head"><h2 class="label">קניות</h2></div>'
     + '<div id="r-shprog" class="prog-slot"></div><div id="r-shop"></div></div></section>'
@@ -1402,10 +1440,194 @@ function personalDblRow(i, T) {
 }
 // The shared list's missing items, as they look in the shared list
 function missingHTML(T) { const f = S.filter; S.filter = 'need'; try { return groupHTML(T); } finally { S.filter = f; } }
+/* ---------- Meals: which meals to plan, the dishes in each, their ingredients and who brings them ----------
+   The event keeps meals = {on, plan: ['0b', '0l', '1d', …]} (day index + slot). Each dish is
+   events/<id>/dishes/<did> = {day, slot, name, owner, items: [{n, a, got}], created, pos}. */
+const SLOTS = [['b', 'ארוחת בוקר', 'בוקר'], ['l', 'ארוחת צהריים', 'צהריים'], ['d', 'ארוחת ערב', 'ערב']];
+const SLOT = Object.fromEntries(SLOTS.map(x => [x[0], x]));
+// Ingredient spec: "name", "name:2n" (2 per person), "name:150g" (grams per person), "name:=text" (as written)
+const DISH_TPL = {
+  'שקשוקה': ['ביצים:2n', 'עגבניות:150g', 'בצל:0.25n', 'פלפל אדום:0.25n', 'שום', 'רסק עגבניות:=1 קופסה', 'פפריקה', 'כמון', 'שמן זית', 'מלח', 'לחם:0.25n'],
+  'סלט ירקות': ['עגבניות:100g', 'מלפפונים:100g', 'בצל:0.15n', 'פלפל:0.2n', 'לימון:0.2n', 'שמן זית', 'מלח'],
+  'חביתות': ['ביצים:2n', 'חלב', 'שמן', 'מלח', 'פטרוזיליה'],
+  'לחם וממרחים': ['לחם:0.25n', 'חמאה', 'ריבה', 'שוקולד למריחה', 'טחינה'],
+  'גבינות': ['גבינה לבנה:=2 גביעים', 'קוטג׳:0.25n', 'גבינה צהובה:40g', 'זיתים', 'ירקות חתוכים'],
+  'יוגורט וגרנולה': ['יוגורט:1n', 'גרנולה:50g', 'פירות', 'דבש'],
+  'פנקייק': ['קמח:60g', 'ביצים:0.5n', 'חלב:=1 ליטר', 'סוכר', 'אבקת אפייה', 'שמן', 'סילאן או מייפל'],
+  'טוסטים': ['לחם טוסט:0.2n', 'גבינה צהובה:60g', 'חמאה', 'רוטב פיצה', 'זיתים'],
+  'קפה ותה': ['קפה', 'תה', 'סוכר', 'חלב:=2 ליטר'],
+  'כריכים': ['לחם:0.25n', 'טונה:0.5n', 'ביצים:1n', 'מלפפונים', 'עגבניות', 'ממרחים'],
+  'פסטה': ['פסטה:120g', 'רסק עגבניות:=2 קופסאות', 'בצל:0.25n', 'שום', 'גבינה מגוררת:30g', 'שמן זית', 'מלח'],
+  'סלט טונה': ['טונה:0.5n', 'תירס:=1 קופסה', 'מלפפון חמוץ', 'מיונז', 'בצל'],
+  'חומוס ופיתות': ['חומוס:100g', 'פיתות:2n', 'טחינה', 'עגבניות', 'מלפפונים', 'בצל'],
+  'טורטיות': ['טורטיות:2n', 'חזה עוף:150g', 'פלפלים:0.25n', 'בצל:0.25n', 'גבינה מגוררת:30g', 'סלסה'],
+  'על האש': ['בשר למנגל:350g', 'לחמניות:1.5n', 'פחמים:=שק אחד', 'טחינה', 'חומוס', 'ירקות לסלט', 'מלח גס'],
+  'פויקה': ['עוף:250g', 'תפוחי אדמה:1n', 'גזר:1n', 'בצל:0.5n', 'שום', 'תבלינים', 'רוטב עגבניות'],
+  'שיפודי עוף': ['חזה עוף:200g', 'פלפלים:0.3n', 'בצל:0.25n', 'תיבול לעוף', 'שיפודים', 'פיתות:1n'],
+  'תפוחי אדמה בגחלים': ['תפוחי אדמה:1n', 'נייר כסף', 'חמאה', 'מלח גס', 'שמנת חמוצה'],
+  'מרק עדשים': ['עדשים כתומות:60g', 'גזר:0.5n', 'בצל:0.25n', 'תפוחי אדמה:0.5n', 'כמון', 'אבקת מרק']
+};
+const DISH_IDEAS = {
+  b: ['שקשוקה', 'סלט ירקות', 'חביתות', 'לחם וממרחים', 'גבינות', 'יוגורט וגרנולה', 'פנקייק', 'טוסטים', 'קפה ותה'],
+  l: ['כריכים', 'פסטה', 'סלט טונה', 'חומוס ופיתות', 'טורטיות', 'סלט ירקות'],
+  d: ['על האש', 'פויקה', 'פסטה', 'שיפודי עוף', 'תפוחי אדמה בגחלים', 'מרק עדשים', 'סלט ירקות']
+};
+const mealsOn = ev => !!(ev && ev.meals && ev.meals.on);
+const mealPlan = ev => (mealsOn(ev) && Array.isArray(ev.meals.plan) ? ev.meals.plan.filter(x => typeof x === 'string') : []);
+function mealDayCount(ev) {
+  const a = parseD(ev && ev.date), b = parseD(ev && ev.end);
+  if (!a || !b) return 1;
+  return Math.max(1, Math.min(14, Math.round((b - a) / 864e5) + 1));
+}
+function mealDayLabel(ev, i) {
+  const a = parseD(ev && ev.date);
+  if (!a) return mealDayCount(ev) > 1 ? 'יום ' + (i + 1) : '';
+  const d = new Date(a.getFullYear(), a.getMonth(), a.getDate() + i);
+  return 'יום ' + DOW[d.getDay()] + ' · ' + d.getDate() + '.' + (d.getMonth() + 1);
+}
+function defaultMealPlan(ev) {
+  const n = mealDayCount(ev), out = [];
+  if (n === 1) return ['0l', '0d'];
+  for (let i = 0; i < n; i++) (i === 0 ? ['l', 'd'] : i === n - 1 ? ['b', 'l'] : ['b', 'l', 'd']).forEach(k => out.push(i + k));
+  return out;
+}
+const mealName = (ev, day, slot) => [SLOT[slot] ? SLOT[slot][1] : '', mealDayLabel(ev, day)].filter(Boolean).join(' · ');
+const dishPath = id => 'events/' + S.tripId + '/dishes/' + id;
+const dishItems = d => (Array.isArray(d.items) ? d.items : []).filter(x => x && typeof x.n === 'string' && x.n.trim());
+const mealPeople = T => Math.max(1, T.guests.length || Number(T.ev && T.ev.meatPeople) || 1);
+function tplAmount(spec, people) {
+  if (!spec) return '';
+  if (spec[0] === '=') return spec.slice(1);
+  const m = spec.match(/^([\d.]+)([ng])$/); if (!m) return '';
+  const v = Number(m[1]) * people;
+  return m[2] === 'g' ? fmtG(Math.max(50, Math.round(v / 50) * 50)) : String(Math.max(1, Math.ceil(v)));
+}
+function dishTemplate(name, people) {
+  const key = Object.keys(DISH_TPL).find(k => same(k, name)); if (!key) return null;
+  return DISH_TPL[key].map(x => { const i = x.indexOf(':'); return {n: i < 0 ? x : x.slice(0, i), a: i < 0 ? '' : tplAmount(x.slice(i + 1), people), got: false}; });
+}
+function mealsHTML(T) {
+  const ev = T.ev, plan = mealPlan(ev);
+  if (!S.dishesLoaded) return '<p class="muted pad">נטען…</p>';
+  if (!plan.length) return '<p class="empty-in">' + (S.readOnly ? 'אין ארוחות' : '<button class="link" data-act="meals-plan">בחירת ארוחות</button>') + '</p>';
+  const n = mealDayCount(ev);
+  let out = '';
+  for (let di = 0; di < n; di++) {
+    const slots = SLOTS.filter(([k]) => plan.includes(di + k)); if (!slots.length) continue;
+    const lbl = mealDayLabel(ev, di);
+    out += '<section class="meal-day">' + (lbl ? '<h3 class="meal-day-h">' + esc(lbl) + '</h3>' : '') + slots.map(([k, title]) => mealCard(T, di, k, title)).join('') + '</section>';
+  }
+  return out || '<p class="empty-in">אין ארוחות</p>';
+}
+function mealCard(T, di, k, title) {
+  const ds = S.dishes.filter(d => d.day === di && d.slot === k).sort((a, b) => posOf(a) - posOf(b));
+  return '<div class="meal"><div class="meal-h"><h4 class="meal-t">' + title + '</h4>' + (S.readOnly ? '' : '<button type="button" class="btn sm" data-dish-new="' + di + k + '">+ מנה</button>') + '</div>'
+    + (ds.length ? '<ul class="dishes">' + ds.map(d => dishRow(T, d)).join('') + '</ul>' : '') + '</div>';
+}
+function dishRow(T, d) {
+  const g = d.owner && T.gmap[d.owner], items = dishItems(d), ro = S.readOnly;
+  return '<li class="dish"><button class="dish-main" data-dish="' + esc(d.id) + '"' + (ro ? ' disabled' : '') + '><span class="dish-name">' + esc(d.name) + '</span>'
+    + (items.length ? '<span class="dish-items">' + esc(items.map(x => x.n + (x.a ? ' ' + x.a : '')).join(' · ')) + '</span>' : '') + '</button>'
+    + (g ? '<button class="who' + (g.id === S.me ? ' mine' : '') + '" data-dish="' + esc(d.id) + '"' + (ro ? ' disabled' : '') + '>' + av(g, 'xs') + '<span class="who-name">' + esc(g.name) + '</span></button>'
+      : (ro ? '' : '<button type="button" class="btn sm" data-dish-take="' + esc(d.id) + '">אני מביא</button>'))
+    + '</li>';
+}
+// Which meals to plan: a row per day, a chip per meal
+function openMealsSheet() {
+  const T = tripData(), ev = T.ev; if (!ev || S.readOnly) return;
+  const plan = mealsOn(ev) && Array.isArray(ev.meals.plan) ? mealPlan(ev) : defaultMealPlan(ev), n = mealDayCount(ev);
+  let rows = '';
+  for (let i = 0; i < n; i++) {
+    rows += '<div class="mg-row">' + (n > 1 || parseD(ev.date) ? '<span class="mg-day">' + esc(mealDayLabel(ev, i)) + '</span>' : '')
+      + '<div class="mg-slots">' + SLOTS.map(([k, , short]) => '<label class="mg-chip"><input type="checkbox" name="mp" value="' + i + k + '"' + (plan.includes(i + k) ? ' checked' : '') + '><span>' + short + '</span></label>').join('') + '</div></div>';
+  }
+  openSheet('<form class="stack-form" data-form="meals" autocomplete="off"><h2 class="sheet-title">אילו ארוחות לתכנן?</h2><div class="meal-grid">' + rows + '</div>' + sheetActions('', 'שמירה') + '</form>');
+}
+// One dish: name (with ideas for this meal), who brings it, and its ingredients
+let dishDraft = null;
+function openDishSheet(id, day, slot) {
+  if (S.readOnly) return;
+  const T = tripData(), d = id ? S.dishes.find(x => x.id === id) : null; if (id && !d) return;
+  dishDraft = {id: id || null, day: d ? d.day : day, slot: d ? d.slot : slot, items: d ? dishItems(d).map(x => Object.assign({}, x)) : []};
+  const people = [...T.guests].sort((a, b) => (b.id === S.me) - (a.id === S.me)), owner = d ? d.owner || '' : '';
+  const ideas = d ? '' : '<div class="chip-list dish-ideas">' + (DISH_IDEAS[dishDraft.slot] || []).filter(n => !S.dishes.some(x => x.day === dishDraft.day && x.slot === dishDraft.slot && same(x.name, n))).map(n => '<button type="button" class="bchip" data-dsug="' + esc(n) + '">' + esc(n) + '</button>').join('') + '</div>';
+  openSheet('<form class="stack-form" data-form="dish" autocomplete="off">'
+    + '<h2 class="sheet-title">' + esc(mealName(T.ev, dishDraft.day, dishDraft.slot)) + '</h2>'
+    + ideas
+    + '<label class="field"><span>מנה</span><input id="dd-name" maxlength="60" required value="' + esc(d ? d.name : '') + '" placeholder="למשל שקשוקה"></label>'
+    + '<label class="field"><span>מי מביא</span><select id="dd-owner"><option value=""' + (owner ? '' : ' selected') + '>עוד לא נקבע</option>' + people.map(g => '<option value="' + esc(g.id) + '"' + (g.id === owner ? ' selected' : '') + '>' + esc(g.name) + (g.id === S.me ? ' (אני)' : '') + '</option>').join('') + '</select></label>'
+    + '<div class="field"><span>מצרכים</span><div class="guest-chips" id="dd-items"></div><div class="add-row"><input class="grow" id="dd-new" maxlength="60" placeholder="הוספת מצרך" aria-label="הוספת מצרך"><button type="button" class="btn" data-act="dd-add">הוספה</button></div></div>'
+    + sheetActions(d ? '<button type="button" class="btn danger" data-confirm="delete-dish" data-id="' + esc(d.id) + '">מחיקה</button>' : '', d ? 'שמירה' : 'הוספה')
+    + '</form>', root => {
+      renderDishItems();
+      const nm = root.querySelector('#dd-name');
+      nm.addEventListener('change', () => { if (!dishDraft.items.length) { const t = dishTemplate(nm.value.trim(), mealPeople(tripData())); if (t) { dishDraft.items = t; renderDishItems(); } } });
+    });
+}
+function renderDishItems() {
+  const box = byId('dd-items'); if (!box || !dishDraft) return;
+  box.innerHTML = dishDraft.items.map((x, i) => '<button type="button" class="gchip" data-di-rm="' + i + '" aria-label="הסרת ' + esc(x.n) + '">' + esc(x.n) + (x.a ? '<small>' + esc(x.a) + '</small>' : '') + '<span class="gx">' + ICON.x + '</span></button>').join('');
+}
+function dishAddItem() {
+  const inp = byId('dd-new'); if (!inp || !dishDraft) return;
+  inp.value.split(',').map(v => v.trim()).filter(Boolean).forEach(v => {
+    const m = v.match(/^(.+?)\s+(\d[\d.,]*(?:\s*\S+)?)$/), n = (m ? m[1] : v).slice(0, 40), a = m ? m[2].slice(0, 20) : '';
+    if (!dishDraft.items.some(x => same(x.n, n))) dishDraft.items.push({n, a, got: false});
+  });
+  inp.value = ''; inp.focus(); renderDishItems();
+}
+function dishPick(name) {
+  const nm = byId('dd-name'); if (!nm || !dishDraft) return;
+  nm.value = name;
+  dishDraft.items = dishTemplate(name, mealPeople(tripData())) || [];
+  renderDishItems();
+  document.querySelectorAll('.dish-ideas .bchip').forEach(b => b.classList.toggle('on', b.dataset.dsug === name));
+}
+function saveDish(f) {
+  if (!dishDraft) return;
+  const name = f.querySelector('#dd-name').value.trim(); if (!name) return;
+  if (byId('dd-new') && byId('dd-new').value.trim()) dishAddItem();
+  const owner = f.querySelector('#dd-owner').value || null, d = dishDraft.id ? S.dishes.find(x => x.id === dishDraft.id) : null;
+  const items = dishDraft.items.map(x => ({n: x.n, a: x.a || '', got: !!(x.got && d && d.owner === owner)}));
+  const doc = {name: name.slice(0, 60), owner, items};
+  closeSheet();
+  if (d) fire(Store.update(dishPath(d.id), doc));
+  else { const id = uid('d'); fire(Store.set(dishPath(id), Object.assign({day: dishDraft.day, slot: dishDraft.slot, created: Date.now()}, doc))); }
+  if (owner && owner === S.me && (!d || d.owner !== owner) && items.length) toast('המצרכים נוספו לקניות שלך');
+  dishDraft = null;
+}
+function takeDish(id) {
+  if (S.readOnly || !needMe(() => takeDish(id))) return;
+  const d = S.dishes.find(x => x.id === id); if (!d) return;
+  sfx('check');
+  fire(Store.update(dishPath(id), {owner: S.me, items: dishItems(d).map(x => Object.assign({}, x, {got: false}))}));
+  toast(d.name + ' אצלך' + (dishItems(d).length ? ' · המצרכים בקניות' : ''));
+}
+function toggleIngredient(spec) {
+  const [id, idx] = spec.split('|'), d = S.dishes.find(x => x.id === id); if (!d || d.owner !== S.me) return;
+  const items = dishItems(d).map(x => Object.assign({}, x)), it = items[Number(idx)]; if (!it) return;
+  it.got = !it.got; sfx(it.got ? 'check' : 'uncheck');
+  fire(Store.update(dishPath(id), {items}));
+}
+// In the shopping tab: the ingredients of the dishes I bring, one block per dish
+function shopDishesHTML(T, dishes) {
+  return dishes.map(d => {
+    const items = dishItems(d); if (!items.length) return '';
+    return '<div class="cat"><div class="cat-head"><span class="cat-pill dish-pill">' + esc(d.name) + '<small>' + esc(mealName(T.ev, d.day, d.slot)) + '</small></span><span class="cat-count">' + items.filter(x => x.got).length + '/' + items.length + '</span></div><ul class="items">'
+      + items.map((x, i) => ({x, i})).sort((a, b) => (!!a.x.got - !!b.x.got) || a.i - b.i).map(({x, i}) => '<li class="item' + (x.got ? ' packed' : '') + '"><button class="pk' + (x.got ? ' on' : '') + '" data-ding="' + esc(d.id + '|' + i) + '" aria-pressed="' + !!x.got + '" aria-label="נקנה: ' + esc(x.n) + '"' + (S.readOnly ? ' disabled' : '') + '>' + ICON.check + '</button><span class="item-main"><span class="item-name">' + esc(x.n) + '</span>' + (x.a ? '<span class="qty">' + esc(x.a) + '</span>' : '') + '</span></li>').join('')
+      + '</ul></div>';
+  }).join('');
+}
+// In מי מביא מה: the dishes each person brings
+function laneDishesHTML(T, gid) {
+  const ds = S.dishes.filter(d => d.owner === gid).sort((a, b) => (a.day - b.day) || ('bld'.indexOf(a.slot) - 'bld'.indexOf(b.slot)));
+  if (!ds.length || !mealsOn(T.ev)) return '';
+  return '<div class="lane-cat"><span class="cat-pill dish-pill">ארוחות</span><ul class="items">' + ds.map(d => '<li class="item"><span class="cbox ghost" aria-hidden="true"></span><button class="item-main" data-dish="' + esc(d.id) + '"' + (S.readOnly ? ' disabled' : '') + '><span class="item-name">' + esc(d.name) + '</span><span class="qty">' + esc(mealName(T.ev, d.day, d.slot)) + '</span></button></li>').join('') + '</ul></div>';
+}
 // My shopping list: what I said I'd bring and still need to buy, by category; bought ones sink to the bottom
 function shopHTML(list) {
   if (!S.itemsLoaded) return '<p class="muted pad">נטען…</p>';
-  if (!list.length) return '<p class="empty-in">אין מה לקנות</p>';
+  if (!list.length) return S.dishes.some(d => d.owner === S.me && dishItems(d).length) ? '' : '<p class="empty-in">אין מה לקנות</p>';
   return CATS.map(c => {
     const xs = list.filter(i => catOf(i) === c.id).sort((a, b) => (!!a.bought - !!b.bought) || posOf(a) - posOf(b)); if (!xs.length) return '';
     return '<div class="cat"><div class="cat-head">' + catPill(c) + '<span class="cat-count">' + xs.filter(i => i.bought).length + '/' + xs.length + '</span></div><ul class="items">' + xs.map(shopRow).join('') + '</ul></div>';
@@ -1486,7 +1708,8 @@ function lane(g, T) {
     + '</header>'
     + (mine.length ? '<div class="bar thin"><i style="width:' + Math.round(pk / mine.length * 100) + '%"></i></div>' : '')
     + CATS.map(c => { const ls = shown.filter(i => catOf(i) === c.id).sort((a, b) => posOf(a) - posOf(b)); if (!ls.length) return ''; return '<div class="lane-cat">' + catPill(c, 'span') + '<ul class="items" data-cat="' + esc(c.id) + '">' + ls.map(i => laneRow(i, T)).join('') + '</ul></div>'; }).join('')
-    + (mine.length ? '' : '<p class="lane-empty">אין פריטים</p>')
+    + laneDishesHTML(T, g.id)
+    + (mine.length || S.dishes.some(d => d.owner === g.id) ? '' : '<p class="lane-empty">אין פריטים</p>')
     + '</article>';
 }
 function moneyHTML(T) {
@@ -1577,12 +1800,15 @@ function updateTrip() {
 
 
   if (S.filter === 'dbl' && !T.dblCount) S.filter = 'need';
+  TABS = ALL_TABS.filter(t => t !== 'meals' || mealsOn(ev));
   if (!TABS.includes(S.tab)) S.tab = 'group';
   const hn = byId('r-hnote'); if (hn) hn.classList.toggle('show', S.tab === 'mine' || window.innerWidth >= 960);
-  const tabLabel = {group: 'רשימה משותפת', mine: 'רשימה אישית', people: 'מי מביא מה', shop: 'קניות'};
-  const tabIcon = {group: ICON.tlist, mine: ICON.tmine, people: ICON.tpeople, shop: ICON.tshop};
+  const tabLabel = {group: 'רשימה משותפת', mine: 'רשימה אישית', people: 'מי מביא מה', meals: 'ארוחות', shop: 'קניות'};
+  const tabIcon = {group: ICON.tlist, mine: ICON.tmine, people: ICON.tpeople, meals: ICON.tmeals, shop: ICON.tshop};
+  byId('r-tabs').className = 'tabs ' + (TABS.length === 5 ? 'five' : 'four');
   byId('r-tabs').innerHTML = TABS.map(t => '<button role="tab" class="tab-' + t + '" aria-selected="' + (S.tab === t) + '" data-tab="' + t + '">' + tabIcon[t] + '<span>' + tabLabel[t] + '</span></button>').join('');
-  TABS.forEach(t => byId('col-' + t).classList.toggle('on', S.tab === t));
+  ALL_TABS.forEach(t => byId('col-' + t).classList.toggle('on', S.tab === t));
+  byId('r-meals').innerHTML = mealsOn(ev) ? mealsHTML(T) : '';
   const mItems = S.soloId ? S.soloItems : [];
   byId('r-pfilter').innerHTML = '<button aria-pressed="' + (S.pfilter !== 'open') + '" data-pfilter="all">הכול</button><button aria-pressed="' + (S.pfilter === 'open') + '" data-pfilter="open">מה חסר</button>';
   byId('af-mine').hidden = !soloBase();
@@ -1595,8 +1821,10 @@ function updateTrip() {
   const ess = byId('r-ess'); if (ess) ess.innerHTML = essHTML(T);
   const eg = byId('eg-chips'); if (eg) eg.innerHTML = egChips();
   const toBuy = T.items.filter(i => i.buy && S.me && i.owner === S.me);
-  byId('r-shprog').innerHTML = S.itemsLoaded ? progHTML(toBuy.filter(i => i.bought).length, toBuy.length, 'נקנו', 'הכול נקנה') : '';
-  byId('r-shop').innerHTML = shopHTML(toBuy);
+  const myDishes = mealsOn(ev) && S.me ? S.dishes.filter(d => d.owner === S.me && dishItems(d).length).sort((a, b) => (a.day - b.day) || ('bld'.indexOf(a.slot) - 'bld'.indexOf(b.slot))) : [];
+  const ingr = myDishes.reduce((a, d) => a.concat(dishItems(d)), []);
+  byId('r-shprog').innerHTML = S.itemsLoaded ? progHTML(toBuy.filter(i => i.bought).length + ingr.filter(x => x.got).length, toBuy.length + ingr.length, 'נקנו', 'הכול נקנה') : '';
+  byId('r-shop').innerHTML = toBuy.length || !myDishes.length ? shopHTML(toBuy) + shopDishesHTML(T, myDishes) : shopDishesHTML(T, myDishes);
 
   const lanesEl = byId('r-lanes');
   if (!S.guestsLoaded) lanesEl.innerHTML = '<p class="muted">נטען…</p>';
@@ -1851,12 +2079,13 @@ function coverSrc(d) {
 function openTrip(id) {
   stopView();
   if (S.tripId !== id) undoStack = [];
-  Object.assign(S, {view: 'trip', q: '', pbOpen: null, pfilter: 'all', tripId: id, soloId: null, soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
+  Object.assign(S, {view: 'trip', q: '', pbOpen: null, pfilter: 'all', tripId: id, soloId: null, soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
   linkTripSolo();
   viewUnsubs.push(Store.sub('events/' + id + '/media', l => { if (S.tripId !== id) return; S.cover = coverSrc(l.find(d => d.id === 'cover')); render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/guests', l => { if (S.tripId !== id) return; S.guests = l; S.guestsLoaded = true; render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/items', l => { if (S.tripId !== id) return; S.items = l; S.itemsLoaded = true; render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/expenses', l => { if (S.tripId !== id) return; S.expenses = l; S.expensesLoaded = true; render(); }));
+  viewUnsubs.push(Store.sub('events/' + id + '/dishes', l => { if (S.tripId !== id) return; S.dishes = l; S.dishesLoaded = true; render(); }));
   render(); window.scrollTo(0, 0);
 }
 function openMoney(id) {
@@ -2271,6 +2500,7 @@ function openTripSheet(edit) {
     + '<label class="field"><span>שם האירוע</span><input id="tf-name" maxlength="60" required value="' + esc(ev ? ev.name : '') + '"></label>'
     + (edit ? guestEditField() : '')
     + dateFields(ev)
+    + '<div class="field"><span>ניהול ארוחות</span><div class="seg-radio" role="radiogroup" aria-label="ניהול ארוחות"><label><input type="radio" name="tf-meals" value="0"' + (mealsOn(ev) ? '' : ' checked') + '><span>לא</span></label><label><input type="radio" name="tf-meals" value="1"' + (mealsOn(ev) ? ' checked' : '') + '><span>כן</span></label></div></div>'
     + (edit ? themeField(ev.theme) + coverRemove() : '')
     + (edit ? '' : '<div class="field"><span>משתתפים</span><div class="guest-chips" id="tf-chips"></div><div class="add-row"><input class="grow" id="tf-guest" placeholder="הוספת שם" maxlength="200" aria-label="משתתפים"><button type="button" class="btn" data-act="tf-add-guest">הוספה</button></div></div>')
     + (edit ? '<div class="sheet-tools"><button type="button" class="btn sm" data-act="save-as-tpl">' + ICON.tlist.replace('<svg ', '<svg class="ic" ') + 'שמירה כתבנית</button><button type="button" class="btn sm danger" data-confirm="delete-trip">' + ICON.trash + 'מחיקה</button></div>' : '')
@@ -2346,7 +2576,7 @@ async function dropSolo(b, id) {
 }
 async function dropEvent(id) {
   const cv = await Store.get('events/' + id + '/media/cover').catch(() => null);
-  const ok = await deleteDeep('events/' + id, ['items', 'guests', 'expenses', 'media']);
+  const ok = await deleteDeep('events/' + id, ['items', 'guests', 'expenses', 'media', 'dishes']);
   if (ok && cv && cv.asset && Assets) Assets.delete(cv.asset).catch(() => {});
   return ok;
 }
@@ -2705,10 +2935,15 @@ async function createTrip(f) {
   const eid = uid('t'), now = Date.now();
   const guests = ntGuests.map((n, i) => ({id: uid('g'), name: n, color: i % GCOL.length, created: now + i}));
   ntGuests = []; closeSheet();
-  try { await Store.set('events/' + eid, {name, date, end, tpl: tpl ? tpl.name : '', bank, essentials, meatPeople: guests.length || 0, created: now}); } catch (e) { return; }
+  const mOn = (f.querySelector('input[name="tf-meals"]:checked') || {}).value === '1';
+  const doc = {name, date, end, tpl: tpl ? tpl.name : '', bank, essentials, meatPeople: guests.length || 0, created: now};
+  if (mOn) doc.meals = {on: true, plan: defaultMealPlan({date, end})};
+  try { await Store.set('events/' + eid, doc); } catch (e) { return; }
   const mg = ntMe ? guests.find(g => same(g.name, ntMe)) : guests[0];
   if (mg) { lsSet('me:' + eid, mg.id); lsSet('myName', mg.name); }
+  if (mOn) { S.tab = 'meals'; lsSet('tab', 'meals'); }
   openTrip(eid);
+  if (mOn) setTimeout(() => { if (S.tripId === eid) openMealsSheet(); }, 450);
   await runLimited(guests.map(g => () => Store.set('events/' + eid + '/guests/' + g.id, {name: g.name, color: g.color, created: g.created})), 4);
 }
 async function deleteTrip() {
@@ -2794,6 +3029,7 @@ function confirmBtn(t) {
     else if (k === 'delete-split') { closeSheet(); const id = S.tripId; goHome(); dropEvent(id).then(ok => { if (ok) toast('נמחק'); }); }
     else if (k === 'delete-item') { closeSheet(); if (!foreign(S.items.find(i => i.id === id))) fire(Store.del(itemPath(id))); }
     else if (k === 'delete-solo-item') { closeSheet(); fire(Store.del(soloItemPath(id))); }
+    else if (k === 'delete-dish') { closeSheet(); dishDraft = null; fire(Store.del(dishPath(id))); }
     else if (k === 'delete-exp') {
       closeSheet(); const x = S.expenses.find(e => e.id === id);
       fire(Store.del(expPath(id)).then(() => { if (x) { const path = expPath(id), old = noId(x); pushUndo(() => Store.set(path, old)); } }));
@@ -2834,6 +3070,8 @@ function act(a) {
     case 'ex-all': document.querySelectorAll('input[name="ex-among"]').forEach(c => { c.checked = true; }); return;
     case 'undo': return runUndo();
     case 'bank-all': return bankAddAll();
+    case 'meals-plan': return openMealsSheet();
+    case 'dd-add': return dishAddItem();
     case 'pb-all': return soloAddAll();
     case 'bank-toggle': { const T = tripData(); const open = S.bankOpen != null ? S.bankOpen : T.lines.length < 3; S.bankOpen = !open; render(); return; }
     case 'meat-people': return openMeatPeopleSheet();
@@ -3074,6 +3312,12 @@ document.addEventListener('click', e => {
   if (d.claim) return startClaim(d.claim);
   if (d.meat) return startMeat(d.meat);
   if (d.covered) return coveredTap(d.covered);
+  if (d.dishNew) { if (!needMe(() => openDishSheet(null, Number(d.dishNew.slice(0, -1)), d.dishNew.slice(-1)))) return; return openDishSheet(null, Number(d.dishNew.slice(0, -1)), d.dishNew.slice(-1)); }
+  if (d.dish) return openDishSheet(d.dish);
+  if (d.dishTake) return takeDish(d.dishTake);
+  if (d.dsug) return dishPick(d.dsug);
+  if (d.diRm !== undefined) { if (dishDraft) { dishDraft.items.splice(Number(d.diRm), 1); renderDishItems(); } return; }
+  if (d.ding) return toggleIngredient(d.ding);
   if (d.bought) { const it = S.items.find(i => i.id === d.bought); if (it && it.owner === S.me) { sfx(it.bought ? 'uncheck' : 'check'); fire(Store.update(itemPath(it.id), {bought: !it.bought})); } return; }
   if (d.buy) { const id = d.buy; closeSheet(); fire(Store.update(itemPath(id), {buy: true, bought: false})); toast('נוסף לקניות'); return; }
   if (d.pack) { const it = S.items.find(i => i.id === d.pack); if (it && !othersOwn(it)) sfx(it.packed ? 'uncheck' : 'check'); if (it && !othersOwn(it)) fire(Store.update(itemPath(it.id), {packed: !it.packed})); return; }
@@ -3170,11 +3414,23 @@ const forms = {
     if (gid && cb) cb();
   },
   'new-trip'(f) { createTrip(f); },
+  meals(f) {
+    const ev = tripData().ev; if (!ev) return;
+    const plan = [...f.querySelectorAll('input[name="mp"]:checked')].map(x => x.value);
+    closeSheet();
+    fire(Store.update('events/' + S.tripId, {meals: {on: true, plan}}));
+    if (S.tab !== 'meals') setTab('meals');
+  },
+  dish(f) { saveDish(f); },
   'edit-trip'(f) {
     const name = f.querySelector('#tf-name').value.trim(); if (!name) return;
     const {date, end} = readDates(f);
+    const ev = tripData().ev, mOn = (f.querySelector('input[name="tf-meals"]:checked') || {}).value === '1';
+    const patch = {name, date, end, theme: readTheme(f)};
+    if (mOn !== mealsOn(ev)) patch.meals = {on: mOn, plan: ev && ev.meals && Array.isArray(ev.meals.plan) ? ev.meals.plan : defaultMealPlan({date, end})};
     closeSheet();
-    fire(Store.update('events/' + S.tripId, {name, date, end, theme: readTheme(f)}));
+    fire(Store.update('events/' + S.tripId, patch));
+    if (mOn && !mealsOn(ev)) setTimeout(() => { setTab('meals'); openMealsSheet(); }, 350);
   },
   'new-solo'(f) { createSolo(f); },
   'edit-solo'(f) {
@@ -3328,6 +3584,7 @@ document.addEventListener('keydown', e => {
   const t = e.target;
   if (t.id === 'tf-guest') { e.preventDefault(); ntAdd(); return; }
   if (t.id === 'eg-new') { e.preventDefault(); egAdd(); return; }
+  if (t.id === 'dd-new') { e.preventDefault(); dishAddItem(); return; }
   // First Enter in an item name jumps to its quantity; Enter in the quantity submits the add form.
   const nx = t.dataset && t.dataset.next;
   if (nx) {
