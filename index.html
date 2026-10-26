@@ -2120,9 +2120,9 @@ function openItemSheet(id) {
     + amountFields
     + '<label class="field"><span>קטגוריה</span><select id="it-cat">' + catOptions(catOf(it)) + '</select></label>'
     + listField
-    + (owned && !othersOwn(it) ? '<label class="toggle"><input type="checkbox" id="it-packed"' + (it.packed ? ' checked' : '') + '><span>ארוז</span></label>' : '')
-    + (owned && it.scope !== 'p' ? '<div><button type="button" class="btn" data-putback="' + esc(id) + '">' + (k === 'meat' && (it.src || it.id) !== it.id ? 'הסרה מהרשימה שלי' : 'החזרה לרשימה המשותפת') + '</button></div>' : '')
-    + (owned ? '<div><button type="button" class="link" data-exp-item="' + esc(id) + '">+ הוצאה על הפריט</button></div>' : '')
+    + (owned ? '<div class="sheet-tools">'
+      + (it.scope !== 'p' ? '<button type="button" class="btn sm" data-putback="' + esc(id) + '">' + (k === 'meat' && (it.src || it.id) !== it.id ? 'הסרה מהרשימה שלי' : 'החזרה לרשימה המשותפת') + '</button>' : '')
+      + '<button type="button" class="btn sm" data-exp-item="' + esc(id) + '">+ הוספה להוצאות</button></div>' : '')
     + sheetActions('<button type="button" class="btn danger" data-confirm="delete-item" data-id="' + esc(id) + '">מחיקה</button>')
     + '</form>', root => { const s = root.querySelector('#it-list'); if (s) s.value = s.dataset.val; });
 }
