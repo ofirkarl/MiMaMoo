@@ -302,6 +302,17 @@ button.gchip small{font-size:12.5px;font-weight:600;opacity:.65;margin-inline-st
 .cat-pill.dish-pill{gap:6px}
 .cat-pill.dish-pill small{font-weight:500;opacity:.7;font-size:12.5px}
 span.item-main{cursor:default}
+.dish-miss{font-size:12.5px;font-weight:600;color:var(--accent-deep);line-height:1.35}
+.tk-list{display:flex;flex-direction:column;gap:2px;max-height:46vh;overflow:auto;margin-inline:-4px;padding-inline:4px}
+.tk{display:flex;align-items:center;gap:12px;min-height:46px;padding:4px 2px;border-bottom:1px solid var(--line);cursor:pointer}
+.tk input{position:absolute;opacity:0;width:1px;height:1px;min-height:0}
+.tk-box{flex:none;width:28px;height:28px;border-radius:9px;border:1.5px solid var(--line-2);display:grid;place-items:center;color:transparent;background:var(--surface)}
+.tk input:checked+.tk-box{background:var(--good-bg);border-color:var(--good-fill);color:var(--good)}
+.tk input:focus-visible+.tk-box{outline:2.5px solid var(--ring)}
+.tk-n{flex:1;font-size:16.5px;font-weight:600}
+.tk-n small{font-size:13px;font-weight:600;color:var(--muted);margin-inline-start:8px}
+.tk.taken{cursor:default;color:var(--muted)}
+.tk.taken small{margin-inline-start:auto;font-weight:600}
 .tabs button{min-height:42px;border-radius:17px;font-family:var(--f-display);font-weight:500;font-size:14.5px;line-height:1.15;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:5px;color:var(--muted);padding-inline:4px;transition:background .18s,color .18s}
 .tabs button[aria-selected="true"]{background:var(--accent-soft);color:var(--accent-ink);font-weight:700}
 .tabs:not(.two) button{flex-direction:column;gap:4px;min-height:62px;font-size:14px}
@@ -769,7 +780,7 @@ function kindOfName(name) {
   const k = meatType(name) ? 'meat' : isSaladName(name) ? 'salad' : softGeneric(name) ? 'soft' : isSixName(name) ? 'six' : '';
   kindCache.set(name, k); return k;
 }
-const kindOf = i => kindOfName(i && i.name);
+const kindOf = i => (i && i.dish ? '' : kindOfName(i && i.name));
 const isPool = i => kindOf(i) === 'meat' && !Number(i.grams) && !i.detail;
 function applyDefaults(d) {
   const k = kindOfName(d.name);
@@ -794,6 +805,7 @@ function dispName(i) {
   if (k === 'soft') return i.detail;
   return i.name + ' · ' + i.detail;
 }
+const amtHTML = i => (i.amt ? esc(i.amt) : amountHTML(i));
 function amountHTML(i) {
   const k = kindOf(i);
   if (k === 'meat') return i.grams ? esc(fmtG(i.grams)) : '<span class="ask">כמה גרם?</span>';
@@ -1210,10 +1222,10 @@ function tripData() {
   });
   const plain = k => k !== 'meat' && k !== 'salad' && k !== 'soft';
   const byName = {};
-  lines.forEach(L => { if (L.nk && plain(L.kind)) (byName[L.nk] || (byName[L.nk] = {g: 0, p: 0})).g++; });
+  lines.forEach(L => { if (L.nk && plain(L.kind) && !L.ref.dish) (byName[L.nk] || (byName[L.nk] = {g: 0, p: 0})).g++; });
   personal.forEach(i => { const k = norm(i.name); if (k && plain(kindOf(i)) && !i.detail && byName[k]) byName[k].p++; });
   const dblKey = k => { const e = k && byName[k]; return !!e && (e.g > 1 || e.p > 0); };
-  const lineDbl = L => plain(L.kind) && dblKey(L.nk);
+  const lineDbl = L => plain(L.kind) && !L.ref.dish && dblKey(L.nk);
   const itemDbl = i => { if (!plain(kindOf(i)) || i.detail) return false; return i.scope === 'p' ? !!byName[norm(i.name)] : dblKey(norm(i.name)); };
   const dblCount = Object.keys(byName).filter(dblKey).length;
   const covered = lines.filter(L => !L.needed).length;
@@ -1419,6 +1431,7 @@ function lineRow(L, T) {
     else if (L.open && L.parts.length) q = '<span class="qty"><b>' + L.openQty + '</b> חסרים מתוך ' + L.total + u + '</span>';
     else { const t = fmtQ(L.open ? L.openQty : L.total, L.unit); if (t) q = '<span class="qty">' + esc(t) + '</span>'; }
     if (T.lineDbl(L)) flag = '<span class="flag">כפילות</span>';
+    if (L.ref.dish) { if (L.ref.amt && !(L.open && L.parts.length)) q = '<span class="qty">' + esc(L.ref.amt) + '</span>'; if (L.ref.dishName) flag = '<span class="tag">ל' + esc(L.ref.dishName) + '</span>'; }
   }
   if (L.kind === 'meat' && over) flag = '<span class="flag">מעל ' + MEAT_MAX + ' גרם לראש</span>';
   const chips = L.parts.map(p => {
@@ -1494,6 +1507,44 @@ function defaultMealPlan(ev) {
 const mealName = (ev, day, slot) => [SLOT[slot] ? SLOT[slot][1] : '', mealDayLabel(ev, day)].filter(Boolean).join(' · ');
 const dishPath = id => 'events/' + S.tripId + '/dishes/' + id;
 const dishItems = d => (Array.isArray(d.items) ? d.items : []).filter(x => x && typeof x.n === 'string' && x.n.trim());
+// An ingredient the dish's bringer doesn't have goes to the shared list (x.sh = that item's id); anyone can take it there.
+const sharedOf = sh => S.items.filter(i => (i.src || i.id) === sh);
+const ownBy = d => dishItems(d).filter(x => !x.sh);
+function sendToShared(d, x) {
+  const id = uid('i'), a = String(x.a || ''), whole = /^\d+$/.test(a);
+  const doc = Object.assign(itemDoc({name: x.n, cat: guessCat(x.n), qty: whole ? Number(a) : 1, unit: '', scope: 'g', owner: null}, id), {dish: d.id, dishName: d.name});
+  if (a && !whole) doc.amt = a;
+  return {id, p: Store.set(itemPath(id), doc)};
+}
+function dropShared(sh) { sharedOf(sh).filter(i => !i.owner).forEach(i => fire(Store.del(itemPath(i.id)))); }
+function openMarkDish(id) {
+  if (S.readOnly || !needMe(() => openMarkDish(id))) return;
+  const T = tripData(), d = S.dishes.find(x => x.id === id); if (!d) return;
+  if (d.owner && d.owner !== S.me && T.gmap[d.owner]) return openDishSheet(id);
+  const items = dishItems(d); if (!items.length) return takeDish(id);
+  const rows = items.map((x, i) => {
+    const took = x.sh && sharedOf(x.sh).find(it => it.owner && T.gmap[it.owner]);
+    if (took) return '<div class="tk taken"><span class="tk-n">' + esc(x.n) + '</span><small>אצל ' + esc(T.gmap[took.owner].name) + '</small></div>';
+    return '<label class="tk"><input type="checkbox" name="tk" value="' + i + '"' + (x.sh ? '' : ' checked') + '><span class="tk-box">' + ICON.check + '</span><span class="tk-n">' + esc(x.n) + (x.a ? '<small>' + esc(x.a) + '</small>' : '') + '</span></label>';
+  }).join('');
+  openSheet('<form class="stack-form" data-form="mark-dish" data-id="' + esc(id) + '" autocomplete="off"><h2 class="sheet-title">' + esc(d.name) + '</h2>'
+    + '<p class="ask-buy">מה מזה אתה מביא? מה שלא תסמן יעבור לרשימה המשותפת</p><div class="tk-list">' + rows + '</div>'
+    + sheetActions('', 'אני מביא') + '</form>');
+}
+function markDish(f) {
+  const T = tripData(), d = S.dishes.find(x => x.id === f.dataset.id); if (!d) return;
+  const keep = new Set([...f.querySelectorAll('input[name="tk"]:checked')].map(x => Number(x.value)));
+  const items = dishItems(d).map(x => Object.assign({}, x));
+  let sent = 0;
+  items.forEach((x, i) => {
+    if (x.sh && sharedOf(x.sh).some(it => it.owner && T.gmap[it.owner])) return;  // already taken from the shared list
+    if (keep.has(i)) { if (x.sh) { dropShared(x.sh); delete x.sh; } }
+    else if (!x.sh) { const r = sendToShared(d, x); fire(r.p); x.sh = r.id; x.got = false; sent++; }
+  });
+  closeSheet();
+  fire(Store.update(dishPath(d.id), {owner: S.me, items}));
+  toast(d.name + ' אצלך' + (sent ? ' · ' + (sent === 1 ? 'מצרך אחד עבר' : sent + ' מצרכים עברו') + ' לרשימה המשותפת' : ''));
+}
 const mealPeople = T => Math.max(1, T.guests.length || Number(T.ev && T.ev.meatPeople) || 1);
 function tplAmount(spec, people) {
   if (!spec) return '';
@@ -1524,12 +1575,14 @@ function mealCard(T, di, k, title) {
   return '<div class="meal"><div class="meal-h"><h4 class="meal-t">' + title + '</h4>' + (S.readOnly ? '' : '<button type="button" class="btn sm" data-dish-new="' + di + k + '">+ מנה</button>') + '</div>'
     + (ds.length ? '<ul class="dishes">' + ds.map(d => dishRow(T, d)).join('') + '</ul>' : '') + '</div>';
 }
+const openShared = d => dishItems(d).filter(x => x.sh && !sharedOf(x.sh).some(i => i.owner));
 function dishRow(T, d) {
   const g = d.owner && T.gmap[d.owner], items = dishItems(d), ro = S.readOnly;
   return '<li class="dish"><button class="dish-main" data-dish="' + esc(d.id) + '"' + (ro ? ' disabled' : '') + '><span class="dish-name">' + esc(d.name) + '</span>'
-    + (items.length ? '<span class="dish-items">' + esc(items.map(x => x.n + (x.a ? ' ' + x.a : '')).join(' · ')) + '</span>' : '') + '</button>'
+    + (items.length ? '<span class="dish-items">' + esc(items.map(x => x.n + (x.a ? ' ' + x.a : '')).join(' · ')) + '</span>' : '')
+    + (openShared(d).length ? '<span class="dish-miss">ברשימה המשותפת: ' + esc(openShared(d).map(x => x.n).join(', ')) + '</span>' : '') + '</button>'
     + (g ? '<button class="who' + (g.id === S.me ? ' mine' : '') + '" data-dish="' + esc(d.id) + '"' + (ro ? ' disabled' : '') + '>' + av(g, 'xs') + '<span class="who-name">' + esc(g.name) + '</span></button>'
-      : (ro ? '' : '<button type="button" class="btn sm" data-dish-take="' + esc(d.id) + '">אני מביא</button>'))
+      : (ro ? '' : '<button type="button" class="btn sm" data-dish-mark="' + esc(d.id) + '">אני מביא</button>'))
     + '</li>';
 }
 // Which meals to plan: a row per day, a chip per meal
@@ -1557,6 +1610,7 @@ function openDishSheet(id, day, slot) {
     + '<label class="field"><span>מנה</span><input id="dd-name" maxlength="60" required value="' + esc(d ? d.name : '') + '" placeholder="למשל שקשוקה"></label>'
     + '<label class="field"><span>מי מביא</span><select id="dd-owner"><option value=""' + (owner ? '' : ' selected') + '>עוד לא נקבע</option>' + people.map(g => '<option value="' + esc(g.id) + '"' + (g.id === owner ? ' selected' : '') + '>' + esc(g.name) + (g.id === S.me ? ' (אני)' : '') + '</option>').join('') + '</select></label>'
     + '<div class="field"><span>מצרכים</span><div class="guest-chips" id="dd-items"></div><div class="add-row"><input class="grow" id="dd-new" maxlength="60" placeholder="הוספת מצרך" aria-label="הוספת מצרך"><button type="button" class="btn" data-act="dd-add">הוספה</button></div></div>'
+    + (d && d.owner === S.me && dishItems(d).length ? '<div class="sheet-tools"><button type="button" class="btn sm" data-dish-mark="' + esc(d.id) + '">מה אני מביא</button></div>' : '')
     + sheetActions(d ? '<button type="button" class="btn danger" data-confirm="delete-dish" data-id="' + esc(d.id) + '">מחיקה</button>' : '', d ? 'שמירה' : 'הוספה')
     + '</form>', root => {
       renderDishItems();
@@ -1588,12 +1642,17 @@ function saveDish(f) {
   const name = f.querySelector('#dd-name').value.trim(); if (!name) return;
   if (byId('dd-new') && byId('dd-new').value.trim()) dishAddItem();
   const owner = f.querySelector('#dd-owner').value || null, d = dishDraft.id ? S.dishes.find(x => x.id === dishDraft.id) : null;
-  const items = dishDraft.items.map(x => ({n: x.n, a: x.a || '', got: !!(x.got && d && d.owner === owner)}));
+  const items = dishDraft.items.map(x => Object.assign({n: x.n, a: x.a || '', got: !!(x.got && d && d.owner === owner)}, x.sh ? {sh: x.sh} : {}));
   const doc = {name: name.slice(0, 60), owner, items};
   closeSheet();
-  if (d) fire(Store.update(dishPath(d.id), doc));
+  if (d) {
+    const kept = new Set(items.filter(x => x.sh).map(x => x.sh));
+    dishItems(d).forEach(x => { if (x.sh && !kept.has(x.sh)) dropShared(x.sh); });  // a removed ingredient leaves the shared list too
+    if (doc.name !== d.name) S.items.filter(i => i.dish === d.id).forEach(i => fire(Store.update(itemPath(i.id), {dishName: doc.name})));
+    fire(Store.update(dishPath(d.id), doc));
+  }
   else { const id = uid('d'); fire(Store.set(dishPath(id), Object.assign({day: dishDraft.day, slot: dishDraft.slot, created: Date.now()}, doc))); }
-  if (owner && owner === S.me && (!d || d.owner !== owner) && items.length) toast('המצרכים נוספו לקניות שלך');
+  if (owner && owner === S.me && (!d || d.owner !== owner) && items.some(x => !x.sh)) toast('המצרכים נוספו לקניות שלך');
   dishDraft = null;
 }
 function takeDish(id) {
@@ -1612,9 +1671,9 @@ function toggleIngredient(spec) {
 // In the shopping tab: the ingredients of the dishes I bring, one block per dish
 function shopDishesHTML(T, dishes) {
   return dishes.map(d => {
-    const items = dishItems(d); if (!items.length) return '';
-    return '<div class="cat"><div class="cat-head"><span class="cat-pill dish-pill">' + esc(d.name) + '<small>' + esc(mealName(T.ev, d.day, d.slot)) + '</small></span><span class="cat-count">' + items.filter(x => x.got).length + '/' + items.length + '</span></div><ul class="items">'
-      + items.map((x, i) => ({x, i})).sort((a, b) => (!!a.x.got - !!b.x.got) || a.i - b.i).map(({x, i}) => '<li class="item' + (x.got ? ' packed' : '') + '"><button class="pk' + (x.got ? ' on' : '') + '" data-ding="' + esc(d.id + '|' + i) + '" aria-pressed="' + !!x.got + '" aria-label="נקנה: ' + esc(x.n) + '"' + (S.readOnly ? ' disabled' : '') + '>' + ICON.check + '</button><span class="item-main"><span class="item-name">' + esc(x.n) + '</span>' + (x.a ? '<span class="qty">' + esc(x.a) + '</span>' : '') + '</span></li>').join('')
+    const items = dishItems(d), mine = items.filter(x => !x.sh); if (!mine.length) return '';
+    return '<div class="cat"><div class="cat-head"><span class="cat-pill dish-pill">' + esc(d.name) + '<small>' + esc(mealName(T.ev, d.day, d.slot)) + '</small></span><span class="cat-count">' + mine.filter(x => x.got).length + '/' + mine.length + '</span></div><ul class="items">'
+      + items.map((x, i) => ({x, i})).filter(o => !o.x.sh).sort((a, b) => (!!a.x.got - !!b.x.got) || a.i - b.i).map(({x, i}) => '<li class="item' + (x.got ? ' packed' : '') + '"><button class="pk' + (x.got ? ' on' : '') + '" data-ding="' + esc(d.id + '|' + i) + '" aria-pressed="' + !!x.got + '" aria-label="נקנה: ' + esc(x.n) + '"' + (S.readOnly ? ' disabled' : '') + '>' + ICON.check + '</button><span class="item-main"><span class="item-name">' + esc(x.n) + '</span>' + (x.a ? '<span class="qty">' + esc(x.a) + '</span>' : '') + '</span></li>').join('')
       + '</ul></div>';
   }).join('');
 }
@@ -1627,14 +1686,14 @@ function laneDishesHTML(T, gid) {
 // My shopping list: what I said I'd bring and still need to buy, by category; bought ones sink to the bottom
 function shopHTML(list) {
   if (!S.itemsLoaded) return '<p class="muted pad">נטען…</p>';
-  if (!list.length) return S.dishes.some(d => d.owner === S.me && dishItems(d).length) ? '' : '<p class="empty-in">אין מה לקנות</p>';
+  if (!list.length) return S.dishes.some(d => d.owner === S.me && ownBy(d).length) ? '' : '<p class="empty-in">אין מה לקנות</p>';
   return CATS.map(c => {
     const xs = list.filter(i => catOf(i) === c.id).sort((a, b) => (!!a.bought - !!b.bought) || posOf(a) - posOf(b)); if (!xs.length) return '';
     return '<div class="cat"><div class="cat-head">' + catPill(c) + '<span class="cat-count">' + xs.filter(i => i.bought).length + '/' + xs.length + '</span></div><ul class="items">' + xs.map(shopRow).join('') + '</ul></div>';
   }).join('');
 }
 function shopRow(i) {
-  const q = amountHTML(i), ro = S.readOnly;
+  const q = amtHTML(i), ro = S.readOnly;
   return '<li class="item' + (i.bought ? ' packed' : '') + '"><button class="pk' + (i.bought ? ' on' : '') + '" data-bought="' + esc(i.id) + '" aria-pressed="' + !!i.bought + '" aria-label="נקנה: ' + esc(dispName(i)) + '"' + (ro ? ' disabled' : '') + '>' + ICON.check + '</button>'
     + '<button class="item-main" data-edit="' + esc(i.id) + '"' + (ro ? ' disabled' : '') + '><span class="item-name">' + esc(dispName(i)) + '</span>' + (q ? '<span class="qty">' + q + '</span>' : '') + '</button></li>';
 }
@@ -1689,9 +1748,9 @@ function essHTML(T) {
     + '</div>';
 }
 function laneRow(i, T) {
-  const ro = S.readOnly || foreign(i), pro = S.readOnly || othersOwn(i), q = amountHTML(i), c = catOf(i), drag = !ro && !SEL.ctx;
+  const ro = S.readOnly || foreign(i), pro = S.readOnly || othersOwn(i), q = amtHTML(i), c = catOf(i), drag = !ro && !SEL.ctx;
   return '<li class="item' + (i.packed ? ' packed' : '') + (drag ? ' has-grip' : '') + '" data-iid="' + esc(i.id) + '"><button class="pk' + (i.packed ? ' on' : '') + '" data-pack="' + esc(i.id) + '" aria-pressed="' + !!i.packed + '" aria-label="ארוז: ' + esc(dispName(i)) + '"' + (pro ? ' disabled' : '') + '>' + ICON.check + '</button>'
-    + '<button class="item-main" data-edit="' + esc(i.id) + '"' + (ro ? ' disabled' : '') + '>' + '<span class="item-name">' + esc(dispName(i)) + '</span>' + (q ? '<span class="qty">' + q + '</span>' : '') + (i.scope === 'p' ? '<span class="tag">אישי</span>' : '') + (i.buy && !i.bought ? '<span class="tag buy">לקנות</span>' : '') + (T.itemDbl(i) ? '<span class="flag">כפילות</span>' : '') + '</button>'
+    + '<button class="item-main" data-edit="' + esc(i.id) + '"' + (ro ? ' disabled' : '') + '>' + '<span class="item-name">' + esc(dispName(i)) + '</span>' + (q ? '<span class="qty">' + q + '</span>' : '') + (i.scope === 'p' ? '<span class="tag">אישי</span>' : '') + (i.buy && !i.bought ? '<span class="tag buy">לקנות</span>' : '') + (i.dishName ? '<span class="tag">ל' + esc(i.dishName) + '</span>' : '') + (T.itemDbl(i) ? '<span class="flag">כפילות</span>' : '') + '</button>'
     + (drag ? '<span class="grip" data-drag="' + esc(i.id) + '" aria-hidden="true">' + ICON.grip + '</span>' : '') + '</li>';
 }
 function lane(g, T) {
@@ -1821,8 +1880,8 @@ function updateTrip() {
   const ess = byId('r-ess'); if (ess) ess.innerHTML = essHTML(T);
   const eg = byId('eg-chips'); if (eg) eg.innerHTML = egChips();
   const toBuy = T.items.filter(i => i.buy && S.me && i.owner === S.me);
-  const myDishes = mealsOn(ev) && S.me ? S.dishes.filter(d => d.owner === S.me && dishItems(d).length).sort((a, b) => (a.day - b.day) || ('bld'.indexOf(a.slot) - 'bld'.indexOf(b.slot))) : [];
-  const ingr = myDishes.reduce((a, d) => a.concat(dishItems(d)), []);
+  const myDishes = mealsOn(ev) && S.me ? S.dishes.filter(d => d.owner === S.me && ownBy(d).length).sort((a, b) => (a.day - b.day) || ('bld'.indexOf(a.slot) - 'bld'.indexOf(b.slot))) : [];
+  const ingr = myDishes.reduce((a, d) => a.concat(ownBy(d)), []);
   byId('r-shprog').innerHTML = S.itemsLoaded ? progHTML(toBuy.filter(i => i.bought).length + ingr.filter(x => x.got).length, toBuy.length + ingr.length, 'נקנו', 'הכול נקנה') : '';
   byId('r-shop').innerHTML = toBuy.length || !myDishes.length ? shopHTML(toBuy) + shopDishesHTML(T, myDishes) : shopDishesHTML(T, myDishes);
 
@@ -3029,7 +3088,7 @@ function confirmBtn(t) {
     else if (k === 'delete-split') { closeSheet(); const id = S.tripId; goHome(); dropEvent(id).then(ok => { if (ok) toast('נמחק'); }); }
     else if (k === 'delete-item') { closeSheet(); if (!foreign(S.items.find(i => i.id === id))) fire(Store.del(itemPath(id))); }
     else if (k === 'delete-solo-item') { closeSheet(); fire(Store.del(soloItemPath(id))); }
-    else if (k === 'delete-dish') { closeSheet(); dishDraft = null; fire(Store.del(dishPath(id))); }
+    else if (k === 'delete-dish') { closeSheet(); dishDraft = null; S.items.filter(i => i.dish === id && !i.owner).forEach(i => fire(Store.del(itemPath(i.id)))); fire(Store.del(dishPath(id))); }
     else if (k === 'delete-exp') {
       closeSheet(); const x = S.expenses.find(e => e.id === id);
       fire(Store.del(expPath(id)).then(() => { if (x) { const path = expPath(id), old = noId(x); pushUndo(() => Store.set(path, old)); } }));
@@ -3315,6 +3374,7 @@ document.addEventListener('click', e => {
   if (d.dishNew) { if (!needMe(() => openDishSheet(null, Number(d.dishNew.slice(0, -1)), d.dishNew.slice(-1)))) return; return openDishSheet(null, Number(d.dishNew.slice(0, -1)), d.dishNew.slice(-1)); }
   if (d.dish) return openDishSheet(d.dish);
   if (d.dishTake) return takeDish(d.dishTake);
+  if (d.dishMark) { closeSheet(); return openMarkDish(d.dishMark); }
   if (d.dsug) return dishPick(d.dsug);
   if (d.diRm !== undefined) { if (dishDraft) { dishDraft.items.splice(Number(d.diRm), 1); renderDishItems(); } return; }
   if (d.ding) return toggleIngredient(d.ding);
@@ -3422,6 +3482,7 @@ const forms = {
     if (S.tab !== 'meals') setTab('meals');
   },
   dish(f) { saveDish(f); },
+  'mark-dish'(f) { markDish(f); },
   'edit-trip'(f) {
     const name = f.querySelector('#tf-name').value.trim(); if (!name) return;
     const {date, end} = readDates(f);
