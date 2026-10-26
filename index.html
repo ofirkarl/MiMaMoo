@@ -291,6 +291,16 @@ span.chip{cursor:default}
 .panel{background:var(--surface);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow-sm)}
 .col-panel{display:flex;flex-direction:column;gap:14px}
 .prog-slot:empty{display:none}
+.bank-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.bank-top .btn.sm{min-height:34px;padding:0 14px;font-size:14px}
+.item.has-grip{grid-template-columns:auto minmax(0,1fr) auto}
+.grip{grid-column:3;grid-row:1;align-self:center;display:grid;place-items:center;width:30px;height:36px;margin-inline-end:-6px;color:var(--muted);opacity:.55;touch-action:none;cursor:grab}
+.item.dragging{opacity:.3}
+.drag-ghost{position:fixed;z-index:90;margin:0;list-style:none;pointer-events:none;background:var(--surface);border-top:0;border-radius:14px;padding-inline:12px;box-shadow:var(--shadow);transform:scale(1.02)}
+.drop-line{position:fixed;z-index:89;display:none;height:3px;border-radius:3px;background:var(--accent-deep);pointer-events:none}
+.lane.drop-on{box-shadow:0 0 0 2px var(--accent-line),var(--shadow-sm)}
+body.is-dragging{-webkit-user-select:none;user-select:none;cursor:grabbing}
+.miss-lane{padding-top:6px}
 .af-head{display:flex;align-items:center;gap:10px;width:100%;min-height:46px;padding-inline:8px 14px;border-radius:16px;background:var(--accent-soft);color:var(--ink);font-weight:700;font-size:15.5px;text-align:start}
 .af-plus{flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent);display:grid;place-items:center;font-size:21px;font-weight:600;line-height:1}
 .af-head svg{margin-inline-start:auto;color:var(--muted);transform:rotate(90deg);transition:transform .25s}
@@ -640,6 +650,7 @@ const ICON = {
   tpeople:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="16.6" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 19c.8-3.2 3-4.8 5.5-4.8s4.7 1.6 5.5 4.8M15 14.6c2.6-.3 4.7 1.1 5.4 4.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
   trash:'<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M8 6V4.5h4V6M6 6l.7 10h6.6L14 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   pen:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16l.6-3.2L13 4.4a1.6 1.6 0 0 1 2.3 0l.3.3a1.6 1.6 0 0 1 0 2.3L7.2 15.4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>',
+  grip:'<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><g fill="currentColor"><circle cx="7.5" cy="5" r="1.6"/><circle cx="12.5" cy="5" r="1.6"/><circle cx="7.5" cy="10" r="1.6"/><circle cx="12.5" cy="10" r="1.6"/><circle cx="7.5" cy="15" r="1.6"/><circle cx="12.5" cy="15" r="1.6"/></g></svg>',
   undo:'<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M13 6.5H7.2l2.3-2.3M7.2 6.5l2.3 2.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 6.5a4.5 4.5 0 0 1 0 9H8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
   lock:'<svg width="15" height="15" viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="9" width="12" height="8.5" rx="2" fill="currentColor"/><path d="M6.8 9V6.6a3.2 3.2 0 0 1 6.4 0V9" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
   down:'<svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
@@ -1204,6 +1215,7 @@ function balances(T) {
 }
 const itemPath = id => 'events/' + S.tripId + '/items/' + id;
 // Each person edits only their own list: items owned by another participant are read-only.
+const posOf = i => typeof i.pos === 'number' ? i.pos : (Number(i.created) || 0);
 const othersOwn = i => !!(i && i.owner && i.owner !== S.me && S.guests.some(g => g.id === i.owner));
 const foreign = i => othersOwn(i) && i.scope === 'p';
 const expPath = id => 'events/' + S.tripId + '/expenses/' + id;
@@ -1341,7 +1353,7 @@ function shellTrip() {
     + '<div id="r-lanes" class="lanes"></div>'
     + '</div></section>'
     + '<section class="col" id="col-mine"><div class="panel col-panel">'
-    + '<div class="col-head"><h2 class="label">רשימה אישית</h2><div class="viewbar"><span class="view-lbl">תצוגה:</span><div class="seg" id="r-mfilter"></div></div>' + searchBtn() + '</div>'
+    + '<div class="col-head"><h2 class="label">רשימה אישית</h2>' + searchBtn() + '</div>'
     + foldOpen('mine') + '<form class="add-row" data-form="add-mine" id="mine-form" autocomplete="off">' + nameInput('am-name-' + e, 'am-qty-' + e, 'הוספת פריט') + miniStep('am-qty-' + e) + '<button class="btn primary" type="submit">הוספה</button></form>'
     + '<div id="r-ess"></div>' + foldClose + '<div id="r-mprog" class="prog-slot"></div><div id="r-mine"></div></div></section>'
     + '</main></div>';
@@ -1380,6 +1392,8 @@ function personalDblRow(i, T) {
   return '<li class="item"><span class="cbox ghost" aria-hidden="true"></span><button class="item-main" data-edit="' + esc(i.id) + '"' + (S.readOnly || foreign(i) ? ' disabled' : '') + '><span class="item-name">' + esc(i.name) + '</span><span class="flag">כפילות</span></button>'
     + '<div class="parts"><span class="who">' + av(g, 'xs') + '<span class="who-name">' + esc(g.name) + '</span></span><span class="tag">אישי</span></div></li>';
 }
+// The shared list's missing items, as they look in the shared list
+function missingHTML(T) { const f = S.filter; S.filter = 'need'; try { return groupHTML(T); } finally { S.filter = f; } }
 function groupHTML(T) {
   if (!S.itemsLoaded) return '<p class="muted pad">נטען…</p>';
   if (!T.lines.length) return '<p class="empty-in">הרשימה ריקה</p>';
@@ -1407,7 +1421,7 @@ function bankHTML(T) {
   if (!left.length) return '';
   const open = S.bankOpen != null ? S.bankOpen : T.lines.length < 3;
   const chip = b => b.i != null ? '<button class="bchip" data-bank="' + b.i + '">+ ' + esc(b.name) + '</button>' : '<button class="bchip" data-sb="' + esc(b.name) + '">+ ' + esc(b.name) + '</button>';
-  return '<div class="bank"><button class="bank-toggle" data-act="bank-toggle" aria-expanded="' + open + '">' + ICON.down + '<span>הצעות (' + left.length + ')</span></button>'
+  return '<div class="bank"><div class="bank-top"><button class="bank-toggle" data-act="bank-toggle" aria-expanded="' + open + '">' + ICON.down + '<span>הצעות (' + left.length + ')</span></button>' + (open ? '<button type="button" class="btn sm" data-act="bank-all">הוספת הכול</button>' : '') + '</div>'
     + (open ? CATS.map(c => { const ls = left.filter(b => b.cat === c.id); if (!ls.length) return ''; return '<div class="bank-cat">' + blaze(c.id) + '<div class="chip-list">' + ls.map(chip).join('') + '</div></div>'; }).join('') : '')
     + '</div>';
 }
@@ -1426,14 +1440,15 @@ function essHTML(T) {
   });
   if (!chips.length) return '';
   const D = soloData(), open = S.pbOpen != null ? S.pbOpen : D.items.length < 3;
-  return '<div class="bank"><button class="bank-toggle" data-act="pb-toggle" aria-expanded="' + open + '">' + ICON.down + '<span>הצעות (' + chips.length + ')</span></button>'
+  return '<div class="bank"><div class="bank-top"><button class="bank-toggle" data-act="pb-toggle" aria-expanded="' + open + '">' + ICON.down + '<span>הצעות (' + chips.length + ')</span></button>' + (open ? '<button type="button" class="btn sm" data-act="pb-all">הוספת הכול</button>' : '') + '</div>'
     + (open ? CATS.map(c => { const ls = chips.filter(x => x.cat === c.id); if (!ls.length) return ''; return '<div class="bank-cat">' + catMark(c) + '<div class="chip-list">' + ls.map(x => x.html).join('') + '</div></div>'; }).join('') : '')
     + '</div>';
 }
 function laneRow(i, T) {
-  const ro = S.readOnly || foreign(i), pro = S.readOnly || othersOwn(i), q = amountHTML(i), c = catOf(i);
-  return '<li class="item' + (i.packed ? ' packed' : '') + '"><button class="pk' + (i.packed ? ' on' : '') + '" data-pack="' + esc(i.id) + '" aria-pressed="' + !!i.packed + '" aria-label="ארוז: ' + esc(dispName(i)) + '"' + (pro ? ' disabled' : '') + '>' + ICON.check + '</button>'
-    + '<button class="item-main" data-edit="' + esc(i.id) + '"' + (ro ? ' disabled' : '') + '>' + '<span class="item-name">' + esc(dispName(i)) + '</span>' + (q ? '<span class="qty">' + q + '</span>' : '') + (i.scope === 'p' ? '<span class="tag">אישי</span>' : '') + (T.itemDbl(i) ? '<span class="flag">כפילות</span>' : '') + '</button></li>';
+  const ro = S.readOnly || foreign(i), pro = S.readOnly || othersOwn(i), q = amountHTML(i), c = catOf(i), drag = !ro && !SEL.ctx;
+  return '<li class="item' + (i.packed ? ' packed' : '') + (drag ? ' has-grip' : '') + '" data-iid="' + esc(i.id) + '"><button class="pk' + (i.packed ? ' on' : '') + '" data-pack="' + esc(i.id) + '" aria-pressed="' + !!i.packed + '" aria-label="ארוז: ' + esc(dispName(i)) + '"' + (pro ? ' disabled' : '') + '>' + ICON.check + '</button>'
+    + '<button class="item-main" data-edit="' + esc(i.id) + '"' + (ro ? ' disabled' : '') + '>' + '<span class="item-name">' + esc(dispName(i)) + '</span>' + (q ? '<span class="qty">' + q + '</span>' : '') + (i.scope === 'p' ? '<span class="tag">אישי</span>' : '') + (T.itemDbl(i) ? '<span class="flag">כפילות</span>' : '') + '</button>'
+    + (drag ? '<span class="grip" data-drag="' + esc(i.id) + '" aria-hidden="true">' + ICON.grip + '</span>' : '') + '</li>';
 }
 function lane(g, T) {
   const mine = T.items.filter(i => i.owner === g.id), nameHit = !!S.q && matchQ(g.name);
@@ -1443,12 +1458,12 @@ function lane(g, T) {
   const pk = mine.filter(i => i.packed).length, isMe = g.id === S.me;
   const solo = isMe && S.solos.find(l => l.tripId === S.tripId);
   const ro = S.readOnly;
-  return '<article class="lane' + (isMe ? ' is-me' : '') + (ro ? '' : selCls('people', g.id)) + '"' + (ro ? '' : selAt('people', g.id)) + '>' + (ro ? '' : selBox) + '<header class="lane-head">' + av(g, 'lg')
+  return '<article class="lane' + (isMe ? ' is-me' : '') + (ro ? '' : selCls('people', g.id)) + '" data-gid="' + esc(g.id) + '"' + (ro ? '' : selAt('people', g.id)) + '>' + (ro ? '' : selBox) + '<header class="lane-head">' + av(g, 'lg')
     + '<div class="lane-title"><h3>' + esc(g.name) + (isMe ? '<span class="you">אני</span>' : '') + '</h3>' + (mine.length ? '<p>' + pk + '/' + mine.length + ' ארוזים</p>' : '') + '</div>'
     + (solo ? '<button class="btn sm" data-tab="mine">הרשימה שלי</button>' : '')
     + '</header>'
     + (mine.length ? '<div class="bar thin"><i style="width:' + Math.round(pk / mine.length * 100) + '%"></i></div>' : '')
-    + CATS.map(c => { const ls = shown.filter(i => catOf(i) === c.id); if (!ls.length) return ''; return '<div class="lane-cat">' + catPill(c, 'span') + '<ul class="items">' + ls.map(i => laneRow(i, T)).join('') + '</ul></div>'; }).join('')
+    + CATS.map(c => { const ls = shown.filter(i => catOf(i) === c.id).sort((a, b) => posOf(a) - posOf(b)); if (!ls.length) return ''; return '<div class="lane-cat">' + catPill(c, 'span') + '<ul class="items" data-cat="' + esc(c.id) + '">' + ls.map(i => laneRow(i, T)).join('') + '</ul></div>'; }).join('')
     + (mine.length ? '' : '<p class="lane-empty">אין פריטים</p>')
     + '</article>';
 }
@@ -1547,7 +1562,6 @@ function updateTrip() {
   byId('r-tabs').innerHTML = TABS.map(t => '<button role="tab" class="tab-' + t + '" aria-selected="' + (S.tab === t) + '" data-tab="' + t + '">' + tabIcon[t] + '<span>' + tabLabel[t] + '</span></button>').join('');
   TABS.forEach(t => byId('col-' + t).classList.toggle('on', S.tab === t));
   const mItems = S.soloId ? S.soloItems : [];
-  byId('r-mfilter').innerHTML = '<button aria-pressed="' + (S.soloFilter === 'all') + '" data-sfilter="all">הכול</button><button aria-pressed="' + (S.soloFilter === 'open') + '" data-sfilter="open">מה חסר</button>';
   byId('r-pfilter').innerHTML = '<button aria-pressed="' + (S.pfilter !== 'open') + '" data-pfilter="all">הכול</button><button aria-pressed="' + (S.pfilter === 'open') + '" data-pfilter="open">מה חסר</button>';
   byId('af-mine').hidden = !soloBase();
   syncFold('group', !T.lines.length); syncFold('mine', !(S.soloId && MD.items.length));
@@ -1562,6 +1576,7 @@ function updateTrip() {
   const lanesEl = byId('r-lanes');
   if (!S.guestsLoaded) lanesEl.innerHTML = '<p class="muted">נטען…</p>';
   else if (!T.guests.length) lanesEl.innerHTML = '<p class="empty-in">אין משתתפים ' + (S.readOnly ? '' : '<button class="link" data-act="guests">הוספה</button>') + '</p>';
+  else if (S.pfilter === 'open') lanesEl.innerHTML = '<article class="lane miss-lane">' + missingHTML(T) + '</article>';
   else lanesEl.innerHTML = [...T.guests].sort((a, b) => (b.id === S.me) - (a.id === S.me)).map(g => lane(g, T)).join('') || noHits;
 }
 
@@ -1570,7 +1585,7 @@ function shellSolo() {
   return headOpen() + '<div class="wrap"><div class="trip-nav"><button class="back" data-act="home">' + ICON.back + '<span>חזרה</span></button><div class="nav-actions" id="r-solo-nav"></div></div><div id="r-head"></div></div></header>'
     + '<div id="r-body">'
     + '<main class="wrap board solo-board"><section class="col on"><div class="panel col-panel">'
-    + '<div class="col-head"><div class="viewbar"><span class="view-lbl">תצוגה:</span><div class="seg" id="r-filter"></div></div>' + searchBtn() + '</div>'
+    + '<div class="col-head">' + searchBtn() + '</div>'
     + foldOpen('solo') + '<form class="add-row" data-form="add-solo" autocomplete="off">' + nameInput('as-name', 'as-qty', 'הוספת פריט') + miniStep('as-qty') + '<button class="btn primary" type="submit">הוספה</button></form>'
     + '<div id="r-ess"></div>' + foldClose
     + '<div id="r-sprog" class="prog-slot"></div><div id="r-solo"></div></div></section></main></div>';
@@ -1593,7 +1608,6 @@ function updateSolo() {
   head.innerHTML = camHTML() + '<p class="tab-note tn-mine">' + ICON.lock + 'הרשימה גלויה רק לך</p>' + (cd ? '<p class="eyebrow">' + cd + '</p>' : '') + '<h1 class="display trip-title">' + esc(L.name || 'ללא שם') + '</h1>' + (meta ? '<p class="trip-meta">' + esc(meta) + '</p>' : '');
   byId('r-sprog').innerHTML = S.soloItemsLoaded ? progHTML(D.packed, D.items.length, 'בתיק', 'הכול בתיק') : '';
   syncFold('solo', S.soloItemsLoaded && !D.items.length);
-  byId('r-filter').innerHTML = '<button aria-pressed="' + (S.soloFilter === 'all') + '" data-sfilter="all">הכול</button><button aria-pressed="' + (S.soloFilter === 'open') + '" data-sfilter="open">מה חסר</button>';
   const re = byId('r-ess'); if (re) re.innerHTML = S.soloItemsLoaded ? essHTML(null) : '';
   const r = byId('r-solo');
   if (!S.soloItemsLoaded) { r.innerHTML = '<p class="muted pad">נטען…</p>'; return; }
@@ -2109,7 +2123,7 @@ function openItemSheet(id) {
   const listVal = it.scope === 'p' && owned ? 'p:' + it.owner : (owned ? 'g:' + it.owner : 'g:');
   // anyone in the event can take the item over: me first, then everyone else
   const people = [...T.guests].sort((a, b) => (b.id === S.me) - (a.id === S.me));
-  const listField = '<label class="field"><span>ברשימה של</span><select id="it-list" data-val="' + esc(listVal) + '"><optgroup label="משותף"><option value="g:">חסר</option><option disabled>──────────</option>' + people.map(g => '<option value="g:' + esc(g.id) + '">' + esc(g.name) + (g.id === S.me ? ' (אני)' : '') + '</option>').join('') + '</optgroup>'
+  const listField = '<label class="field"><span>ברשימה של</span><select id="it-list" data-val="' + esc(listVal) + '"><optgroup label="משותף">' + (owned ? '' : '<option value="g:" hidden>בחירת משתתף</option>') + people.map(g => '<option value="g:' + esc(g.id) + '">' + esc(g.name) + (g.id === S.me ? ' (אני)' : '') + '</option>').join('') + '</optgroup>'
     + (me ? '<optgroup label="רשימה אישית"><option value="p:' + esc(me.id) + '">' + esc(me.name) + ' (אישי)</option></optgroup>' : '') + '</select></label>';
   const amountFields = k === 'meat'
     ? '<div class="two"><label class="field"><span>סוג</span><input id="it-detail" list="dl-meat" value="' + esc(it.detail || '') + '" maxlength="30"></label><label class="field"><span>גרם</span><input id="it-grams" type="number" inputmode="numeric" min="100" step="100" value="' + esc(it.grams || '') + '"></label></div>'
@@ -2520,6 +2534,39 @@ function addGroupFlow(name, qty, cat, unit) {
   addItem(applyDefaults({name, cat, qty, unit, scope: 'g'}));
   return true;
 }
+// Every suggestion at once. Ones that need a choice first (which meat and how much, which salad or drink) stay behind.
+function bankAddAll() {
+  const T = tripData(); if (!T.ev || S.readOnly) return;
+  const seen = (T.ev.bank || []).map(b => b.name);
+  const all = (T.ev.bank || []).concat(SHARED_BANK.filter(n => !seen.some(x => same(x, n))).map(n => ({name: n, cat: guessCat(n), qty: 1, unit: ''})));
+  const pick = [], now = Date.now(); let held = 0;
+  all.forEach(b => {
+    if (!b.name || pick.some(x => same(x.name, b.name)) || dupGroup(b.name)) return;
+    if (generator(b) || kindOfName(b.name) === 'meat') { held++; return; }
+    pick.push(applyDefaults({name: b.name, cat: CAT[b.cat] ? b.cat : guessCat(b.name), qty: Q(b), unit: b.unit || undefined, scope: 'g', created: now + pick.length}));
+  });
+  if (!pick.length) { if (held) toast('ההצעות שנשארו דורשות בחירה'); return; }
+  sfx('add');
+  fire(runLimited(pick.map(d => () => { const id = uid('i'); return Store.set(itemPath(id), itemDoc(d, id)); }), 4));
+  toast('נוספו ' + pick.length + ' פריטים' + (held ? ' · ' + held + ' דורשים בחירה' : ''));
+}
+function soloAddAll() {
+  if (!soloBase()) return;
+  const T = S.view === 'trip' ? tripData() : null;
+  const ess = ((T && T.ev && T.ev.essentials) || []).map(e => ({name: e.name, qty: Q(e), cat: CAT[e.cat] ? e.cat : null}));
+  const list = [];
+  ess.concat(myBankList().map(n => ({name: n, qty: 1}))).forEach(x => {
+    if (!x.name || list.some(y => same(y.name, x.name)) || dupSolo(x.name)) return;
+    list.push({name: x.name, qty: x.qty || 1, cat: x.cat || guessCat(x.name)});
+  });
+  if (!list.length) return;
+  const now = Date.now();
+  const write = base => runLimited(list.map((x, i) => () => { const id = uid('i'); return Store.set(base + '/items/' + id, itemDoc({name: x.name, cat: x.cat, qty: x.qty, created: now + i}, id)); }), 4);
+  sfx('add');
+  if (S.view === 'trip' && !S.soloId) fire(ensureTripSolo(true).then(lid => lid ? write(soloBase() + '/' + lid) : null));
+  else fire(write(soloBase() + '/' + S.soloId));
+  toast('נוספו ' + list.length + ' פריטים');
+}
 function bankAdd(b) {
   const name = b.name, cat = CAT[b.cat] ? b.cat : 'general', k = kindOfName(name), q = Q(b), unit = b.unit || '';
   if (k === 'meat' || k === 'salad' || k === 'soft') return addGroupFlow(name, q, cat, unit);
@@ -2752,6 +2799,8 @@ function act(a) {
     case 'add-expense': return openExpenseSheet(null);
     case 'ex-all': document.querySelectorAll('input[name="ex-among"]').forEach(c => { c.checked = true; }); return;
     case 'undo': return runUndo();
+    case 'bank-all': return bankAddAll();
+    case 'pb-all': return soloAddAll();
     case 'bank-toggle': { const T = tripData(); const open = S.bankOpen != null ? S.bankOpen : T.lines.length < 3; S.bankOpen = !open; render(); return; }
     case 'meat-people': return openMeatPeopleSheet();
     case 'guests': return openGuestsSheet();
@@ -2761,10 +2810,70 @@ function act(a) {
   }
 }
 
+/* ---------- Drag items between people, and into any order (מי מביא מה) ----------
+   Grab the dots at a row's end. Dropping on another person hands the item over; the line shows where it lands
+   among the items of its category. Personal items stay with their owner and only move up or down. */
+let dg = null, dgSwallow = false;
+document.addEventListener('pointerdown', e => {
+  const h = e.target.closest('.grip[data-drag]'); if (!h || (e.button != null && e.button !== 0)) return;
+  const li = h.closest('li[data-iid]'), it = S.items.find(x => x.id === h.dataset.drag); if (!li || !it) return;
+  e.preventDefault();
+  const r = li.getBoundingClientRect(), ghost = li.cloneNode(true), line = document.createElement('div');
+  ghost.classList.add('drag-ghost'); ghost.style.width = r.width + 'px'; ghost.style.left = r.left + 'px'; ghost.style.top = r.top + 'px';
+  line.className = 'drop-line';
+  document.body.append(ghost, line);
+  li.classList.add('dragging'); document.body.classList.add('is-dragging');
+  dg = {it, li, ghost, line, dy: e.clientY - r.top, x: e.clientX, y: e.clientY, pid: e.pointerId, target: null, raf: 0};
+  try { h.setPointerCapture(e.pointerId); } catch (_) {}
+  try { navigator.vibrate && navigator.vibrate(10); } catch (_) {}
+  dragAim(); dg.raf = requestAnimationFrame(dragTick);
+});
+function dragAim() {
+  const {x, y, it} = dg;
+  dg.ghost.style.top = (y - dg.dy) + 'px';
+  const el = document.elementFromPoint(x, y), laneEl = el && el.closest('.lane[data-gid]');
+  document.querySelectorAll('.lane.drop-on').forEach(l => { if (l !== laneEl) l.classList.remove('drop-on'); });
+  if (!laneEl || (it.scope === 'p' && laneEl.dataset.gid !== it.owner)) { dg.target = null; dg.line.style.display = 'none'; return; }
+  laneEl.classList.add('drop-on');
+  const ul = laneEl.querySelector('ul[data-cat="' + CSS.escape(catOf(it)) + '"]');
+  const rows = ul ? [...ul.children].filter(r => r.dataset.iid && r.dataset.iid !== it.id) : [];
+  let i = rows.findIndex(r => { const b = r.getBoundingClientRect(); return y < b.top + b.height / 2; });
+  if (i < 0) i = rows.length;
+  dg.target = {gid: laneEl.dataset.gid, prev: rows[i - 1] ? rows[i - 1].dataset.iid : null, next: rows[i] ? rows[i].dataset.iid : null};
+  if (!rows.length) { dg.line.style.display = 'none'; return; }
+  const b = (rows[i] || rows[i - 1]).getBoundingClientRect();
+  Object.assign(dg.line.style, {display: 'block', top: ((rows[i] ? b.top : b.bottom) - 1.5) + 'px', left: b.left + 'px', width: b.width + 'px'});
+}
+function dragTick() {
+  if (!dg) return;
+  const top = 150, bot = window.innerHeight - 90, y = dg.y;
+  const v = y < top ? -Math.min(18, (top - y) / 5) : y > bot ? Math.min(18, (y - bot) / 5) : 0;
+  if (v) { window.scrollBy(0, v); dragAim(); }
+  dg.raf = requestAnimationFrame(dragTick);
+}
+document.addEventListener('pointermove', e => { if (!dg || e.pointerId !== dg.pid) return; dg.x = e.clientX; dg.y = e.clientY; dragAim(); });
+['pointerup', 'pointercancel'].forEach(n => document.addEventListener(n, e => {
+  if (!dg || e.pointerId !== dg.pid) return;
+  const d = dg; dg = null; cancelAnimationFrame(d.raf);
+  d.ghost.remove(); d.line.remove(); d.li.classList.remove('dragging'); document.body.classList.remove('is-dragging');
+  document.querySelectorAll('.lane.drop-on').forEach(l => l.classList.remove('drop-on'));
+  dgSwallow = true; setTimeout(() => { dgSwallow = false; }, 60);
+  if (n === 'pointerup' && d.target) dropItem(d.it, d.target);
+}));
+function dropItem(it, t) {
+  const T = tripData(), get = id => id && S.items.find(x => x.id === id), prev = get(t.prev), next = get(t.next);
+  const patch = {pos: prev && next ? (posOf(prev) + posOf(next)) / 2 : prev ? posOf(prev) + 1000 : next ? posOf(next) - 1000 : posOf(it)};
+  if (t.gid !== it.owner) { if (it.scope === 'p' || !T.gmap[t.gid]) return; patch.owner = t.gid; patch.packed = false; }
+  else if (patch.pos === posOf(it)) return;
+  fire(Store.update(itemPath(it.id), patch));
+  if (patch.owner) toast('הועבר לרשימה של ' + T.gmap[t.gid].name);
+}
+
 /* ---------- Long press (delete on home and templates) ---------- */
 let lp = null, lpFired = false;
 document.addEventListener('pointerdown', e => {
   lpFired = false;  // a touch long-press may not be followed by a click, so never let it swallow the next tap
+  if (e.target.closest('.grip')) return;
   const el = e.target.closest('[data-lp],[data-sel]'); if (!el || (e.button != null && e.button !== 0)) return;
   if (el.dataset.sel && SEL.ctx) return;
   lp = {sx: e.clientX, sy: e.clientY, el, t: setTimeout(() => {
@@ -2776,7 +2885,7 @@ document.addEventListener('pointerdown', e => {
 document.addEventListener('pointermove', e => { if (lp && Math.hypot(e.clientX - lp.sx, e.clientY - lp.sy) > 10) { clearTimeout(lp.t); lp = null; } });
 ['pointerup', 'pointercancel'].forEach(n => document.addEventListener(n, () => { if (lp) { clearTimeout(lp.t); lp = null; } }));
 document.addEventListener('click', e => {
-  if (lpFired) { lpFired = false; e.preventDefault(); e.stopPropagation(); return; }
+  if (lpFired || dgSwallow) { lpFired = false; dgSwallow = false; e.preventDefault(); e.stopPropagation(); return; }
   if (!SEL.ctx) return;
   const r = e.target.closest('[data-sel]');
   if (r && r.dataset.sel.indexOf(SEL.ctx + '|') === 0) { e.preventDefault(); e.stopPropagation(); toggleSel(r); }
@@ -2876,7 +2985,7 @@ document.addEventListener('touchstart', e => {
   sw = null;
   if (e.touches.length !== 1 || byId('sheet-root').classList.contains('open') || !byId('spop').hidden) return;
   const t = e.touches[0];
-  if (e.target.closest('input,select,textarea,.mstep,.stepper,.trip-head')) return;
+  if (e.target.closest('input,select,textarea,.mstep,.stepper,.trip-head,.grip')) return;
   if (t.clientX < 20 || t.clientX > window.innerWidth - 20) return;
   const el = swipeEl(); if (!el) return;
   sw = {x: t.clientX, y: t.clientY, t: Date.now(), el, lock: null, dx: 0};
