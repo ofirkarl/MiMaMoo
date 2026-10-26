@@ -1094,7 +1094,8 @@ function balances(T) {
 }
 const itemPath = id => 'events/' + S.tripId + '/items/' + id;
 // Each person edits only their own list: items owned by another participant are read-only.
-const foreign = i => !!(i && i.owner && i.owner !== S.me && S.guests.some(g => g.id === i.owner));
+const othersOwn = i => !!(i && i.owner && i.owner !== S.me && S.guests.some(g => g.id === i.owner));
+const foreign = i => othersOwn(i) && i.scope === 'p';
 const expPath = id => 'events/' + S.tripId + '/expenses/' + id;
 const soloItemPath = id => soloBase() + '/' + S.soloId + '/items/' + id;
 const whoseList = gid => gid === S.me ? 'שלך' : 'של ' + ((tripData().gmap[gid] || {}).name || '');
@@ -1320,8 +1321,8 @@ function essHTML(T) {
     + '</div>';
 }
 function laneRow(i, T) {
-  const ro = S.readOnly || foreign(i), q = amountHTML(i), c = catOf(i);
-  return '<li class="item' + (i.packed ? ' packed' : '') + '"><button class="pk' + (i.packed ? ' on' : '') + '" data-pack="' + esc(i.id) + '" aria-pressed="' + !!i.packed + '" aria-label="ארוז: ' + esc(dispName(i)) + '"' + (ro ? ' disabled' : '') + '>' + ICON.check + '</button>'
+  const ro = S.readOnly || foreign(i), pro = S.readOnly || othersOwn(i), q = amountHTML(i), c = catOf(i);
+  return '<li class="item' + (i.packed ? ' packed' : '') + '"><button class="pk' + (i.packed ? ' on' : '') + '" data-pack="' + esc(i.id) + '" aria-pressed="' + !!i.packed + '" aria-label="ארוז: ' + esc(dispName(i)) + '"' + (pro ? ' disabled' : '') + '>' + ICON.check + '</button>'
     + '<button class="item-main" data-edit="' + esc(i.id) + '"' + (ro ? ' disabled' : '') + '>' + '<span class="item-name">' + esc(dispName(i)) + '</span>' + (q ? '<span class="qty">' + q + '</span>' : '') + (i.scope === 'p' ? '<span class="tag">אישי</span>' : '') + (T.itemDbl(i) ? '<span class="flag">כפילות</span>' : '') + '</button></li>';
 }
 function lane(g, T) {
@@ -1998,7 +1999,7 @@ function openItemSheet(id) {
   const listVal = it.scope === 'p' && owned ? 'p:' + it.owner : (owned ? 'g:' + it.owner : 'g:');
   // anyone in the event can take the item over: me first, then everyone else
   const people = [...T.guests].sort((a, b) => (b.id === S.me) - (a.id === S.me));
-  const listField = '<label class="field"><span>ברשימה של</span><select id="it-list" data-val="' + esc(listVal) + '"><optgroup label="משותף"><option value="g:">חסר</option>' + people.map(g => '<option value="g:' + esc(g.id) + '">' + esc(g.name) + (g.id === S.me ? ' (אני)' : '') + '</option>').join('') + '</optgroup>'
+  const listField = '<label class="field"><span>ברשימה של</span><select id="it-list" data-val="' + esc(listVal) + '"><optgroup label="משותף"><option value="g:">חסר</option><option disabled>──────────</option>' + people.map(g => '<option value="g:' + esc(g.id) + '">' + esc(g.name) + (g.id === S.me ? ' (אני)' : '') + '</option>').join('') + '</optgroup>'
     + (me ? '<optgroup label="רשימה אישית"><option value="p:' + esc(me.id) + '">' + esc(me.name) + ' (אישי)</option></optgroup>' : '') + '</select></label>';
   const amountFields = k === 'meat'
     ? '<div class="two"><label class="field"><span>סוג</span><input id="it-detail" list="dl-meat" value="' + esc(it.detail || '') + '" maxlength="30"></label><label class="field"><span>גרם</span><input id="it-grams" type="number" inputmode="numeric" min="100" step="100" value="' + esc(it.grams || '') + '"></label></div>'
@@ -2009,7 +2010,7 @@ function openItemSheet(id) {
     + amountFields
     + '<label class="field"><span>קטגוריה</span><select id="it-cat">' + catOptions(catOf(it)) + '</select></label>'
     + listField
-    + (owned ? '<label class="toggle"><input type="checkbox" id="it-packed"' + (it.packed ? ' checked' : '') + '><span>ארוז</span></label>' : '')
+    + (owned && !othersOwn(it) ? '<label class="toggle"><input type="checkbox" id="it-packed"' + (it.packed ? ' checked' : '') + '><span>ארוז</span></label>' : '')
     + (owned && it.scope !== 'p' ? '<div><button type="button" class="btn" data-putback="' + esc(id) + '">' + (k === 'meat' && (it.src || it.id) !== it.id ? 'הסרה מהרשימה שלי' : 'החזרה לרשימה המשותפת') + '</button></div>' : '')
     + (owned ? '<div><button type="button" class="link" data-exp-item="' + esc(id) + '">+ הוצאה על הפריט</button></div>' : '')
     + sheetActions('<button type="button" class="btn danger" data-confirm="delete-item" data-id="' + esc(id) + '">מחיקה</button>')
@@ -2810,7 +2811,7 @@ document.addEventListener('click', e => {
   if (d.claim) return startClaim(d.claim);
   if (d.meat) return startMeat(d.meat);
   if (d.covered) return coveredTap(d.covered);
-  if (d.pack) { const it = S.items.find(i => i.id === d.pack); if (it && !foreign(it)) sfx(it.packed ? 'uncheck' : 'check'); if (it && !foreign(it)) fire(Store.update(itemPath(it.id), {packed: !it.packed})); return; }
+  if (d.pack) { const it = S.items.find(i => i.id === d.pack); if (it && !othersOwn(it)) sfx(it.packed ? 'uncheck' : 'check'); if (it && !othersOwn(it)) fire(Store.update(itemPath(it.id), {packed: !it.packed})); return; }
   if (d.spack) { const it = S.soloItems.find(i => i.id === d.spack); if (it) sfx(it.packed ? 'uncheck' : 'check'); if (it) fire(Store.update(soloItemPath(it.id), {packed: !it.packed})); return; }
   if (d.sdel) { sfx('delete'); fire(Store.del(soloItemPath(d.sdel))); return; }
   if (d.putback) { closeSheet(); if (!foreign(S.items.find(i => i.id === d.putback))) fire(putBack(d.putback)); return; }
@@ -2950,7 +2951,7 @@ const forms = {
     if (un) patch.unit = un.value;
     if (k === 'meat' || k === 'salad') patch.cat = 'food';
     const pk = f.querySelector('#it-packed');
-    patch.packed = owner && owner === it.owner ? !!(pk && pk.checked) : false;
+    patch.packed = owner && owner === it.owner ? (pk ? pk.checked : !!it.packed) : false;
     if (patch.cat !== catOf(it)) learnCat(name, patch.cat);
     closeSheet();
     fire(Store.update(itemPath(id), patch));
