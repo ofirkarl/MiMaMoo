@@ -155,6 +155,22 @@ async function connectFire(cfg, sid) {
   };
   return {db, uid: user.uid};
 }
+
+/* The first time this device connects to the cloud, what it kept on its own (before the cloud existed)
+   moves up into this space, as long as the space is still empty: nothing already shared is overwritten.
+   The on-device copy stays where it is, untouched. */
+async function moveLocalUp(db, uid) {
+  const flag = 'mm:moved:' + window.MM_SPACE, done = () => { try { localStorage.setItem(flag, '1'); } catch (e) {} };
+  let o = null;
+  try { if (localStorage.getItem(flag)) return; o = JSON.parse(localStorage.getItem(LOCAL_KEY) || 'null'); } catch (e) { return; }
+  if (!o || !Object.keys(o).some(c => o[c] && Object.keys(o[c]).length)) return done();
+  try { if ((await db.collection('events').get()).docs.length) return done(); } catch (e) { return; }
+  const mine = 'data/users/' + uid, to = c => c === 'solo' ? mine : c.indexOf('solo/') === 0 ? mine + c.slice(4) : c;
+  let failed = 0;
+  await Promise.all(Object.keys(o).flatMap(c => Object.keys(o[c] || {}).map(id =>
+    db.doc(to(c) + '/' + id).set(o[c][id]).catch(e => { failed++; console.warn('move up', c, id, e); }))));
+  if (!failed) done();
+}
 """)
 
 # ---------- start-up: Claude runtime (inside Claude), else Firebase, else this device ----------
@@ -163,7 +179,7 @@ rep("""  } catch (e) {}
     Store.db = db; S.mode = 'db';""", """  } catch (e) {}
   const fcfg = window.MM_CONFIG && window.MM_CONFIG.firebase;
   if (!db && fcfg && fcfg.apiKey) {
-    try { const c = await connectFire(fcfg, window.MM_SPACE); db = c.db; S.uid = c.uid; S.canWrite = true; }
+    try { const c = await connectFire(fcfg, window.MM_SPACE); db = c.db; S.uid = c.uid; S.canWrite = true; await moveLocalUp(db, c.uid); }
     catch (e) { console.warn(e); toast('אין חיבור לענן כרגע. עובדים על המכשיר הזה.', true); }
   }
   if (db) {
