@@ -341,10 +341,18 @@ span.item-main{cursor:default}
 .tabs.six{grid-template-columns:repeat(6,1fr);gap:2px;padding:3px}
 .tabs.six button{font-size:11.5px;padding-inline:0;min-height:60px;border-radius:14px;gap:3px}
 .tabs.six button svg{width:19px;height:19px}
-.note-head{justify-content:space-between}
-.note-head .tab-note{margin:0}
 .col-top .tab-note{margin:0}
-.note-view,.note-ta{display:block;width:100%;min-height:50vh;box-sizing:border-box;padding:18px 18px 28px;border-radius:var(--r-lg);background:#FFFBEC;box-shadow:inset 0 0 0 1px #F6E7B8;font:400 16.5px/1.65 var(--f-body);color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere;text-align:start}
+.notes-wrap{display:flex;flex-direction:column;gap:12px}
+.notes-wrap .seg{align-self:flex-start}
+.note-vis button{display:inline-flex;align-items:center;gap:6px}
+.note-vis svg{width:15px;height:15px;flex:none}
+.note-msg{padding:12px 14px;border-radius:var(--r-lg);background:var(--sunk)}
+.note-msg header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:4px}
+.note-msg header b{font-size:14.5px}
+.note-msg time{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.note-msg-t{white-space:pre-wrap;overflow-wrap:anywhere;font-size:15.5px;line-height:1.55}
+.note-msg-t a{color:var(--link);text-decoration:underline;text-underline-offset:3px;word-break:break-all}
+.note-view,.note-ta{display:block;width:100%;min-height:42vh;box-sizing:border-box;padding:18px 18px 28px;border-radius:var(--r-lg);background:#FFFBEC;box-shadow:inset 0 0 0 1px #F6E7B8;font:400 16.5px/1.65 var(--f-body);color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere;text-align:start}
 .note-view{cursor:text}
 .note-view.empty{color:var(--muted)}
 .note-view a{color:var(--link);text-decoration:underline;text-underline-offset:3px;word-break:break-all}
@@ -1365,7 +1373,7 @@ function shellHome() {
     + '<section class="home-col"><div class="col-top"><h2>רשימות משותפות</h2>' + (ro ? '' : '<button class="btn primary sm" data-act="new-trip">+ הוספה</button>') + '</div><div id="r-trips" class="trips"></div></section>'
     + '<section class="home-col"><div class="col-top"><h2>רשימות אישיות</h2><button class="btn primary sm" data-act="new-solo" id="btn-new-solo">+ הוספה</button></div><div id="r-solos" class="trips"></div></section>'
     + '</div>'
-    + '<section class="home-col" id="h-notes" hidden><div class="col-top"><h2>הערות</h2><p class="tab-note tn-mine">' + ICON.lock + 'רק לך</p></div><div id="r-hnotes"></div></section>'
+    + '<section class="home-col" id="h-notes" hidden><div class="col-top"><h2>הערות</h2></div><div id="r-hnotes"></div></section>'
     + '<section class="home-col" id="h-money"><div class="col-top"><h2>חלוקת הוצאות</h2>' + (ro ? '' : '<button class="btn primary sm" data-act="new-split">+ הוספה</button>') + '</div><div id="r-mtrips" class="trips"></div></section>'
     + '</main>';
 }
@@ -1387,7 +1395,7 @@ function updateHome() {
   const ro = S.readOnly;
   byId('r-htabs').innerHTML = '<button role="tab" aria-selected="' + (S.homeTab === 'lists') + '" data-htab="lists">רשימות</button><button role="tab" aria-selected="' + (S.homeTab === 'money') + '" data-htab="money">חלוקת הוצאות</button><button role="tab" aria-selected="' + (S.homeTab === 'notes') + '" data-htab="notes">הערות</button>';
   byId('h-lists').hidden = S.homeTab !== 'lists'; byId('h-money').hidden = S.homeTab !== 'money'; byId('h-notes').hidden = S.homeTab !== 'notes';
-  if (!noteEdit) byId('r-hnotes').innerHTML = noteHTML('general');
+  if (!noteEdit) byId('r-hnotes').innerHTML = notesBlock('general');
   const rm = byId('r-mtrips');
   if (S.mode === 'connecting' || !S.eventsLoaded) rm.innerHTML = '<div class="empty muted">נטען…</div>';
   else if (!S.events.length) rm.innerHTML = '<div class="empty muted">עוד אין חלוקות</div>';
@@ -1515,7 +1523,7 @@ function openNote(key) {
   ta.className = 'note-ta'; ta.maxLength = NOTE_MAX; ta.setAttribute('aria-label', 'הערות'); ta.placeholder = 'מחשבות, מתכונים, קישורים…';
   ta.value = n && typeof n.text === 'string' ? n.text : '';
   box.innerHTML = ''; box.appendChild(ta);
-  const grow = () => { ta.style.height = 'auto'; ta.style.height = Math.max(ta.scrollHeight, window.innerHeight * 0.5) + 'px'; };
+  const grow = () => { ta.style.height = 'auto'; ta.style.height = Math.max(ta.scrollHeight, window.innerHeight * 0.42) + 'px'; };
   grow(); ta.focus(); try { ta.setSelectionRange(ta.value.length, ta.value.length); } catch (_) {}
   ta.addEventListener('input', () => { grow(); clearTimeout(noteT); noteT = setTimeout(() => saveNote(key, ta.value), 700); });
   // leaving the page: back to reading, swapping only the page itself so a tap elsewhere (a tab, the other notes) still lands
@@ -1524,14 +1532,50 @@ function openNote(key) {
 function saveNote(key, text) {
   if (!soloBase()) return;
   text = String(text || '').slice(0, NOTE_MAX);
-  const n = noteDoc(key);
+  const n = noteDoc(key), shared = !!(n && n.shared);
   if (n ? n.text === text : !text.trim()) return;
-  fire(Store.set(notePath(key), {kind: 'note', key, text, updated: Date.now()}));
+  fire(Store.set(notePath(key), {kind: 'note', key, text, updated: Date.now(), shared}));
+  if (shared && !S.readOnly) publishNote(key, text);
 }
+// A shared note is a copy under the group's data, one per writer: others read it with the writer's name and can't change it.
+// Event notes go to that event's people; general notes to everyone who shares these lists.
+const myKey = () => { if (S.uid) return String(S.uid); let k = lsGet('devId'); if (!k) { k = uid('u'); lsSet('devId', k); } return k; };
+const notePubPath = key => (key === 'general' ? 'notes/' : 'events/' + key + '/notes/') + myKey();
+const noteShared = key => !!(noteDoc(key) && noteDoc(key).shared);
+function noteAuthor(key) {
+  if (key !== 'general' && S.tripId === key) { const T = tripData(); if (S.me && T.gmap[S.me]) return T.gmap[S.me].name; }
+  return lsGet('myName') || S.profileName || 'משתתף';
+}
+function publishNote(key, text) {
+  if (text.trim()) fire(Store.set(notePubPath(key), {name: noteAuthor(key).slice(0, 40), text, updated: Date.now()}));
+  else fire(Store.del(notePubPath(key)).catch(() => {}));
+}
+function setNoteShare(key, on) {
+  if (S.readOnly || !soloBase() || noteShared(key) === on) return;
+  const n = noteDoc(key), text = n && typeof n.text === 'string' ? n.text : '';
+  fire(Store.set(notePath(key), {kind: 'note', key, text, updated: (n && n.updated) || Date.now(), shared: on}));
+  if (on) publishNote(key, text); else fire(Store.del(notePubPath(key)).catch(() => {}));
+  toast(on ? (key === 'general' ? 'ההערות גלויות לכולם' : 'ההערות גלויות לקבוצה') : 'ההערות רק שלך');
+}
+function noteVisHTML(key) {
+  if (S.readOnly || !soloBase()) return '';
+  const on = noteShared(key);
+  return '<div class="seg note-vis" role="group" aria-label="מי רואה את ההערות"><button aria-pressed="' + !on + '" data-nvis="0|' + esc(key) + '">' + ICON.lock + 'רק לי</button><button aria-pressed="' + on + '" data-nvis="1|' + esc(key) + '">' + ICON.tpeople + (key === 'general' ? 'גלוי לכולם' : 'גלוי לקבוצה') + '</button></div>';
+}
+function fmtWhen(ts) {
+  const d = new Date(Number(ts) || 0), now = new Date(), hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  return d.toDateString() === now.toDateString() ? hm : d.getDate() + '.' + (d.getMonth() + 1) + ' · ' + hm;
+}
+function othersNotesHTML(key) {
+  const me = myKey(), list = (key === 'general' ? S.pubNotes : S.evNotes) || [];
+  const xs = list.filter(n => n.id !== me && typeof n.text === 'string' && n.text.trim()).sort((a, b) => (b.updated || 0) - (a.updated || 0));
+  return xs.map(n => '<article class="note-msg"><header><b>' + esc(n.name || 'משתתף') + '</b><time>' + esc(fmtWhen(n.updated)) + '</time></header><div class="note-msg-t">' + linkify(n.text) + '</div></article>').join('');
+}
+const notesBlock = key => '<div class="notes-wrap">' + noteVisHTML(key) + noteHTML(key) + othersNotesHTML(key) + '</div>';
 function tripNotesHTML() {
   const ev = S.noteScope !== 'general';
-  return '<div class="col-head note-head"><div class="seg"><button aria-pressed="' + ev + '" data-nscope="event">הערות לאירוע</button><button aria-pressed="' + !ev + '" data-nscope="general">הערות כלליות</button></div>'
-    + '<p class="tab-note tn-mine">' + ICON.lock + 'רק לך</p></div>' + noteHTML(ev ? S.tripId : 'general');
+  return '<div class="notes-wrap"><div class="seg note-scope"><button aria-pressed="' + ev + '" data-nscope="event">הערות לאירוע</button><button aria-pressed="' + !ev + '" data-nscope="general">הערות כלליות</button></div>'
+    + notesBlock(ev ? S.tripId : 'general') + '</div>';
 }
 document.addEventListener('click', e => {
   if (e.target.closest('a')) return;  // a link in a note opens; anywhere else starts writing
@@ -2229,13 +2273,14 @@ function openTrip(id) {
   stopView();
   if (S.tripId !== id) undoStack = [];
   noteEdit = null;
-  Object.assign(S, {view: 'trip', q: '', pbOpen: null, pfilter: 'all', noteScope: 'event', tripId: id, soloId: null, soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
+  Object.assign(S, {view: 'trip', q: '', pbOpen: null, pfilter: 'all', noteScope: 'event', tripId: id, soloId: null, soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], evNotes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
   linkTripSolo();
   viewUnsubs.push(Store.sub('events/' + id + '/media', l => { if (S.tripId !== id) return; S.cover = coverSrc(l.find(d => d.id === 'cover')); render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/guests', l => { if (S.tripId !== id) return; S.guests = l; S.guestsLoaded = true; render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/items', l => { if (S.tripId !== id) return; S.items = l; S.itemsLoaded = true; render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/expenses', l => { if (S.tripId !== id) return; S.expenses = l; S.expensesLoaded = true; render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/dishes', l => { if (S.tripId !== id) return; S.dishes = l; S.dishesLoaded = true; render(); }));
+  viewUnsubs.push(Store.sub('events/' + id + '/notes', l => { if (S.tripId !== id) return; S.evNotes = l; if (!noteEdit) render(); }));
   render(); window.scrollTo(0, 0);
 }
 function openMoney(id) {
@@ -2540,9 +2585,7 @@ function openItemSheet(id) {
     + listField
     + (mineG ? '<div class="field"><span>קנייה</span><div class="buy-row"><div class="seg-radio" role="radiogroup" aria-label="קנייה"><label><input type="radio" name="it-buy" value="0"' + (it.buy ? '' : ' checked') + '><span>יש לי</span></label><label><input type="radio" name="it-buy" value="1"' + (it.buy ? ' checked' : '') + '><span>צריך לקנות</span></label></div>'
       + '<button type="button" class="btn sm" data-exp-item="' + esc(id) + '">+ הוספה להוצאות</button></div></div>' : '')
-    + (owned ? '<div class="sheet-tools">'
-      + (it.scope !== 'p' ? '<button type="button" class="btn sm" data-putback="' + esc(id) + '">' + (k === 'meat' && (it.src || it.id) !== it.id ? 'הסרה מהרשימה שלי' : 'החזרה לרשימה המשותפת') + '</button>' : '')
-      + (mineG ? '' : '<button type="button" class="btn sm" data-exp-item="' + esc(id) + '">+ הוספה להוצאות</button>') + '</div>' : '')
+    + (owned && !mineG ? '<div class="sheet-tools"><button type="button" class="btn sm" data-exp-item="' + esc(id) + '">+ הוספה להוצאות</button></div>' : '')
     + sheetActions('<button type="button" class="btn danger" data-confirm="delete-item" data-id="' + esc(id) + '">מחיקה</button>')
     + '</form>', root => { const s = root.querySelector('#it-list'); if (s) s.value = s.dataset.val; });
 }
@@ -2729,7 +2772,7 @@ async function dropSolo(b, id) {
 }
 async function dropEvent(id) {
   const cv = await Store.get('events/' + id + '/media/cover').catch(() => null);
-  const ok = await deleteDeep('events/' + id, ['items', 'guests', 'expenses', 'media', 'dishes']);
+  const ok = await deleteDeep('events/' + id, ['items', 'guests', 'expenses', 'media', 'dishes', 'notes']);
   if (ok && cv && cv.asset && Assets) Assets.delete(cv.asset).catch(() => {});
   return ok;
 }
@@ -3466,6 +3509,7 @@ document.addEventListener('click', e => {
   if (d.claim) return startClaim(d.claim);
   if (d.meat) return startMeat(d.meat);
   if (d.covered) return coveredTap(d.covered);
+  if (d.nvis) { const [on, key] = d.nvis.split('|'); setNoteShare(key, on === '1'); return; }
   if (d.nscope) { S.noteScope = d.nscope === 'general' ? 'general' : 'event'; noteEdit = null; render(); return; }
   if (d.dishNew) { if (!needMe(() => openDishSheet(null, Number(d.dishNew.slice(0, -1)), d.dishNew.slice(-1)))) return; return openDishSheet(null, Number(d.dishNew.slice(0, -1)), d.dishNew.slice(-1)); }
   if (d.dish) return openDishSheet(d.dish);
@@ -3798,6 +3842,7 @@ async function init() {
   } else { S.mode = 'local'; loadLocal(); }
   Store.sub('events', l => { S.events = l; S.eventsLoaded = true; tryDeep(); render(); });
   Store.sub('templates', l => { S.templates = l; S.templatesLoaded = true; render(); });
+  Store.sub('notes', l => { S.pubNotes = l; if (!noteEdit) render(); });
   Store.sub('settings', l => {
     const c = l.find(d => d.id === 'cats'), p = l.find(d => d.id === 'prefs'), lr = l.find(d => d.id === 'learn');
     setCats(c && c.list); setPrefs(p);
