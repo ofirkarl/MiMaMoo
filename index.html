@@ -350,6 +350,19 @@ span.item-main{cursor:default}
 .note-vis button{display:inline-flex;align-items:center;gap:6px}
 .note-vis svg{width:15px;height:15px;flex:none}
 .note-msg{padding:12px 14px;border-radius:var(--r-lg);background:var(--sunk)}
+.note-msg.mine{background:var(--mine-bg)}
+.note-msg .you{margin-inline-start:6px}
+.note-msg header{position:relative}
+.msg-del{display:inline-grid;place-items:center;width:34px;height:34px;margin:-8px -8px -8px -6px;border-radius:50%;color:var(--muted)}
+.msg-del:hover{color:var(--danger);background:var(--danger-bg)}
+.msg-del .ic{width:17px;height:17px}
+.note-msg header time{margin-inline-start:auto}
+.chat-send{display:flex;align-items:flex-end;gap:8px}
+.chat-send textarea{flex:1;min-width:0;display:block;font:inherit;font-size:16px;line-height:1.45;color:var(--ink);background:#FFFBEC;border:1.5px solid var(--accent-line);border-radius:var(--r-md);min-height:48px;max-height:168px;padding:11px 14px;resize:none;overflow-y:auto}
+.chat-send textarea::placeholder{color:var(--muted);opacity:.9}
+.chat-send textarea:focus{outline:none;border-color:var(--ring);background:var(--surface)}
+.chat-send .btn{flex:none;min-height:48px}
+.chat-list{display:flex;flex-direction:column;gap:10px}
 .note-msg header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:4px}
 .note-msg header b{font-size:14.5px}
 .note-msg time{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -516,7 +529,11 @@ button.set-row{width:100%;padding-inline:8px;text-align:start;gap:12px}
 .lane-title h3{font-family:var(--f-display);font-weight:600;font-size:19px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;overflow-wrap:anywhere}
 .lane-title p{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
 .you{font-family:var(--f-body);font-size:12.5px;font-weight:700;background:var(--mine-bg);color:var(--mine-ink);padding:2px 9px;border-radius:999px}
-.lane .bar{margin:12px 0 2px}
+.lane .bar{margin:2px 0 2px}
+/* a person's items hang under their name: set in, along a thread in their color */
+.lane-body{margin-top:8px;margin-inline-start:20px;padding-inline-start:16px;border-inline-start:2.5px solid var(--line-2);border-inline-start-color:color-mix(in srgb,var(--gc,#8A8594) 34%,transparent)}
+.lane-body .lane-cat:first-child{margin-top:6px}
+.lane-body .lane-empty{padding-top:4px}
 .sub-label{margin-top:12px;font-size:13px}
 .lane-empty{color:var(--muted);font-size:15px;padding:12px 0 8px}
 
@@ -636,7 +653,7 @@ button.row{width:100%;text-align:start}
 .tn-mine{background:var(--mine-bg);color:var(--mine-ink)}
 .tn-people{background:var(--accent-soft);color:var(--accent-ink)}
 .panel .lanes{gap:0}
-.panel .lane{background:transparent;box-shadow:none;border-radius:0;padding:14px 0 6px;border-top:1px solid var(--line)}
+.panel .lane{background:transparent;box-shadow:none;border-radius:0;padding:18px 0 10px;border-top:1px solid var(--line)}
 .panel .lane:first-child{border-top:0;padding-top:2px}
 .panel .lane.is-me{box-shadow:none}
 .confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:90;opacity:.72;transition:opacity .7s}
@@ -651,7 +668,22 @@ button.gchip.leaving{opacity:0;transform:scale(.85)}
 .pick-list{display:flex;flex-direction:column;gap:6px}
 .pick-row{display:flex;align-items:center;gap:12px;min-height:52px;padding-block:6px;padding-inline:8px 14px;border-radius:var(--r-md);background:var(--sunk);font-weight:600;font-size:17px;text-align:start}
 .pick-row span{flex:1;min-width:0;overflow-wrap:anywhere}
+.pick-row .av{flex:none}
 .pick-row.on{background:var(--sel-bg);color:var(--sel-ink)}
+.sheet-lead{color:var(--muted);font-size:15.5px;margin-top:-6px}
+.pick-or{font-weight:700;font-size:14.5px;color:var(--muted);margin-top:4px}
+.one-row{display:flex;gap:8px;align-items:center}
+.one-row input{flex:1}
+.one-row .btn{flex:none}
+.hello{display:flex;align-items:center;gap:4px;margin-top:10px;font-family:var(--f-display);font-weight:500;font-size:21px;line-height:1.2}
+.hello b{font-weight:600;overflow-wrap:anywhere}
+.hello-edit{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:50%;color:var(--muted)}
+.hello-edit svg{width:18px;height:18px}
+.hello-edit:hover{background:var(--sunk);color:var(--ink)}
+.hello-ask{display:flex;flex-direction:column;gap:10px;margin-top:12px;padding:14px 16px;border-radius:var(--r-lg);background:var(--accent-soft);border:1.5px solid var(--accent-line)}
+.hello-ask label{font-family:var(--f-display);font-weight:600;font-size:19px}
+.hello-ask input{background:var(--surface)}
+.hello-why{font-size:14px;color:var(--accent-deep)}
 .toggle{display:flex;align-items:center;gap:10px;font-weight:600;min-height:44px}
 .toggle input{width:22px;height:22px;min-height:0;accent-color:var(--good-fill)}
 .choice-grid{display:flex;flex-wrap:wrap;gap:6px}
@@ -1386,7 +1418,7 @@ function catsHTML(list, rowFn, countFn, addCtx) {
 /* Home */
 function shellHome() {
   const ro = S.readOnly;
-  return '<header class="top"><div class="wrap top-in"><span class="logo" role="img" aria-label="MiMaMoo"><svg class="logo-ic" viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" rx="30" fill="#F0ECFF"/><path d="M54 44V14" stroke="#5A4410" stroke-width="5" stroke-linecap="round"/><path d="M54 44L94 95H14Z" fill="#FFE08F" stroke="#FFE08F" stroke-width="6" stroke-linejoin="round"/><path d="M54 44L94 95H54Z" fill="#F7CF62" stroke="#F7CF62" stroke-width="6" stroke-linejoin="round"/><path d="M54 60L72 97H36Z" fill="#2B2833" stroke="#2B2833" stroke-width="3" stroke-linejoin="round"/><rect x="58" y="9" width="40" height="34" rx="9" fill="#9EDDBF"/><path d="M67 26L74 33L88 18" fill="none" stroke="#2B2833" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word" aria-hidden="true">MiMaMoo</span></span><button class="icon-btn gear" data-act="settings" aria-label="הגדרות">' + ICON.gear + '</button></div></header>'
+  return '<header class="top"><div class="wrap top-in"><span class="logo" role="img" aria-label="MiMaMoo"><svg class="logo-ic" viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" rx="30" fill="#F0ECFF"/><path d="M54 44V14" stroke="#5A4410" stroke-width="5" stroke-linecap="round"/><path d="M54 44L94 95H14Z" fill="#FFE08F" stroke="#FFE08F" stroke-width="6" stroke-linejoin="round"/><path d="M54 44L94 95H54Z" fill="#F7CF62" stroke="#F7CF62" stroke-width="6" stroke-linejoin="round"/><path d="M54 60L72 97H36Z" fill="#2B2833" stroke="#2B2833" stroke-width="3" stroke-linejoin="round"/><rect x="58" y="9" width="40" height="34" rx="9" fill="#9EDDBF"/><path d="M67 26L74 33L88 18" fill="none" stroke="#2B2833" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word" aria-hidden="true">MiMaMoo</span></span><button class="icon-btn gear" data-act="settings" aria-label="הגדרות">' + ICON.gear + '</button></div><div class="wrap" id="r-hello"></div></header>'
     + '<main class="wrap home"><div class="tabs three" role="tablist" id="r-htabs"></div>'
     + '<div class="home-cols" id="h-lists">'
     + '<section class="home-col"><div class="col-top"><h2>רשימות משותפות</h2>' + (ro ? '' : '<button class="btn primary sm" data-act="new-trip">+ הוספה</button>') + '</div><div id="r-trips" class="trips"></div></section>'
@@ -1409,9 +1441,19 @@ function dateCard(e, attrs, cls, sel) {
     + (meta ? '<span class="trip-meta">' + esc(meta) + '</span>' : '') + '</span><span class="chev">' + ICON.chev + '</span></button>';
 }
 const byDate = list => { const ev = [...list].sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999')); return ev.filter(e => !isPast(e)).concat(ev.filter(isPast).reverse()); };
+// The name this device goes by: asked right at the top until it is known, then a hello
+function helloHTML() {
+  const nm = lsGet('myName') || S.profileName || '';
+  if (nm && !S.helloEdit) return '<p class="hello">שלום, <b>' + esc(nm) + '</b><button type="button" class="hello-edit" data-act="hello-edit" aria-label="שינוי השם">' + ICON.pen + '</button></p>';
+  return '<form class="hello-ask" data-form="hello" autocomplete="off"><label for="hello-in">' + (nm ? 'השם שלך' : 'שלום! איך קוראים לך?') + '</label>'
+    + '<div class="one-row"><input id="hello-in" maxlength="40" placeholder="השם שלך" autocomplete="given-name" value="' + esc(nm) + '"><button class="btn primary" type="submit">שמירה</button>'
+    + (nm ? '<button type="button" class="btn" data-act="hello-cancel">ביטול</button>' : '') + '</div>'
+    + (nm ? '' : '<p class="hello-why">כך כולם יידעו מי מביא מה</p>') + '</form>';
+}
 function updateHome() {
   const r = byId('r-trips'), rs = byId('r-solos'); if (!r) return;
   const ro = S.readOnly;
+  const hs = byId('r-hello'); if (hs && !(document.activeElement && document.activeElement.id === 'hello-in')) hs.innerHTML = helloHTML();
   byId('r-htabs').innerHTML = '<button role="tab" aria-selected="' + (S.homeTab === 'lists') + '" data-htab="lists">רשימות</button><button role="tab" aria-selected="' + (S.homeTab === 'money') + '" data-htab="money">חלוקת הוצאות</button><button role="tab" aria-selected="' + (S.homeTab === 'notes') + '" data-htab="notes">הערות</button>';
   byId('h-lists').hidden = S.homeTab !== 'lists'; byId('h-money').hidden = S.homeTab !== 'money'; byId('h-notes').hidden = S.homeTab !== 'notes';
   if (!noteEdit) byId('r-hnotes').innerHTML = notesBlock('general');
@@ -1521,10 +1563,10 @@ function personalDblRow(i, T) {
 }
 // The shared list's missing items, as they look in the shared list
 function missingHTML(T) { const f = S.filter; S.filter = 'need'; try { return groupHTML(T); } finally { S.filter = f; } }
-/* ---------- Notes: free pages to write on ----------
-   An event has two separate pages: "אישי", private, kept with my personal lists (<private>/note-<event>),
-   and "קבוצתי", where each person writes their own page under the event (events/<event>/notes/<me>) and reads
-   everyone else's, with their name, without changing them. The home page has one more private page, the general one. */
+/* ---------- Notes ----------
+   An event has two pages: "קבוצתי", a chat everyone in the event reads and writes (each message its own document,
+   events/<event>/notes/<id> = {name, by, text, created}), and "אישי", a private page kept with my personal lists
+   (<private>/note-<event>). The home page has one more private page, the general one. */
 const NOTE_MAX = 40000;
 let noteEdit = null, noteT = 0;
 const noteDoc = key => (S.notes || []).find(n => n.id === 'note-' + key);
@@ -1588,21 +1630,55 @@ function fmtWhen(ts) {
   const d = new Date(Number(ts) || 0), now = new Date(), hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   return d.toDateString() === now.toDateString() ? hm : d.getDate() + '.' + (d.getMonth() + 1) + ' · ' + hm;
 }
-function othersNotesHTML() {
-  const me = myKey();
-  return (S.evNotes || []).filter(n => n.id !== me && typeof n.text === 'string' && n.text.trim()).sort((a, b) => (b.updated || 0) - (a.updated || 0))
-    .map(n => '<article class="note-msg"><header><b>' + esc(n.name || 'משתתף') + '</b><time>' + esc(fmtWhen(n.updated)) + '</time></header><div class="note-msg-t">' + linkify(n.text) + '</div></article>').join('');
+// A message: who wrote it (pages from before the chat are keyed by their writer) and when; newest first, under the box
+const msgBy = n => n.by || n.id;
+const msgAt = n => Number(n.created || n.updated) || 0;
+const chatMsgs = () => (S.evNotes || []).filter(n => typeof n.text === 'string' && n.text.trim()).sort((a, b) => msgAt(b) - msgAt(a));
+const CHAT_MAX = 4000, chatDraft = {};
+function chatListHTML() {
+  const me = myKey(), ms = chatMsgs();
+  if (!ms.length) return '<p class="empty-in">עוד אין הודעות. מה שכותבים כאן, כל המשתתפים רואים.</p>';
+  return ms.map(n => {
+    const mine = msgBy(n) === me;
+    return '<article class="note-msg' + (mine ? ' mine' : '') + '"><header><b>' + esc(n.name || 'משתתף') + (mine ? '<span class="you">אני</span>' : '') + '</b><time>' + esc(fmtWhen(msgAt(n))) + '</time>'
+      + (mine && !S.readOnly ? '<button type="button" class="msg-del" data-msg-del="' + esc(n.id) + '" aria-label="מחיקת ההודעה">' + ICON.trash + '</button>' : '') + '</header>'
+      + '<div class="note-msg-t">' + linkify(n.text) + '</div></article>';
+  }).join('');
 }
+function chatHTML() {
+  const eid = S.tripId;
+  return (S.readOnly ? '' : '<form class="chat-send" data-form="chat" autocomplete="off"><textarea id="chat-in" rows="1" maxlength="' + CHAT_MAX + '" placeholder="כתיבה לקבוצה…" aria-label="הודעה לקבוצה">' + esc(chatDraft[eid] || '') + '</textarea>'
+    + '<button class="btn primary" type="submit">שליחה</button></form>')
+    + '<div class="chat-list" id="chat-list">' + chatListHTML() + '</div>';
+}
+function growChat(ta) { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight + 3, 168) + 'px'; }
+function sendChat() {
+  const eid = S.tripId, text = String(chatDraft[eid] || '').trim().slice(0, CHAT_MAX);
+  if (!eid || !text || S.readOnly) return;
+  chatDraft[eid] = '';
+  const ta = byId('chat-in'); if (ta) { ta.value = ''; growChat(ta); }
+  sfx('check');
+  fire(Store.set('events/' + eid + '/notes/' + uid('m'), {name: noteAuthor().slice(0, 40), by: myKey(), text, created: Date.now()}));
+}
+document.addEventListener('input', e => {
+  if (e.target.id !== 'chat-in') return;
+  chatDraft[S.tripId] = e.target.value; growChat(e.target);
+});
+// Enter sends on a computer (Shift+Enter for a new line); on a phone Enter is a new line and the button sends
+document.addEventListener('keydown', e => {
+  if (e.target.id !== 'chat-in' || e.key !== 'Enter' || e.isComposing) return;
+  if (e.ctrlKey || e.metaKey || (!e.shiftKey && matchMedia('(pointer:fine)').matches)) { e.preventDefault(); e.target.form.requestSubmit(); }
+});
 const notesBlock = key => '<div class="notes-wrap">' + noteHTML(key) + '</div>';
 // New in the group page: others' pages written or changed since I last had it open (remembered on this device)
 const notesSeenKey = eid => 'nseen:' + eid;
-const othersNotes = () => (S.evNotes || []).filter(n => n.id !== myKey() && typeof n.text === 'string' && n.text.trim());
+const othersNotes = () => chatMsgs().filter(n => msgBy(n) !== myKey());
 function unreadNotes(eid) {
   const seen = Number(lsGet(notesSeenKey(eid))) || 0;
-  return othersNotes().filter(n => (Number(n.updated) || 0) > seen).length;
+  return othersNotes().filter(n => msgAt(n) > seen).length;
 }
 function markNotesSeen(eid) {
-  const mx = othersNotes().reduce((m, n) => Math.max(m, Number(n.updated) || 0), 0);
+  const mx = othersNotes().reduce((m, n) => Math.max(m, msgAt(n)), 0);
   if (mx > (Number(lsGet(notesSeenKey(eid))) || 0)) lsSet(notesSeenKey(eid), String(mx));
 }
 function tripNotesHTML() {
@@ -1610,7 +1686,7 @@ function tripNotesHTML() {
   return '<div class="notes-wrap"><div class="seg note-vis" role="tablist" aria-label="דף הערות">'
     + '<button role="tab" aria-pressed="' + g + '" aria-selected="' + g + '" data-ntab="group">' + ICON.tpeople + 'קבוצתי' + (!g && unreadNotes(S.tripId) ? '<b class="badge in">' + unreadNotes(S.tripId) + '</b>' : '') + '</button>'
     + '<button role="tab" aria-pressed="' + !g + '" aria-selected="' + !g + '" data-ntab="mine">' + ICON.lock + 'אישי</button></div>'
-    + (g ? noteHTML('g:' + S.tripId) + othersNotesHTML() : noteHTML(S.tripId)) + '</div>';
+    + (g ? chatHTML() : noteHTML(S.tripId)) + '</div>';
 }
 document.addEventListener('click', e => {
   if (e.target.closest('a')) return;  // a link in a note opens; anywhere else starts writing
@@ -1929,15 +2005,15 @@ function lane(g, T) {
   const pk = mine.filter(i => i.packed).length, isMe = g.id === S.me;
   const solo = isMe && S.solos.find(l => l.tripId === S.tripId);
   const ro = S.readOnly;
-  return '<article class="lane' + (isMe ? ' is-me' : '') + (ro ? '' : selCls('people', g.id)) + '" data-gid="' + esc(g.id) + '"' + (ro ? '' : selAt('people', g.id)) + '>' + (ro ? '' : selBox) + '<header class="lane-head">' + av(g, 'lg')
+  return '<article class="lane' + (isMe ? ' is-me' : '') + (ro ? '' : selCls('people', g.id)) + '" data-gid="' + esc(g.id) + '" style="--gc:' + GCOL[(Number(g.color) || 0) % GCOL.length] + '"' + (ro ? '' : selAt('people', g.id)) + '>' + (ro ? '' : selBox) + '<header class="lane-head">' + av(g, 'lg')
     + '<div class="lane-title"><h3>' + esc(g.name) + (isMe ? '<span class="you">אני</span>' : '') + '</h3>' + (mine.length ? '<p>' + pk + '/' + mine.length + ' ארוזים</p>' : '') + '</div>'
     + (solo ? '<button class="btn sm" data-tab="mine">הרשימה שלי</button>' : '')
-    + '</header>'
+    + '</header><div class="lane-body">'
     + (mine.length ? '<div class="bar thin"><i style="width:' + Math.round(pk / mine.length * 100) + '%"></i></div>' : '')
     + CATS.map(c => { const ls = shown.filter(i => catOf(i) === c.id).sort((a, b) => posOf(a) - posOf(b)); if (!ls.length) return ''; return '<div class="lane-cat">' + catPill(c, 'span') + '<ul class="items" data-cat="' + esc(c.id) + '">' + ls.map(i => laneRow(i, T)).join('') + '</ul></div>'; }).join('')
     + laneDishesHTML(T, g.id)
     + (mine.length || S.dishes.some(d => d.owner === g.id) ? '' : '<p class="lane-empty">אין פריטים</p>')
-    + '</article>';
+    + '</div></article>';
 }
 function moneyHTML(T) {
   if (!S.expensesLoaded) return '<p class="muted">נטען…</p>';
@@ -2016,6 +2092,11 @@ function updateTrip() {
   body.hidden = false;
   autoMe(T);
   const me = S.me && T.gmap[S.me] ? T.gmap[S.me] : null;
+  // coming into an event (an invite link, or any first visit) without a name in it: ask which participant I am, once per visit
+  if (S.askMe && S.guestsLoaded) {
+    S.askMe = false;
+    if (!me && T.guests.length && !S.readOnly) setTimeout(() => { if (S.view === 'trip' && !(S.me && tripData().gmap[S.me]) && !byId('sheet-root').classList.contains('open')) openMePicker(); }, 300);
+  }
   const cd = countdown(ev.date, ev.end), meta = dateMeta(ev);
   head.innerHTML = camHTML() + (cd ? '<p class="eyebrow">' + cd + '</p>' : '') + '<h1 class="display trip-title">' + esc(ev.name || 'ללא שם') + '</h1>' + (meta ? '<p class="trip-meta">' + esc(meta) + '</p>' : '')
     + crewHTML(T);
@@ -2039,7 +2120,9 @@ function updateTrip() {
     + (t === 'notes' && unread ? '<b class="badge" aria-label="' + unread + ' הערות חדשות">' + unread + '</b>' : '') + '</button>').join('');
   ALL_TABS.forEach(t => byId('col-' + t).classList.toggle('on', S.tab === t));
   byId('r-meals').innerHTML = mealsOn(ev) ? mealsHTML(T) : '';
-  if (!noteEdit) byId('r-notes').innerHTML = tripNotesHTML();
+  const ci = byId('chat-in');
+  if (ci && document.activeElement === ci && S.noteTab === 'group') byId('chat-list').innerHTML = chatListHTML();
+  else if (!noteEdit) { byId('r-notes').innerHTML = tripNotesHTML(); const nc = byId('chat-in'); if (nc) growChat(nc); }
   const mItems = S.soloId ? S.soloItems : [];
   byId('r-pfilter').innerHTML = '<button aria-pressed="' + (S.pfilter !== 'open') + '" data-pfilter="all">הכול</button><button aria-pressed="' + (S.pfilter === 'open') + '" data-pfilter="open">מה חסר</button>';
   byId('af-mine').hidden = !soloBase();
@@ -2312,7 +2395,7 @@ function openTrip(id, tab) {
   stopView();
   if (S.tripId !== id) undoStack = [];
   noteEdit = null;
-  Object.assign(S, {view: 'trip', tab: tab || 'group', q: '', pbOpen: null, pfilter: 'all', noteTab: 'mine', tripId: id, soloId: null, soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], evNotes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
+  Object.assign(S, {view: 'trip', tab: tab || 'group', q: '', pbOpen: null, pfilter: 'all', noteTab: 'group', askMe: true, tripId: id, soloId: null, soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], evNotes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
   linkTripSolo();
   viewUnsubs.push(Store.sub('events/' + id + '/media', l => { if (S.tripId !== id) return; S.cover = coverSrc(l.find(d => d.id === 'cover')); render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/guests', l => { if (S.tripId !== id) return; S.guests = l; S.guestsLoaded = true; render(); }));
@@ -2414,9 +2497,9 @@ const sheetActions = (extraLeft, okLabel) => '<div class="sheet-actions">' + (ex
 
 function openMePicker(cb) {
   const T = tripData();
-  openSheet('<h2 class="sheet-title">מי אני?</h2>'
+  openSheet('<h2 class="sheet-title">מי אני?</h2><p class="sheet-lead">' + (T.guests.length ? 'בחירה בשם שלך מבין המשתתפים' : 'השם שלך באירוע') + '</p>'
     + (T.guests.length ? '<div class="pick-list">' + T.guests.map(g => '<button class="pick-row' + (g.id === S.me ? ' on' : '') + '" data-pick-me="' + esc(g.id) + '">' + av(g) + '<span>' + esc(g.name) + '</span>' + (g.id === S.me ? ICON.check : '') + '</button>').join('') + '</div>' : '')
-    + (S.readOnly ? '' : '<form class="add-row" data-form="add-me" autocomplete="off"><input class="grow" id="me-new" placeholder="שם חדש" maxlength="40" aria-label="השם שלי" value="' + esc(lsGet('myName') || '') + '"><button class="btn primary" type="submit">הצטרפות</button></form>'));
+    + (S.readOnly ? '' : (T.guests.length ? '<p class="pick-or">לא ברשימה?</p>' : '') + '<form class="one-row" data-form="add-me" autocomplete="off"><input id="me-new" placeholder="השם שלי" maxlength="40" aria-label="השם שלי" value="' + esc(lsGet('myName') || '') + '"><button class="btn primary" type="submit">הצטרפות</button></form>'));
   afterPick = cb || null;
 }
 function pickMe(gid) {
@@ -3548,6 +3631,9 @@ document.addEventListener('click', e => {
   if (d.meat) return startMeat(d.meat);
   if (d.covered) return coveredTap(d.covered);
   if (d.ntab) { S.noteTab = d.ntab === 'group' ? 'group' : 'mine'; render(); return; }
+  if (d.msgDel) { const n = (S.evNotes || []).find(x => x.id === d.msgDel); if (n && msgBy(n) === myKey() && !S.readOnly) { sfx('delete'); fire(Store.del('events/' + S.tripId + '/notes/' + n.id)); toast('ההודעה נמחקה'); } return; }
+  if (d.act === 'hello-edit') { S.helloEdit = true; render(); const i = byId('hello-in'); if (i) { i.focus(); i.select(); } return; }
+  if (d.act === 'hello-cancel') { S.helloEdit = false; render(); return; }
   if (d.dishNew) { if (!needMe(() => openDishSheet(null, Number(d.dishNew.slice(0, -1)), d.dishNew.slice(-1)))) return; return openDishSheet(null, Number(d.dishNew.slice(0, -1)), d.dishNew.slice(-1)); }
   if (d.dish) return openDishSheet(d.dish);
   if (d.dishTake) return takeDish(d.dishTake);
@@ -3649,6 +3735,12 @@ const forms = {
     const gid = await addGuest(name, true);
     if (gid) lsSet('myName', name);
     if (gid && cb) cb();
+  },
+  chat() { if (needMe(sendChat)) sendChat(); },
+  hello() {
+    const i = byId('hello-in'), v = i ? i.value.trim().slice(0, 40) : ''; if (!v) { if (i) i.focus(); return; }
+    const first = !lsGet('myName'); lsSet('myName', v); S.helloEdit = false; i.blur(); render();
+    toast(first ? 'נעים להכיר, ' + v : 'השם עודכן');
   },
   'new-trip'(f) { createTrip(f); },
   meals(f) {
@@ -3801,7 +3893,7 @@ const forms = {
 document.addEventListener('submit', e => {
   const f = e.target.closest('form[data-form]'); if (!f) return;
   e.preventDefault();
-  const kind = f.dataset.form, soloForm = ['new-solo', 'edit-solo', 'add-solo', 'add-mine', 'solo-item'].includes(kind) || (kind === 'quick-add' && f.dataset.ctx === 's');
+  const kind = f.dataset.form, soloForm = ['new-solo', 'edit-solo', 'add-solo', 'add-mine', 'solo-item', 'hello'].includes(kind) || (kind === 'quick-add' && f.dataset.ctx === 's');
   if (S.readOnly && !soloForm) return;
   // adding from an open fold keeps it open, even once the list is no longer empty
   const fold = f.closest('.addfold'); if (fold && fold.classList.contains('open')) S.af[fold.id.slice(3)] = true;
