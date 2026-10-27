@@ -791,7 +791,7 @@ const myBankList = () => (S.myBank && S.myBank.length ? S.myBank : DEF_BANK);
 const DEF_SHARED_BANK = ['כיסאות','שולחן','מחצלת','צידנית','שקיות קרח','גזייה','מנגל','פחמים','צלחות','כוסות','סכו״ם','מגבות נייר','שקיות זבל','רמקול','פנס גז','כבל מאריך','מים','בירה','שתייה קלה','בשר','סלט','לחמניות','קפה','חלב'];
 let SHARED_BANK = DEF_SHARED_BANK.slice();
 const PREF_LISTS = {mybank: ['בנק הצעות ברשימה אישית', () => myBankList(), DEF_BANK], sharedbank: ['בנק הצעות ברשימה משותפת', () => SHARED_BANK, DEF_SHARED_BANK], meat: ['סוגי בשר', () => MEAT_CHOICES, DEF_MEAT], salads: ['סוגי סלט', () => SALAD_IDEAS, DEF_SALAD], soft: ['שתייה קלה', () => SOFT_IDEAS, DEF_SOFT]};
-const SIX = 'שישיות';
+const SIX = 'שישיות', BAG = 'שקיות';
 const ICON = {
   check:'<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.6l3.2 3.1L13 4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   back:'<svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -883,11 +883,13 @@ const isSixName = name => {
   const rest = ts.filter(t => !base(t).some(b => ['שישיית','שישיות','שישייה','שישיה','מינרליים','לשתייה','בקבוקי','קפואים','קרים','מינרלים'].includes(b)));
   return rest.length === 1 && base(rest[0]).includes('מים');
 };
+// Ice comes in bags: "קרח", "שקית קרח", "שקיות קרח"
+const isIceName = name => { const ts = toks(name); return hasTok(ts, ['קרח']) && ts.every(t => base(t).some(b => ['קרח', 'שקית', 'שקיות', 'קוביות', 'של'].includes(b))); };
 const kindCache = new Map();
 function kindOfName(name) {
   name = String(name || '');
   if (kindCache.has(name)) return kindCache.get(name);
-  const k = meatType(name) ? 'meat' : isSaladName(name) ? 'salad' : softGeneric(name) ? 'soft' : isSixName(name) ? 'six' : '';
+  const k = meatType(name) ? 'meat' : isSaladName(name) ? 'salad' : softGeneric(name) ? 'soft' : isSixName(name) ? 'six' : isIceName(name) ? 'ice' : '';
   kindCache.set(name, k); return k;
 }
 const kindOf = i => (i && i.dish ? '' : kindOfName(i && i.name));
@@ -895,8 +897,9 @@ const isPool = i => kindOf(i) === 'meat' && !Number(i.grams) && !i.detail;
 function applyDefaults(d) {
   const k = kindOfName(d.name);
   if (k === 'six' && d.unit == null) d.unit = SIX;
+  if (k === 'ice' && !d.unit) d.unit = BAG;
   if (k === 'meat' || k === 'salad') d.cat = 'food';
-  if ((k === 'soft' || k === 'six') && (!d.cat || d.cat === 'general')) d.cat = 'drinks';
+  if ((k === 'soft' || k === 'six' || k === 'ice') && (!d.cat || d.cat === 'general')) d.cat = 'drinks';
   if (k === 'meat') { d.qty = 1; d.unit = ''; }
   return d;
 }
@@ -904,6 +907,7 @@ const saladName = t => /^סלט/.test(t) ? t : 'סלט ' + t;
 function fmtG(g) { g = Math.round(Number(g) || 0); if (g >= 1000) return String(Math.round(g / 100) / 10).replace(/\.0$/, '') + ' ק״ג'; return g + ' גרם'; }
 function fmtQ(q, unit) {
   if (unit === SIX) return q === 1 ? 'שישייה אחת' : q + ' ' + SIX;
+  if (unit === BAG) return q === 1 ? 'שקית אחת' : q + ' ' + BAG;
   if (unit) return q + ' ' + unit;
   return q > 1 ? q + ' יח׳' : '';
 }
@@ -1092,7 +1096,7 @@ function guessCat(name, noLearn) {
   if (!noLearn) { const l = LEARN[norm(name)]; if (l && CAT[l]) return l; }
   const k = kindOfName(name);
   if (k === 'meat' || k === 'salad') return 'food';
-  if (k === 'soft' || k === 'six') return 'drinks';
+  if (k === 'soft' || k === 'six' || k === 'ice') return 'drinks';
   const d = dictCat(name); if (d && CAT[d]) return d;
   const ts = toks(name), own = CATS.find(c => c.id !== 'general' && ts.some(t => base(t).some(b => same(b, c.label))));
   return own ? own.id : 'general';
@@ -2702,9 +2706,10 @@ function openQtySheet(it) {
 }
 /* How many six-packs, asked when a six-pack drink is added */
 function openSixSheet(name, onSave, defQty, defUnit) {
-  let v = Math.max(1, defQty || 1), unit = defUnit === '' ? '' : SIX;
+  const bags = defUnit === BAG;
+  let v = Math.max(1, defQty || 1), unit = bags ? BAG : defUnit === '' ? '' : SIX;
   openSheet('<h2 class="sheet-title">' + esc(name) + '</h2>'
-    + '<div class="seg-radio" role="radiogroup" aria-label="יחידה"><label><input type="radio" name="x-unit" value="six"' + (unit ? ' checked' : '') + '><span>שישיות</span></label><label><input type="radio" name="x-unit" value="one"' + (unit ? '' : ' checked') + '><span>יחידות</span></label></div>'
+    + (bags ? '<p class="muted">כמה שקיות?</p>' : '<div class="seg-radio" role="radiogroup" aria-label="יחידה"><label><input type="radio" name="x-unit" value="six"' + (unit ? ' checked' : '') + '><span>שישיות</span></label><label><input type="radio" name="x-unit" value="one"' + (unit ? '' : ' checked') + '><span>יחידות</span></label></div>')
     + '<div class="stepper"><button type="button" data-step="-1" aria-label="פחות">−</button><output id="x-val">1</output><button type="button" data-step="1" aria-label="יותר">+</button></div>'
     + '<div class="quick">' + [1, 2, 3, 4, 6].map(n => '<button type="button" class="chip" data-qset="' + n + '">' + n + '</button>').join('') + '</div>'
     + '<div class="sheet-actions"><button type="button" class="btn" data-close>ביטול</button><button type="button" class="btn primary" id="x-go"></button></div>', root => {
@@ -3266,8 +3271,8 @@ function addGroupFlow(name, qty, cat, unit) {
     }});
     return true;
   }
-  if (k === 'six' && qty === 1) {
-    openSixSheet(name, (n, u) => addItem(applyDefaults({name, cat, qty: n, unit: u, scope: 'g'})));
+  if ((k === 'six' || k === 'ice') && qty === 1) {
+    openSixSheet(name, (n, u) => addItem(applyDefaults({name, cat, qty: n, unit: u, scope: 'g'})), 1, k === 'ice' ? BAG : undefined);
     return true;
   }
   addItem(applyDefaults({name, cat, qty, unit, scope: 'g'}));
@@ -3310,7 +3315,7 @@ function bankAdd(b) {
   const name = b.name, cat = CAT[b.cat] ? b.cat : 'general', k = kindOfName(name), q = Q(b), unit = b.unit || '';
   if (k === 'meat' || k === 'salad' || k === 'soft') return addGroupFlow(name, q, cat, unit);
   if (dupGroup(name)) { dupToast(name); return; }
-  if (k === 'six') return openSixSheet(name, (n, u) => addItem(applyDefaults({name, cat, qty: n, unit: u, scope: 'g'})), q, SIX);
+  if (k === 'six' || k === 'ice') return openSixSheet(name, (n, u) => addItem(applyDefaults({name, cat, qty: n, unit: u, scope: 'g'})), q, k === 'ice' ? BAG : SIX);
   if (q > 1 || unit) return openAddQtySheet(name, q, unit, n => addItem({name, cat, qty: n, unit, scope: 'g'}));
   addItem({name, cat, qty: q, unit, scope: 'g'});
 }
@@ -3355,7 +3360,7 @@ function addPersonalFlow(name, qty, who, cat) {
     openChoiceSheet({title: salad ? 'איזה סלט?' : 'איזו שתייה קלה?', ideas: salad ? SALAD_IDEAS : SOFT_IDEAS, multi: true, qty: !salad, onSave: rows => rows.forEach(r => { const nm = salad ? saladName(r.name) : r.name; if (!dupPersonal(who, nm)) addPersonal(applyDefaults({name: nm, cat: salad ? 'food' : 'drinks', qty: r.qty, unit: r.unit, scope: 'p', owner: who})); })});
     return true;
   }
-  if (k === 'six' && qty === 1) { openSixSheet(name, (n, u) => addPersonal(applyDefaults({name, cat: cat || 'drinks', qty: n, unit: u, scope: 'p', owner: who}))); return true; }
+  if ((k === 'six' || k === 'ice') && qty === 1) { openSixSheet(name, (n, u) => addPersonal(applyDefaults({name, cat: cat || 'drinks', qty: n, unit: u, scope: 'p', owner: who})), 1, k === 'ice' ? BAG : undefined); return true; }
   addPersonal(applyDefaults({name, cat: cat || guessCat(name), qty, scope: 'p', owner: who}));
   return true;
 }
@@ -4052,6 +4057,7 @@ const forms = {
     if (gr) { patch.grams = gr.value ? clampG(gr.value) : 0; patch.qty = 1; patch.unit = ''; }
     if (qt) patch.qty = clampQ(qt.value);
     if (un) patch.unit = un.value;
+    if (k === 'ice') patch.unit = BAG;
     if (k === 'meat' || k === 'salad') patch.cat = 'food';
     const pk = f.querySelector('#it-packed');
     patch.packed = owner && owner === it.owner ? (pk ? pk.checked : !!it.packed) : false;
@@ -4137,6 +4143,7 @@ const forms = {
     if (qi) patch.qty = clampQ(qi.value);
     if (ui) patch.unit = ui.value;
     const k = kindOfName(name); if (k === 'meat' || k === 'salad') patch.cat = 'food';
+    if (k === 'ice') patch.unit = BAG;
     const oldT = t && (t.items || []).find(i => i.id === iid); if (oldT && catOf(oldT) !== patch.cat) learnCat(name, patch.cat);
     closeSheet();
     saveTpl(S.tplId, x => { const it = x.items.find(i => i.id === iid); if (it) Object.assign(it, patch); });
