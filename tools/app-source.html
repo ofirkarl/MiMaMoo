@@ -894,7 +894,7 @@ const S = {af: {},
   view: 'home', events: [], templates: [], solos: [], eventsLoaded: false, templatesLoaded: false, solosLoaded: false,
   tripId: null, guests: [], items: [], expenses: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false,
   soloId: null, soloItems: [], soloItemsLoaded: false,
-  tab: ['people', 'meals', 'shop', 'mine', 'notes'].includes(lsGet('tab')) ? lsGet('tab') : 'group', cover: null, filter: 'all', soloFilter: 'all', bankOpen: null, homeTab: ['money', 'notes'].includes(lsGet('htab')) ? lsGet('htab') : 'lists',
+  tab: 'group', cover: null, filter: 'all', soloFilter: 'all', bankOpen: null, homeTab: ['money', 'notes'].includes(lsGet('htab')) ? lsGet('htab') : 'lists',
   tplId: null, q: '', me: null, lastCat: CAT[lsGet('cat')] ? lsGet('cat') : 'general',
   deep: (location.hash || '').replace(/^#/, '')
 };
@@ -2181,11 +2181,12 @@ function coverSrc(d) {
   if (typeof d.data === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(d.data)) return d.data;
   return null;
 }
-function openTrip(id) {
+// Entering an event always starts on the shared list (a new event planned with meals starts on its meals)
+function openTrip(id, tab) {
   stopView();
   if (S.tripId !== id) undoStack = [];
   noteEdit = null;
-  Object.assign(S, {view: 'trip', q: '', pbOpen: null, pfilter: 'all', noteTab: 'mine', tripId: id, soloId: null, soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], evNotes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
+  Object.assign(S, {view: 'trip', tab: tab || 'group', q: '', pbOpen: null, pfilter: 'all', noteTab: 'mine', tripId: id, soloId: null, soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], evNotes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
   linkTripSolo();
   viewUnsubs.push(Store.sub('events/' + id + '/media', l => { if (S.tripId !== id) return; S.cover = coverSrc(l.find(d => d.id === 'cover')); render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/guests', l => { if (S.tripId !== id) return; S.guests = l; S.guestsLoaded = true; render(); }));
@@ -3038,8 +3039,7 @@ async function createTrip(f) {
   try { await Store.set('events/' + eid, doc); } catch (e) { return; }
   const mg = ntMe ? guests.find(g => same(g.name, ntMe)) : guests[0];
   if (mg) { lsSet('me:' + eid, mg.id); lsSet('myName', mg.name); }
-  if (mOn) { S.tab = 'meals'; lsSet('tab', 'meals'); }
-  openTrip(eid);
+  openTrip(eid, mOn ? 'meals' : 'group');
   if (mOn) setTimeout(() => { if (S.tripId === eid) openMealsSheet(); }, 450);
   await runLimited(guests.map(g => () => Store.set('events/' + eid + '/guests/' + g.id, {name: g.name, color: g.color, created: g.created})), 4);
 }
@@ -3326,7 +3326,7 @@ function setTab(tab, dir) {
   if (!TABS.includes(tab) || S.view !== 'trip') return;
   exitSel();
   const from = TABS.indexOf(S.tab), to = TABS.indexOf(tab);
-  S.tab = tab; lsSet('tab', tab); render();
+  S.tab = tab; render();
   if (from !== to && window.innerWidth < 960) slideIn(byId('col-' + tab), dir || (to > from ? 1 : -1));
   const b = $('.board'); if (b) { const y = b.getBoundingClientRect().top + window.scrollY - 70; if (window.scrollY > y) window.scrollTo(0, y); }
 }

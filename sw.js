@@ -1,5 +1,5 @@
 /* MiMaMoo service worker: opens offline, picks up new versions on the next visit. */
-const CACHE = 'mimamoo-202610271348';
+const CACHE = 'mimamoo-202610271446';
 const SHELL = ['./', 'index.html', 'config.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/favicon-32.png'];
 
 self.addEventListener('install', e => {
