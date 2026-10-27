@@ -108,6 +108,12 @@ button:disabled{cursor:default}
 .logo{display:inline-flex;align-items:center;gap:9px;direction:ltr;unicode-bidi:isolate}
 .logo-ic{width:36px;height:36px;flex:none;filter:drop-shadow(0 2px 6px rgba(60,52,90,.12))}
 .logo-word{font-family:"Fredoka",var(--f-display);font-weight:600;font-size:25px;letter-spacing:-.02em;line-height:1}
+.logo-text{display:flex;flex-direction:column;gap:3px}
+.logo-tag{font-family:var(--f-display);font-weight:500;font-size:12.5px;line-height:1;letter-spacing:.04em;color:var(--accent-deep);text-align:left}
+/* home: a soft pastel wash behind the lists (butter, mint and lavender, like the logo) */
+body.on-home{background-color:#F8F4FD;background-image:radial-gradient(34rem 24rem at 108% -4rem,#FFE6A3 0%,rgba(255,230,163,0) 70%),radial-gradient(28rem 24rem at -10rem 12rem,#CDEFDC 0%,rgba(205,239,220,0) 68%),radial-gradient(34rem 28rem at 100% 34rem,#E0D5FF 0%,rgba(224,213,255,0) 68%),radial-gradient(30rem 24rem at -6rem 56rem,#FFDCCB 0%,rgba(255,220,203,0) 68%);background-repeat:no-repeat;background-attachment:fixed}
+body.on-home .top{background:transparent}
+body.on-home .empty{background:rgba(255,255,255,.6)}
 
 /* Buttons */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 20px;border-radius:999px;font-weight:700;font-size:16px;line-height:1;border:1px solid transparent;background:var(--accent);color:var(--accent-ink);white-space:nowrap;transition:transform .08s,background .15s,box-shadow .15s}
@@ -180,6 +186,13 @@ fieldset.field>legend{margin-bottom:8px}
 .trip-card.past{opacity:.6}
 .stub{flex:none;width:58px;height:64px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:var(--sunk);color:var(--ink)}
 .solo-card .stub{background:var(--mine-bg);color:var(--mine-ink)}
+.shop-card .stub{background:var(--good-bg);color:var(--good)}
+.shop-card .stub svg{width:26px;height:26px}
+.bought-sec{margin-top:22px;padding-top:12px;border-top:1.5px dashed var(--line-2)}
+.bought-head{display:flex;align-items:center;gap:6px;font-family:var(--f-display);font-weight:600;font-size:14.5px;color:var(--good);padding-bottom:2px}
+.bought-head svg{width:15px;height:15px}
+.shop-add{margin-bottom:14px}
+.field-hint{font-size:14px;color:var(--muted);margin-top:-8px}
 .stub-dow,.stub-mon{font-weight:600;font-size:12px;line-height:1.1;opacity:.75}
 .stub-day{font-family:var(--f-display);font-weight:600;font-size:23px;line-height:1.05;font-variant-numeric:tabular-nums}
 .trip-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px}
@@ -968,7 +981,7 @@ setPrefs(null);
 /* ---------- State ---------- */
 const S = {af: {}, 
   mode: 'connecting', readOnly: false, canWrite: null, uid: null,
-  view: 'home', events: [], templates: [], solos: [], eventsLoaded: false, templatesLoaded: false, solosLoaded: false,
+  view: 'home', events: [], templates: [], solos: [], shops: [], shopId: null, shopItems: [], eventsLoaded: false, templatesLoaded: false, solosLoaded: false,
   tripId: null, guests: [], items: [], expenses: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false,
   soloId: null, soloItems: [], soloItemsLoaded: false,
   tab: 'group', cover: null, filter: 'all', soloFilter: 'all', bankOpen: null, homeTab: ['money', 'notes'].includes(lsGet('htab')) ? lsGet('htab') : 'lists',
@@ -977,7 +990,8 @@ const S = {af: {},
 };
 let preTpl = null, ntMe = '', ntGuests = [], afterPick = null, viewUnsubs = [], undoStack = [];
 const tripSoloCache = {};
-let Assets = null, mineUnsub = null;
+let Assets = null, mineUnsub = null, shopUnsub = null;
+const tripShopCache = {};
 const ALL_TABS = ['group', 'people', 'meals', 'shop', 'mine', 'notes'];
 let TABS = ALL_TABS.filter(t => t !== 'meals');
 /* The one sound left in the app: "שולם" when a debt is settled — a festive cash register. */
@@ -1346,7 +1360,7 @@ function tripData() {
           meatTotal, meatPeople, meatPP: meatTotal / meatPeople};
 }
 function soloData() {
-  const list = S.solos.find(l => l.id === S.soloId) || null;
+  const list = S.solos.find(l => l.id === S.soloId) || S.shops.find(l => l.id === S.soloId) || null;
   const items = [...S.soloItems].sort((a, b) => (a.created || 0) - (b.created || 0));
   return {list, items, packed: items.filter(i => i.packed).length};
 }
@@ -1392,7 +1406,7 @@ const dupSolo = (name, exceptId) => S.soloItems.find(i => i.id !== exceptId && s
 let shellKey = '';
 function render() {
   const key = [S.view, S.tripId || '', S.view === 'trip' ? '' : (S.soloId || ''), S.tplId || '', S.readOnly ? 1 : 0, S.mode].join('|');
-  if (key !== shellKey) { shellKey = key; exitSel(); closeSearch(); byId('app').innerHTML = banner() + shell(); }
+  if (key !== shellKey) { shellKey = key; exitSel(); closeSearch(); byId('app').innerHTML = banner() + shell(); document.body.classList.toggle('on-home', S.view === 'home'); }
   try { update(); } catch (e) { console.error(e); }
 }
 function banner() {
@@ -1430,23 +1444,26 @@ function catsHTML(list, rowFn, countFn, addCtx) {
 /* Home */
 function shellHome() {
   const ro = S.readOnly;
-  return '<header class="top"><div class="wrap top-in"><span class="logo" role="img" aria-label="MiMaMoo"><svg class="logo-ic" viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" rx="30" fill="#F0ECFF"/><path d="M54 44V14" stroke="#5A4410" stroke-width="5" stroke-linecap="round"/><path d="M54 44L94 95H14Z" fill="#FFE08F" stroke="#FFE08F" stroke-width="6" stroke-linejoin="round"/><path d="M54 44L94 95H54Z" fill="#F7CF62" stroke="#F7CF62" stroke-width="6" stroke-linejoin="round"/><path d="M54 60L72 97H36Z" fill="#2B2833" stroke="#2B2833" stroke-width="3" stroke-linejoin="round"/><rect x="58" y="9" width="40" height="34" rx="9" fill="#9EDDBF"/><path d="M67 26L74 33L88 18" fill="none" stroke="#2B2833" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word" aria-hidden="true">MiMaMoo</span></span><button class="icon-btn gear" data-act="settings" aria-label="הגדרות">' + ICON.gear + '</button></div><div class="wrap" id="r-hello"></div></header>'
+  return '<header class="top"><div class="wrap top-in"><span class="logo" role="img" aria-label="MiMaMoo"><svg class="logo-ic" viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" rx="30" fill="#F0ECFF"/><path d="M54 44V14" stroke="#5A4410" stroke-width="5" stroke-linecap="round"/><path d="M54 44L94 95H14Z" fill="#FFE08F" stroke="#FFE08F" stroke-width="6" stroke-linejoin="round"/><path d="M54 44L94 95H54Z" fill="#F7CF62" stroke="#F7CF62" stroke-width="6" stroke-linejoin="round"/><path d="M54 60L72 97H36Z" fill="#2B2833" stroke="#2B2833" stroke-width="3" stroke-linejoin="round"/><rect x="58" y="9" width="40" height="34" rx="9" fill="#9EDDBF"/><path d="M67 26L74 33L88 18" fill="none" stroke="#2B2833" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-text" aria-hidden="true"><span class="logo-word">MiMaMoo</span><span class="logo-tag" dir="rtl">מי · מביא · מה</span></span></span><button class="icon-btn gear" data-act="settings" aria-label="הגדרות">' + ICON.gear + '</button></div><div class="wrap" id="r-hello"></div></header>'
     + '<main class="wrap home"><div class="tabs three" role="tablist" id="r-htabs"></div>'
     + '<div class="home-cols" id="h-lists">'
     + '<section class="home-col"><div class="col-top"><h2>רשימות משותפות</h2>' + (ro ? '' : '<button class="btn primary sm" data-act="new-trip">+ הוספה</button>') + '</div><div id="r-trips" class="trips"></div></section>'
     + '<section class="home-col"><div class="col-top"><h2>רשימות אישיות</h2><button class="btn primary sm" data-act="new-solo" id="btn-new-solo">+ הוספה</button></div><div id="r-solos" class="trips"></div></section>'
+    + '<section class="home-col"><div class="col-top"><h2>רשימות קניות</h2><button class="btn primary sm" data-act="new-shop" id="btn-new-shop">+ הוספה</button></div><div id="r-shops" class="trips"></div></section>'
     + '</div>'
     + '<section class="home-col" id="h-notes" hidden><div class="col-top"><h2>הערות</h2></div><div id="r-hnotes"></div></section>'
     + '<section class="home-col" id="h-money"><div class="col-top"><h2>חלוקת הוצאות</h2>' + (ro ? '' : '<button class="btn primary sm" data-act="new-split">+ הוספה</button>') + '</div><div id="r-mtrips" class="trips"></div></section>'
     + '</main>';
 }
+const shopTrip = L => L && L.tripId ? S.events.find(e => e.id === L.tripId) : null;
+const shopMeta = L => { const t = shopTrip(L); return t ? 'לאירוע: ' + (t.name || 'ללא שם') : ''; };
 function dateCard(e, attrs, cls, sel) {
   const d = parseD(e.date);
-  const stub = e.kind === 'split' ? '<span class="stub"><span class="stub-day">₪</span></span>' : d
+  const stub = e.kind === 'shop' ? '<span class="stub">' + ICON.tshop + '</span>' : e.kind === 'split' ? '<span class="stub"><span class="stub-day">₪</span></span>' : d
     ? '<span class="stub"><span class="stub-dow">יום ' + DOW[d.getDay()] + '</span><span class="stub-day">' + d.getDate() + '</span><span class="stub-mon">' + MON_S[d.getMonth()] + '</span></span>'
     : '<span class="stub"><span class="stub-day">–</span></span>';
   const th = THEMES[e.theme];
-  const cd = countdown(e.date, e.end), meta = dateMeta(e);
+  const cd = countdown(e.date, e.end), meta = e.kind === 'shop' ? shopMeta(e) : dateMeta(e);
   const sc = sel ? selCls(sel, e.id) : '';
   return '<button class="trip-card ' + (cls || '') + (th ? ' themed' : '') + (isPast(e) ? ' past' : '') + sc + '" ' + attrs + (sel ? selAt(sel, e.id) : '') + (th ? ' style="background:' + th.hb + ';color:' + th.ink + '"' : '') + '>' + (sel ? selBox : '') + stub
     + '<span class="trip-body">' + (cd ? '<span class="trip-when">' + cd + '</span>' : '') + '<span class="trip-name">' + esc(e.name || 'ללא שם') + '</span>'
@@ -1483,6 +1500,12 @@ function updateHome() {
   else if (!sb) rs.innerHTML = '<div class="empty muted">זמין כשנכנסים עם חשבון</div>';
   else if (!S.solos.length) rs.innerHTML = '<div class="empty muted">עוד אין רשימות</div>';
   else rs.innerHTML = byDate(S.solos).map(l => dateCard(l, 'data-open-solo="' + esc(l.id) + '"', 'solo-card', 'solos')).join('');
+  const rsh = byId('r-shops'), bsh = byId('btn-new-shop');
+  if (bsh) bsh.hidden = !sb && S.mode !== 'connecting';
+  if (S.mode === 'connecting' || (sb && !S.solosLoaded)) rsh.innerHTML = '<div class="empty muted">נטען…</div>';
+  else if (!sb) rsh.innerHTML = '<div class="empty muted">זמין כשנכנסים עם חשבון</div>';
+  else if (!S.shops.length) rsh.innerHTML = '<div class="empty muted">עוד אין רשימות</div>';
+  else rsh.innerHTML = [...S.shops].sort((a, b) => (b.created || 0) - (a.created || 0)).map(l => dateCard(l, 'data-open-solo="' + esc(l.id) + '"', 'solo-card shop-card', 'solos')).join('');
 }
 
 /* Header ("banner"): color theme and a picture picked by tapping it */
@@ -1530,6 +1553,7 @@ function shellTrip() {
     + '<div id="r-meals"></div></div></section>'
     + '<section class="col" id="col-shop"><div class="panel col-panel">'
     + '<div class="col-head"><h2 class="label">קניות</h2></div>'
+    + '<form class="add-row shop-add" data-form="shop-add" id="shop-form" autocomplete="off">' + nameInput('sh-name-' + e, 'sh-qty-' + e, 'הוספת פריט לקניות') + miniStep('sh-qty-' + e) + '<button class="btn primary" type="submit">הוספה</button></form>'
     + '<div id="r-shprog" class="prog-slot"></div><div id="r-shop"></div></div></section>'
     + '<section class="col" id="col-notes"><div class="panel col-panel"><div id="r-notes"></div></div></section>'
     + '<section class="col" id="col-mine"><div class="panel col-panel">'
@@ -1940,13 +1964,13 @@ function laneDishesHTML(T, gid) {
   return '<div class="lane-cat"><span class="cat-pill dish-pill">ארוחות</span><ul class="items">' + ds.map(d => '<li class="item"><span class="cbox ghost" aria-hidden="true"></span><button class="item-main" data-dish="' + esc(d.id) + '"' + (S.readOnly ? ' disabled' : '') + '><span class="item-name">' + esc(d.name) + '</span><span class="qty">' + esc(mealName(T.ev, d.day, d.slot)) + '</span></button></li>').join('') + '</ul></div>';
 }
 // My shopping list: what I said I'd bring and still need to buy, by category; bought ones sink to the bottom
-function shopHTML(list) {
+function shopHTML(list, own) {
   if (!S.itemsLoaded) return '<p class="muted pad">נטען…</p>';
-  if (!list.length) return S.dishes.some(d => d.owner === S.me && ownBy(d).length) ? '' : '<p class="empty-in">אין מה לקנות</p>';
-  return CATS.map(c => {
-    const xs = list.filter(i => catOf(i) === c.id).sort((a, b) => (!!a.bought - !!b.bought) || posOf(a) - posOf(b)); if (!xs.length) return '';
-    return '<div class="cat"><div class="cat-head">' + catPill(c) + '<span class="cat-count">' + xs.filter(i => i.bought).length + '/' + xs.length + '</span></div><ul class="items">' + xs.map(shopRow).join('') + '</ul></div>';
-  }).join('');
+  own = own || [];
+  if (!list.length && !own.length) return S.dishes.some(d => d.owner === S.me && ownBy(d).length) ? '' : '<p class="empty-in">אין מה לקנות</p>';
+  // what I said I'd bring and marked to buy, together with what I added to my own shopping list
+  const all = list.map(i => ({i, ev: true, got: !!i.bought})).concat(own.map(i => ({i, ev: false, got: !!i.packed})));
+  return buyListHTML(all, x => x.ev ? shopRow(x.i) : ownShopRow(x.i));
 }
 function shopRow(i) {
   const q = amtHTML(i), ro = S.readOnly;
@@ -2164,8 +2188,10 @@ function updateTrip() {
   const toBuy = T.items.filter(i => i.buy && S.me && i.owner === S.me);
   const myDishes = mealsOn(ev) && S.me ? S.dishes.filter(d => d.owner === S.me && ownBy(d).length).sort((a, b) => (a.day - b.day) || ('bld'.indexOf(a.slot) - 'bld'.indexOf(b.slot))) : [];
   const ingr = myDishes.reduce((a, d) => a.concat(ownBy(d)), []);
-  byId('r-shprog').innerHTML = S.itemsLoaded ? progHTML(toBuy.filter(i => i.bought).length + ingr.filter(x => x.got).length, toBuy.length + ingr.length, 'נקנו', 'הכול נקנה') : '';
-  byId('r-shop').innerHTML = toBuy.length || !myDishes.length ? shopHTML(toBuy) + shopDishesHTML(T, myDishes) : shopDishesHTML(T, myDishes);
+  const own = S.shopId ? S.shopItems : [];
+  byId('shop-form').hidden = !soloBase();
+  byId('r-shprog').innerHTML = S.itemsLoaded ? progHTML(toBuy.filter(i => i.bought).length + own.filter(i => i.packed).length + ingr.filter(x => x.got).length, toBuy.length + own.length + ingr.length, 'נקנו', 'הכול נקנה') : '';
+  byId('r-shop').innerHTML = (toBuy.length || own.length || !myDishes.length ? shopHTML(toBuy, own) : '') + shopDishesHTML(T, myDishes);
 
   const lanesEl = byId('r-lanes');
   if (!S.guestsLoaded) lanesEl.innerHTML = '<p class="muted">נטען…</p>';
@@ -2185,10 +2211,34 @@ function shellSolo() {
     + '<div id="r-sprog" class="prog-slot"></div><div id="r-solo"></div></div></section></main></div>';
 }
 function soloRow(i) {
-  const q = i.grams ? fmtG(i.grams) : fmtQ(Q(i), i.unit || '');
-  return '<li class="item has-del' + (i.packed ? ' packed' : '') + '"><button class="pk' + (i.packed ? ' on' : '') + '" data-spack="' + esc(i.id) + '" aria-pressed="' + !!i.packed + '" aria-label="בתיק: ' + esc(i.name) + '">' + ICON.check + '</button>'
+  const q = i.grams ? fmtG(i.grams) : fmtQ(Q(i), i.unit || ''), shop = S.view === 'solo' && soloData().list && soloData().list.kind === 'shop';
+  return '<li class="item has-del' + (i.packed ? ' packed' : '') + '"><button class="pk' + (i.packed ? ' on' : '') + '" data-spack="' + esc(i.id) + '" aria-pressed="' + !!i.packed + '" aria-label="' + (shop ? 'נקנה: ' : 'בתיק: ') + esc(i.name) + '">' + ICON.check + '</button>'
     + '<button class="item-main" data-sedit="' + esc(i.id) + '"><span class="item-name">' + esc(i.detail ? dispName(i) : i.name) + '</span>' + (q ? '<span class="qty">' + esc(q) + '</span>' : '') + '</button>'
     + '<button class="row-del" data-sdel="' + esc(i.id) + '" aria-label="מחיקת ' + esc(i.name) + '">' + ICON.x + '</button></li>';
+}
+// A shopping list: what is still to buy by category, then everything already bought, crossed out, below a line
+const boughtSec = (rows, n) => '<div class="bought-sec"><p class="bought-head">' + ICON.check + 'נקנו · ' + n + '</p><ul class="items">' + rows + '</ul></div>';
+function buyListHTML(entries, row) {
+  const open = entries.filter(x => !x.got), got = entries.filter(x => x.got);
+  return CATS.map(c => {
+    const xs = open.filter(x => catOf(x.i) === c.id).sort((a, b) => posOf(a.i) - posOf(b.i)); if (!xs.length) return '';
+    return '<div class="cat"><div class="cat-head">' + catPill(c) + '<span class="cat-count">' + xs.length + '</span></div><ul class="items">' + xs.map(row).join('') + '</ul></div>';
+  }).join('') + (got.length ? boughtSec(got.map(row).join(''), got.length) : '');
+}
+function ownShopRow(i) {
+  const q = fmtQ(Q(i), i.unit || ''), ro = !soloBase();
+  return '<li class="item has-del' + (i.packed ? ' packed' : '') + '"><button class="pk' + (i.packed ? ' on' : '') + '" data-ownbuy="' + esc(i.id) + '" aria-pressed="' + !!i.packed + '" aria-label="נקנה: ' + esc(i.name) + '"' + (ro ? ' disabled' : '') + '>' + ICON.check + '</button>'
+    + '<button class="item-main" data-ownedit="' + esc(i.id) + '"' + (ro ? ' disabled' : '') + '><span class="item-name">' + esc(i.name) + '</span>' + (q ? '<span class="qty">' + esc(q) + '</span>' : '') + '</button>'
+    + '<button class="row-del" data-owndel="' + esc(i.id) + '" aria-label="מחיקת ' + esc(i.name) + '">' + ICON.x + '</button></li>';
+}
+function openShopItemSheet(id) {
+  const it = S.shopItems.find(i => i.id === id); if (!it) return;
+  openSheet('<form class="stack-form" data-form="shop-item" data-id="' + esc(id) + '" autocomplete="off">'
+    + '<label class="field"><span>פריט</span><input id="si-name" value="' + esc(it.name) + '" maxlength="80" required></label>'
+    + '<div class="field"><span>כמות</span>' + miniStep('si-qty', Q(it)) + '</div>'
+    + '<label class="field"><span>קטגוריה</span><select id="si-cat">' + catOptions(catOf(it)) + '</select></label>'
+    + sheetActions('<button type="button" class="btn danger" data-owndel="' + esc(id) + '">מחיקה</button>')
+    + '</form>');
 }
 function updateSolo() {
   const head = byId('r-head'); if (!head) return;
@@ -2196,18 +2246,19 @@ function updateSolo() {
   if (!L) { head.innerHTML = S.solosLoaded ? '<h1 class="display trip-title">הרשימה לא נמצאה</h1>' : '<p class="trip-meta">נטען…</p>'; body.hidden = true; return; }
   body.hidden = false;
   applyHead(L.theme);
-  const trip = L.tripId && S.events.find(e => e.id === L.tripId);
-  byId('r-solo-nav').innerHTML = (trip ? '<button class="btn sm" data-open-trip="' + esc(trip.id) + '">לאירוע המשותף</button>' : '') + '<button class="btn sm" data-act="edit-solo">עריכה</button>';
-  const cd = countdown(L.date, L.end), meta = dateMeta(L);
+  const trip = L.tripId && S.events.find(e => e.id === L.tripId), shop = L.kind === 'shop';
+  byId('r-solo-nav').innerHTML = (trip ? '<button class="btn sm" ' + (shop ? 'data-open-trip-shop' : 'data-open-trip') + '="' + esc(trip.id) + '">' + (shop ? 'לאירוע' : 'לאירוע המשותף') + '</button>' : '') + '<button class="btn sm" data-act="edit-solo">עריכה</button>';
+  const cd = shop ? '' : countdown(L.date, L.end), meta = shop ? shopMeta(L) : dateMeta(L);
   head.innerHTML = camHTML() + '<p class="tab-note tn-mine">' + ICON.lock + 'הרשימה גלויה רק לך</p>' + (cd ? '<p class="eyebrow">' + cd + '</p>' : '') + '<h1 class="display trip-title">' + esc(L.name || 'ללא שם') + '</h1>' + (meta ? '<p class="trip-meta">' + esc(meta) + '</p>' : '');
-  byId('r-sprog').innerHTML = S.soloItemsLoaded ? progHTML(D.packed, D.items.length, 'בתיק', 'הכול בתיק') : '';
-  syncFold('solo', S.soloItemsLoaded && !D.items.length);
-  const re = byId('r-ess'); if (re) re.innerHTML = S.soloItemsLoaded ? essHTML(null) : '';
+  byId('r-sprog').innerHTML = S.soloItemsLoaded ? (shop ? progHTML(D.packed, D.items.length, 'נקנו', 'הכול נקנה') : progHTML(D.packed, D.items.length, 'בתיק', 'הכול בתיק')) : '';
+  syncFold('solo', S.soloItemsLoaded && (shop || !D.items.length));
+  const re = byId('r-ess'); if (re) re.innerHTML = S.soloItemsLoaded && !shop ? essHTML(null) : '';
   const r = byId('r-solo');
   if (!S.soloItemsLoaded) { r.innerHTML = '<p class="muted pad">נטען…</p>'; return; }
   if (!D.items.length) { r.innerHTML = ''; return; }
   let list = S.soloFilter === 'open' ? D.items.filter(i => !i.packed) : D.items;
   if (S.q) { list = list.filter(i => matchQ(dispName(i))); if (!list.length) { r.innerHTML = noHits; return; } }
+  if (shop) { r.innerHTML = buyListHTML(list.map(i => ({i, got: !!i.packed})), x => soloRow(x.i)); return; }
   r.innerHTML = list.length ? catsHTML(list, soloRow, (c, ls) => ls.filter(i => i.packed).length + '/' + ls.length, 's') : '<p class="empty-in done">הכול בתיק</p>';
 }
 
@@ -2401,7 +2452,7 @@ function updateTemplate() {
 }
 
 /* ---------- Navigation ---------- */
-function stopView() { viewUnsubs.forEach(u => { try { u(); } catch (e) {} }); viewUnsubs = []; if (mineUnsub) { try { mineUnsub(); } catch (e) {} mineUnsub = null; } }
+function stopView() { viewUnsubs.forEach(u => { try { u(); } catch (e) {} }); viewUnsubs = []; if (mineUnsub) { try { mineUnsub(); } catch (e) {} mineUnsub = null; } if (shopUnsub) { try { shopUnsub(); } catch (e) {} shopUnsub = null; } }
 /* The trip's private list ("רשימה אישית" tab) follows the personal list linked to this trip */
 function linkTripSolo() {
   if (S.view !== 'trip') return;
@@ -2410,6 +2461,25 @@ function linkTripSolo() {
   if (mineUnsub) { try { mineUnsub(); } catch (e) {} mineUnsub = null; }
   S.soloId = id; S.soloItems = []; S.soloItemsLoaded = !id;
   if (id) mineUnsub = Store.sub(b + '/' + id + '/items', l => { if (S.soloId !== id || S.view !== 'trip') return; S.soloItems = l; S.soloItemsLoaded = true; render(); });
+}
+/* The trip's "קניות" tab also shows my shopping list linked to this trip (one I opened from home, or one opened here) */
+function linkTripShop() {
+  if (S.view !== 'trip') return;
+  const b = soloBase(), L = b ? [...S.shops].sort((x, y) => (x.created || 0) - (y.created || 0)).find(l => l.tripId === S.tripId) : null, id = L ? L.id : null;
+  if (id === S.shopId && (!id || shopUnsub)) return;
+  if (shopUnsub) { try { shopUnsub(); } catch (e) {} shopUnsub = null; }
+  S.shopId = id; S.shopItems = [];
+  if (id) shopUnsub = Store.sub(b + '/' + id + '/items', l => { if (S.shopId !== id || S.view !== 'trip') return; S.shopItems = l; render(); });
+}
+const shopItemPath = id => soloBase() + '/' + S.shopId + '/items/' + id;
+async function ensureTripShop() {
+  const b = soloBase(), ev = tripData().ev; if (!b || !ev) return null;
+  if (S.shopId) return S.shopId;
+  if (tripShopCache[ev.id]) return tripShopCache[ev.id];
+  const lid = uid('l'); tripShopCache[ev.id] = lid;
+  try { await Store.set(b + '/' + lid, {kind: 'shop', name: 'קניות ל' + (ev.name || 'אירוע'), tripId: ev.id, created: Date.now()}); }
+  catch (e) { delete tripShopCache[ev.id]; return null; }
+  return lid;
 }
 function coverSrc(d) {
   if (!d) return null;
@@ -2422,8 +2492,8 @@ function openTrip(id, tab) {
   stopView();
   if (S.tripId !== id) undoStack = [];
   noteEdit = null;
-  Object.assign(S, {view: 'trip', tab: tab || 'group', q: '', pbOpen: null, pfilter: 'all', noteTab: 'group', askMe: true, tripId: id, soloId: null, soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], evNotes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
-  linkTripSolo();
+  Object.assign(S, {view: 'trip', tab: tab || 'group', q: '', pbOpen: null, pfilter: 'all', noteTab: 'group', askMe: true, tripId: id, soloId: null, shopId: null, shopItems: [], soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], evNotes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
+  linkTripSolo(); linkTripShop();
   viewUnsubs.push(Store.sub('events/' + id + '/media', l => { if (S.tripId !== id) return; S.cover = coverSrc(l.find(d => d.id === 'cover')); render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/guests', l => { if (S.tripId !== id) return; S.guests = l; S.guestsLoaded = true; render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/items', l => { if (S.tripId !== id) return; S.items = l; S.itemsLoaded = true; render(); }));
@@ -2935,6 +3005,24 @@ function openSoloSheet(edit) {
     + sheetActions('', edit ? 'שמירה' : 'יצירה')
     + '</form>', root => { initCal(root); if (!edit) setTimeout(() => root.querySelector('#tf-name').focus(), 60); });
 }
+function openShopSheet(edit) {
+  const L = edit ? soloData().list : null; if (edit && !L) return;
+  const trips = byDate(S.events.filter(e => e.kind !== 'split'));
+  const taken = new Set(S.shops.filter(x => x.tripId && (!L || x.id !== L.id)).map(x => x.tripId)), cur = L ? L.tripId || '' : '';
+  openSheet('<form class="stack-form" data-form="' + (edit ? 'edit-shop' : 'new-shop') + '" autocomplete="off">'
+    + '<label class="field"><span>שם הרשימה</span><input id="tf-name" maxlength="60" placeholder="קניות" value="' + esc(L ? L.name : '') + '"></label>'
+    + '<label class="field"><span>שיוך לאירוע</span><select id="tf-trip"><option value="">ללא אירוע</option>'
+    + trips.map(e => '<option value="' + esc(e.id) + '"' + (e.id === cur ? ' selected' : '') + (taken.has(e.id) ? ' disabled' : '') + '>' + esc(e.name || 'ללא שם') + (taken.has(e.id) ? ' (יש לו כבר רשימה)' : '') + '</option>').join('') + '</select></label>'
+    + '<p class="field-hint">רשימה משויכת מופיעה גם בלשונית "קניות" של האירוע</p>'
+    + (edit ? '<div class="sheet-tools"><button type="button" class="btn sm danger" data-confirm="delete-solo">' + ICON.trash + 'מחיקה</button></div>' : '')
+    + sheetActions('', edit ? 'שמירה' : 'יצירה')
+    + '</form>', root => { if (!edit) setTimeout(() => root.querySelector('#tf-name').focus(), 60); });
+}
+function readShopForm(f, L) {
+  const ev = S.events.find(e => e.id === f.querySelector('#tf-trip').value) || null;
+  const name = (f.querySelector('#tf-name').value.trim() || (L && L.name) || (ev ? 'קניות ל' + (ev.name || 'אירוע') : 'קניות')).slice(0, 60);
+  return {name, tripId: ev ? ev.id : ''};
+}
 function ntDefaults(edit) {
   ntGuests = []; ntMe = '';
   if (edit) return;
@@ -3400,8 +3488,9 @@ function act(a) {
     case 'search-close': return closeSearch();
     case 'new-trip': preTpl = null; return openTripSheet(false);
     case 'new-solo': return openSoloSheet(false);
+    case 'new-shop': return openShopSheet(false);
     case 'edit-trip': return openTripSheet(true);
-    case 'edit-solo': return openSoloSheet(true);
+    case 'edit-solo': return soloData().list && soloData().list.kind === 'shop' ? openShopSheet(true) : openSoloSheet(true);
     case 'invite': return openInvite();
     case 'share-link': return shareLink();
     case 'pick-me': return openMePicker(null);
@@ -3652,6 +3741,10 @@ document.addEventListener('click', e => {
   if (d.af) { const f = byId('af-' + d.af); S.af[d.af] = !(f && f.classList.contains('open')); syncFold(d.af, false); return; }
   if (d.act) return act(d.act);
   if (d.openTrip) return openTrip(d.openTrip);
+  if (d.openTripShop) return openTrip(d.openTripShop, 'shop');
+  if (d.ownbuy) { const it = S.shopItems.find(i => i.id === d.ownbuy); if (it && soloBase()) { sfx(it.packed ? 'uncheck' : 'check'); fire(Store.update(shopItemPath(it.id), {packed: !it.packed})); } return; }
+  if (d.owndel) { const it = S.shopItems.find(i => i.id === d.owndel); if (it && soloBase()) { closeSheet(); sfx('delete'); fire(Store.del(shopItemPath(it.id))); } return; }
+  if (d.ownedit) return openShopItemSheet(d.ownedit);
   if (d.openSolo) return openSolo(d.openSolo);
   if (d.openMoney) return openMoney(d.openMoney);
   if (d.htab) return setHomeTab(['money', 'notes'].includes(d.htab) ? d.htab : 'lists');
@@ -3791,6 +3884,36 @@ const forms = {
     if (mOn && !mealsOn(ev)) setTimeout(() => { setTab('meals'); openMealsSheet(); }, 350);
   },
   'new-solo'(f) { createSolo(f); },
+  async 'new-shop'(f) {
+    const b = soloBase(); if (!b) return;
+    const d = readShopForm(f, null), lid = uid('l');
+    closeSheet();
+    try { await Store.set(b + '/' + lid, {kind: 'shop', name: d.name, tripId: d.tripId, created: Date.now()}); } catch (e) { return; }
+    openSolo(lid);
+  },
+  'edit-shop'(f) {
+    const L = soloData().list; if (!L || !soloBase()) return;
+    const d = readShopForm(f, L); closeSheet();
+    fire(Store.update(soloBase() + '/' + L.id, d));
+  },
+  'shop-add'() {
+    const {ni, qi, name, qty} = readAdd('sh-name-' + S.tripId, 'sh-qty-' + S.tripId);
+    if (!name) { ni.focus(); return; }
+    if (S.shopItems.some(i => same(i.name, name))) { dupToast(name); ni.focus(); return; }
+    const id = uid('i'), doc = itemDoc({name, cat: guessCat(name), qty}, id);
+    sfx('add');
+    if (S.shopId) fire(Store.set(shopItemPath(id), doc));
+    else fire(ensureTripShop().then(lid => { if (lid) return Store.set(soloBase() + '/' + lid + '/items/' + id, doc); }));
+    resetAdd(ni, qi);
+  },
+  'shop-item'(f) {
+    const id = f.dataset.id, name = f.querySelector('#si-name').value.trim(); if (!name) return;
+    if (S.shopItems.some(i => i.id !== id && same(i.name, name))) { dupToast(name); return; }
+    const cat = f.querySelector('#si-cat').value, old = S.shopItems.find(i => i.id === id);
+    if (old && catOf(old) !== cat) learnCat(name, cat);
+    closeSheet();
+    fire(Store.update(shopItemPath(id), {name, qty: clampQ(f.querySelector('#si-qty').value), cat}));
+  },
   'edit-solo'(f) {
     const name = f.querySelector('#tf-name').value.trim(); if (!name) return;
     const {date, end} = readDates(f);
@@ -3921,7 +4044,7 @@ const forms = {
 document.addEventListener('submit', e => {
   const f = e.target.closest('form[data-form]'); if (!f) return;
   e.preventDefault();
-  const kind = f.dataset.form, soloForm = ['new-solo', 'edit-solo', 'add-solo', 'add-mine', 'solo-item', 'hello'].includes(kind) || (kind === 'quick-add' && f.dataset.ctx === 's');
+  const kind = f.dataset.form, soloForm = ['new-solo', 'edit-solo', 'add-solo', 'add-mine', 'solo-item', 'hello', 'new-shop', 'edit-shop', 'shop-add', 'shop-item'].includes(kind) || (kind === 'quick-add' && f.dataset.ctx === 's');
   if (S.readOnly && !soloForm) return;
   // adding from an open fold keeps it open, even once the list is no longer empty
   const fold = f.closest('.addfold'); if (fold && fold.classList.contains('open')) S.af[fold.id.slice(3)] = true;
@@ -4007,10 +4130,10 @@ async function init() {
   });
   const b = soloBase();
   if (b) Store.sub(b, l => {
-    S.solos = l.filter(d => d.kind === 'list'); S.solosLoaded = true; S.notes = l.filter(d => d.kind === 'note');
+    S.solos = l.filter(d => d.kind === 'list'); S.shops = l.filter(d => d.kind === 'shop'); S.solosLoaded = true; S.notes = l.filter(d => d.kind === 'note');
     const bk = l.find(d => d.id === 'bank' && d.kind === 'bank');
     S.myBank = bk && Array.isArray(bk.items) ? bk.items.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim().slice(0, 40)).slice(0, 80) : null;
-    linkTripSolo(); if (!noteEdit) render();
+    linkTripSolo(); linkTripShop(); if (!noteEdit) render();
   });
   render();
 }
