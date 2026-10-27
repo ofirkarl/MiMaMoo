@@ -212,6 +212,16 @@ fieldset.field>legend{margin-bottom:8px}
 .crew li>span{opacity:.82}
 .crew li::before{content:"·";display:inline-block;width:18px;text-align:center;font-weight:700;opacity:.4}
 .crew li.me>span{opacity:1;font-weight:700}
+.jk{display:inline-grid;place-items:center;vertical-align:-2px;margin-inline-start:3px;width:15px;height:15px;border-radius:50%;background:var(--good-fill);color:#1F5A41}
+.jk svg{width:10px;height:10px}
+.lane-title h3 .jk{width:18px;height:18px;vertical-align:0;margin-inline-start:0}
+.lane-title h3 .jk svg{width:12px;height:12px}
+.joined-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.joined-list li{display:flex;align-items:center;gap:10px;min-height:38px;font-weight:600;font-size:16px}
+.joined-list li>svg{width:22px;height:22px;padding:4px;border-radius:50%;background:var(--good-fill);color:#1F5A41;flex:none}
+.joined-list li>i{width:22px;height:22px;border-radius:50%;border:2px dashed var(--line-2);flex:none}
+.joined-list li:not(.in)>span{color:var(--muted)}
+.joined-list small{margin-inline-start:auto;color:var(--muted);font-size:13.5px;font-weight:500}
 /* "X/Y" progress line, just above the list */
 .lprog{display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600;color:var(--muted)}
 .lp-t{display:inline-flex;align-items:center;gap:5px;flex:none;white-space:nowrap}
@@ -2008,7 +2018,7 @@ function lane(g, T) {
   const solo = isMe && S.solos.find(l => l.tripId === S.tripId);
   const ro = S.readOnly;
   return '<article class="lane' + (isMe ? ' is-me' : '') + (ro ? '' : selCls('people', g.id)) + '" data-gid="' + esc(g.id) + '" style="--gc:' + GCOL[(Number(g.color) || 0) % GCOL.length] + '"' + (ro ? '' : selAt('people', g.id)) + '>' + (ro ? '' : selBox) + '<header class="lane-head">' + av(g, 'lg')
-    + '<div class="lane-title"><h3>' + esc(g.name) + (isMe ? '<span class="you">אני</span>' : '') + '</h3>' + (mine.length ? '<p>' + pk + '/' + mine.length + ' ארוזים</p>' : '') + '</div>'
+    + '<div class="lane-title"><h3>' + esc(g.name) + joinMark(g) + (isMe ? '<span class="you">אני</span>' : '') + '</h3>' + (mine.length ? '<p>' + pk + '/' + mine.length + ' ארוזים</p>' : '') + '</div>'
     + (solo ? '<button class="btn sm" data-tab="mine">הרשימה שלי</button>' : '')
     + '</header><div class="lane-body">'
     + (mine.length ? '<div class="bar thin"><i style="width:' + Math.round(pk / mine.length * 100) + '%"></i></div>' : '')
@@ -2054,12 +2064,26 @@ function autoMe(T) {
   const nm = lsGet('myName'), g = nm && T.guests.find(x => same(x.name, nm));
   if (g && S.me !== g.id) { S.me = g.id; lsSet('me:' + S.tripId, g.id); }
 }
+// Joined: the person has come into the event themselves (picked their name, here or on their own phone)
+const joinMark = g => g && g.joined ? '<span class="jk" role="img" aria-label="הצטרף/ה" title="הצטרף/ה">' + ICON.check + '</span>' : '';
+const joinDone = new Set();
+function markJoined(T, me) {
+  if (!me || me.joined || S.readOnly || joinDone.has(S.tripId + '/' + me.id)) return;
+  joinDone.add(S.tripId + '/' + me.id);
+  fire(Store.update('events/' + S.tripId + '/guests/' + me.id, {joined: Date.now()}));
+}
+function joinedHTML(T) {
+  if (!T.guests.length) return '';
+  const n = T.guests.filter(g => g.joined).length;
+  return '<div class="field"><span>הצטרפו ' + n + ' מתוך ' + T.guests.length + '</span><ul class="joined-list">'
+    + [...T.guests].sort((a, b) => !!b.joined - !!a.joined).map(g => '<li' + (g.joined ? ' class="in"' : '') + '>' + (g.joined ? ICON.check : '<i aria-hidden="true"></i>') + '<span>' + esc(g.name) + '</span>' + (g.joined ? '' : '<small>עוד לא נכנס/ה</small>') + '</li>').join('') + '</ul></div>';
+}
 // Participants in the banner: names in one flowing line, me first.
 function crewHTML(T) {
   if (!T.guests.length) return '';
   const gs = [...T.guests].sort((a, b) => (b.id === S.me) - (a.id === S.me));
   return '<div class="crew-line"><span class="crew-ic">' + ICON.tpeople + '</span><div class="crew-box"><ul class="crew" aria-label="משתתפים">'
-    + gs.map(g => '<li' + (g.id === S.me ? ' class="me"' : '') + '><span>' + esc(g.name) + '</span></li>').join('') + '</ul></div></div>';
+    + gs.map(g => '<li' + (g.id === S.me ? ' class="me"' : '') + '><span>' + esc(g.name) + '</span>' + joinMark(g) + '</li>').join('') + '</ul></div></div>';
 }
 // Add form + suggestions folded into one row; open by default only while the list is empty.
 const foldOpen = key => '<div class="addfold" id="af-' + key + '"><button type="button" class="af-head" data-act="addfold" data-af="' + key + '" aria-expanded="false"><span class="af-plus" aria-hidden="true">+</span><span>הוספת פריטים</span>' + ICON.down + '</button><div class="af-body"><div class="af-in">';
@@ -2094,6 +2118,7 @@ function updateTrip() {
   body.hidden = false;
   autoMe(T);
   const me = S.me && T.gmap[S.me] ? T.gmap[S.me] : null;
+  markJoined(T, me);
   // coming into an event (an invite link, or any first visit) without a name in it: ask which participant I am, once per visit
   if (S.askMe && S.guestsLoaded) {
     S.askMe = false;
@@ -2956,6 +2981,7 @@ function openInvite() {
   const link = spaceLink(S.tripId);
   openSheet('<h2 class="sheet-title">הזמנה ל״' + esc(ev.name) + '״</h2><p>כל מי שפותח את הקישור מצטרף לרשימות המשותפות שלכם ויכול לערוך.</p>'
     + '<div class="field"><span>קישור</span><div class="code-row"><code id="trip-code" dir="ltr">' + esc(link) + '</code><button type="button" class="btn sm" data-copy="' + esc(link) + '">העתקה</button></div></div>'
+    + joinedHTML(tripData())
     + '<div class="sheet-actions">' + (navigator.share ? '<button type="button" class="btn primary" data-act="share-link">שיתוף</button>' : '') + '<button type="button" class="btn" data-close>סגירה</button></div>');
 }
 async function shareLink() {
