@@ -1392,13 +1392,14 @@ function headOpen() {
   return '<header class="trip-head' + (c ? ' can-cover' : '') + '">' + (c ? '<input type="file" accept="image/*" class="cover-hit" id="cover-file" aria-label="תמונת באנר">' : '');
 }
 const camHTML = () => canCover() ? '<span class="cover-cam" aria-hidden="true">' + ICON.cam + '</span>' : '';
-function applyHead(theme) {
+function applyHead(theme, cover) {
   const th = $('.trip-head'); if (!th) return;
-  const T = THEMES[theme] || null, sig = (S.cover || '') + '|' + (T ? theme : '');
+  if (cover === undefined) cover = S.cover;
+  const T = THEMES[theme] || null, sig = (cover || '') + '|' + (T ? theme : '');
   if (th.dataset.sig === sig) return; th.dataset.sig = sig;
   th.classList.toggle('themed', !!T); th.dataset.theme = T ? theme : '';
   if (T) { th.style.setProperty('--hb', T.hb); th.style.setProperty('--hi', T.ink); } else { th.style.removeProperty('--hb'); th.style.removeProperty('--hi'); }
-  th.classList.toggle('has-cover', !!S.cover); th.style.setProperty('--cover', S.cover ? 'url("' + S.cover + '")' : 'none');
+  th.classList.toggle('has-cover', !!cover); th.style.setProperty('--cover', cover ? 'url("' + cover + '")' : 'none');
 }
 function themeField(cur) {
   const opt = (k, bg, label) => '<label class="sw"><input type="radio" name="tf-theme" value="' + k + '"' + ((THEMES[cur] ? cur : '') === k ? ' checked' : '') + ' aria-label="' + label + '"><span style="background:' + bg + '"></span></label>';
@@ -2075,7 +2076,7 @@ function updateTrip() {
   const mItems = S.soloId ? S.soloItems : [];
   byId('r-pfilter').innerHTML = '<button aria-pressed="' + (S.pfilter !== 'open') + '" data-pfilter="all">הכול</button><button aria-pressed="' + (S.pfilter === 'open') + '" data-pfilter="open">מה חסר</button>';
   byId('af-mine').hidden = !soloBase();
-  syncFold('group', !T.lines.length); syncFold('mine', !(S.soloId && MD.items.length));
+  syncFold('group', false); syncFold('mine', !(S.soloId && MD.items.length));
   byId('r-mine').innerHTML = mineHTML();
   byId('r-filter').innerHTML = '<button aria-pressed="' + (S.filter === 'all') + '" data-filter="all">הכול</button><button aria-pressed="' + (S.filter === 'need') + '" data-filter="need">מה חסר</button>'
     + (T.dblCount ? '<button aria-pressed="' + (S.filter === 'dbl') + '" data-filter="dbl">כפילויות</button>' : '');
@@ -2138,13 +2139,21 @@ function openShopItemSheet(id) {
     + sheetActions('<button type="button" class="btn danger" data-owndel="' + esc(id) + '">מחיקה</button>')
     + '</form>');
 }
+let soloTripSub = null, soloTripId = null;
+function syncSoloTrip(L) {
+  const tid = (L && L.tripId) || null; if (tid === soloTripId) return;
+  if (soloTripSub) { try { soloTripSub(); } catch (e) {} soloTripSub = null; }
+  soloTripId = tid; S.evCover = null;
+  if (tid) soloTripSub = Store.sub('events/' + tid + '/media', l => { if (S.view !== 'solo' || soloTripId !== tid) return; S.evCover = coverSrc(l.find(d => d.id === 'cover')); render(); });
+}
 function updateSolo() {
   const head = byId('r-head'); if (!head) return;
   const D = soloData(), L = D.list, body = byId('r-body');
   if (!L) { head.innerHTML = S.solosLoaded ? '<h1 class="display trip-title">הרשימה לא נמצאה</h1>' : '<p class="trip-meta">נטען…</p>'; body.hidden = true; return; }
   body.hidden = false;
-  applyHead(L.theme);
+  syncSoloTrip(L);
   const trip = L.tripId && S.events.find(e => e.id === L.tripId), shop = L.kind === 'shop';
+  applyHead(L.theme || (trip && trip.theme) || '', S.cover || S.evCover || null);
   byId('r-solo-nav').innerHTML = (trip ? '<button class="btn sm" ' + (shop ? 'data-open-trip-shop' : 'data-open-trip') + '="' + esc(trip.id) + '">' + (shop ? 'לאירוע' : 'לאירוע המשותף') + '</button>' : '') + '<button class="btn sm" data-act="edit-solo">עריכה</button>';
   const cd = shop ? '' : countdown(L.date, L.end), meta = shop ? shopMeta(L) : dateMeta(L);
   head.innerHTML = camHTML() + '<p class="tab-note tn-mine">' + ICON.lock + 'הרשימה גלויה רק לך</p>' + (cd ? '<p class="eyebrow">' + cd + '</p>' : '') + '<h1 class="display trip-title">' + esc(L.name || 'ללא שם') + '</h1>' + (meta ? '<p class="trip-meta">' + esc(meta) + '</p>' : '');
@@ -2350,7 +2359,7 @@ function updateTemplate() {
 }
 
 /* ---------- Navigation ---------- */
-function stopView() { viewUnsubs.forEach(u => { try { u(); } catch (e) {} }); viewUnsubs = []; if (mineUnsub) { try { mineUnsub(); } catch (e) {} mineUnsub = null; } if (shopUnsub) { try { shopUnsub(); } catch (e) {} shopUnsub = null; } }
+function stopView() { viewUnsubs.forEach(u => { try { u(); } catch (e) {} }); viewUnsubs = []; if (soloTripSub) { try { soloTripSub(); } catch (e) {} soloTripSub = null; } soloTripId = null; S.evCover = null; if (mineUnsub) { try { mineUnsub(); } catch (e) {} mineUnsub = null; } if (shopUnsub) { try { shopUnsub(); } catch (e) {} shopUnsub = null; } }
 /* The trip's private list ("רשימה אישית" tab) follows the personal list linked to this trip */
 function linkTripSolo() {
   if (S.view !== 'trip') return;
@@ -2385,12 +2394,12 @@ function coverSrc(d) {
   if (typeof d.data === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(d.data)) return d.data;
   return null;
 }
-// Entering an event always starts on the shared list (a new event planned with meals starts on its meals)
+// Entering an event always starts on the shared list, with the add-and-suggestions drawer closed
 function openTrip(id, tab) {
   stopView();
   if (S.tripId !== id) undoStack = [];
   noteEdit = null;
-  Object.assign(S, {view: 'trip', tab: tab || 'group', q: '', pbOpen: null, pfilter: 'all', noteTab: 'group', askMe: true, tripId: id, soloId: null, shopId: null, shopItems: [], soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], evNotes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
+  Object.assign(S, {view: 'trip', tab: tab || 'group', af: {}, q: '', pbOpen: null, pfilter: 'all', noteTab: 'group', askMe: true, tripId: id, soloId: null, shopId: null, shopItems: [], soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], evNotes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
   linkTripSolo(); linkTripShop();
   viewUnsubs.push(Store.sub('events/' + id + '/media', l => { if (S.tripId !== id) return; S.cover = coverSrc(l.find(d => d.id === 'cover')); render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/guests', l => { if (S.tripId !== id) return; S.guests = l; S.guestsLoaded = true; render(); }));
@@ -3262,8 +3271,7 @@ async function createTrip(f) {
   try { await Store.set('events/' + eid, doc); } catch (e) { return; }
   const mg = ntMe ? guests.find(g => same(g.name, ntMe)) : guests[0];
   if (mg) { lsSet('me:' + eid, mg.id); lsSet('myName', mg.name); }
-  openTrip(eid, mOn ? 'meals' : 'group');
-  if (mOn) setTimeout(() => { if (S.tripId === eid) openMealsSheet(); }, 450);
+  openTrip(eid, 'group');
   await runLimited(guests.map(g => () => Store.set('events/' + eid + '/guests/' + g.id, {name: g.name, color: g.color, created: g.created})), 4);
 }
 async function deleteTrip() {
