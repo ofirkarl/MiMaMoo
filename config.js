@@ -1,7 +1,13 @@
-/* MiMaMoo: the Firebase connection.
-   While firebase is null, the app keeps everything on this device only (handy for a first try).
-   To share lists between phones, paste the web-app config from the Firebase console here, e.g.
-   firebase: { apiKey: "…", authDomain: "…", projectId: "…", appId: "…" } */
+/* MiMaMoo: the Firebase connection (project mimamoo-b37c7, database in Tel Aviv).
+   These values only name the project; who may read or change what is decided by the
+   security rules (tools/firestore.rules), published in the Firebase console. */
 window.MM_CONFIG = {
-  firebase: null
+  firebase: {
+    apiKey: "AIzaSyC0biC3ZmtpHLMDyax1LuYuLOFCuNJxtZA",
+    authDomain: "mimamoo-b37c7.firebaseapp.com",
+    projectId: "mimamoo-b37c7",
+    storageBucket: "mimamoo-b37c7.firebasestorage.app",
+    messagingSenderId: "136294577790",
+    appId: "1:136294577790:web:5f3e7c4a58db74bc4b4a2f"
+  }
 };
