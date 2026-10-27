@@ -337,6 +337,43 @@ span.item-main{cursor:default}
 .panel{background:var(--surface);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow-sm)}
 .col-panel{display:flex;flex-direction:column;gap:14px}
 .prog-slot:empty{display:none}
+.tabs.three{grid-template-columns:repeat(3,1fr)}
+.tabs.six{grid-template-columns:repeat(6,1fr);gap:2px;padding:3px}
+.tabs.six button{font-size:11.5px;padding-inline:0;min-height:60px;border-radius:14px;gap:3px}
+.tabs.six button svg{width:19px;height:19px}
+.note-head{justify-content:space-between}
+.note-head .tab-note{margin:0}
+.col-top .tab-note{margin:0}
+.note-view,.note-ta{display:block;width:100%;min-height:50vh;box-sizing:border-box;padding:18px 18px 28px;border-radius:var(--r-lg);background:#FFFBEC;box-shadow:inset 0 0 0 1px #F6E7B8;font:400 16.5px/1.65 var(--f-body);color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere;text-align:start}
+.note-view{cursor:text}
+.note-view.empty{color:var(--muted)}
+.note-view a{color:var(--link);text-decoration:underline;text-underline-offset:3px;word-break:break-all}
+.note-ta{border:0;resize:none;outline:none}
+.note-ta:focus{box-shadow:inset 0 0 0 1.5px var(--accent-line)}
+.buy-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+/* Sheets: tighter, so a whole form fits on one screen */
+.sheet .stack-form{gap:10px}
+.sheet .field{gap:5px}
+.sheet input:not([type=radio]):not([type=checkbox]):not([type=hidden]),.sheet select{min-height:44px}
+.sheet .add-row .grow{flex:1 1 0}
+.sheet .add-row .btn{min-height:44px;padding:0 16px}
+.sheet .sheet-title{font-size:22px}
+.sheet .sheet-tools{padding-top:10px}
+.sheet .seg-radio span{min-height:36px;padding:0 14px}
+.field.inl{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+.field.inl>span{flex:none}
+.field.inl select{flex:1;max-width:62%}
+.date-sum{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:999px;background:var(--sunk);font-weight:600;font-size:15px;color:var(--ink);text-align:start}
+.date-sum svg{width:15px;height:15px;flex:none;color:var(--muted)}
+.sheet .cal{padding:4px 8px 6px}
+.sheet .cal-head{font-size:16px}
+.sheet .cal-head .icon-btn{width:34px;height:34px}
+.sheet .cal-grid{margin-top:2px}
+.sheet .cal-dow{padding-block:2px;font-size:12px}
+.sheet .cal-day{height:34px;font-size:15px;border-radius:10px}
+.sheet .cal-foot{margin-top:2px;min-height:26px}
+.sheet .swatches{gap:10px}
+.sheet .sw span{width:34px;height:34px}
 .ask-buy{margin:-6px 0 4px;color:var(--muted);font-weight:600}
 .tag.buy{background:var(--accent-soft);color:var(--accent-ink)}
 .bank-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -693,6 +730,7 @@ const ICON = {
   gear:'<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.5A7.5 7.5 0 0 0 7 6.5l-2.4-1-2 3.4 2 1.6a7.6 7.6 0 0 0 0 3l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 2.6 1.5l.4 2.5h4l.4-2.5a7.5 7.5 0 0 0 2.6-1.5l2.4 1 2-3.4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
   search:'<svg width="17" height="17" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.7" cy="8.7" r="5.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.2 4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   up:'<svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 12l5-5 5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  tnotes:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.8h8.2l3.8 3.8v11.6a1.4 1.4 0 0 1-1.4 1.4H6.5a1.4 1.4 0 0 1-1.4-1.4V5.2a1.4 1.4 0 0 1 1.4-1.4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14.4 4v3.9h4M8.5 12h7M8.5 15.6h4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   tmeals:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5v6.2M4.8 3.5v4.4a2.2 2.2 0 0 0 4.4 0V3.5M7 9.9v10.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.2 20.5V3.6c-2.3.7-3.8 3.4-3.8 7v2.6h3.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   tshop:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 4.5h2.3l2 10.2a1.6 1.6 0 0 0 1.6 1.3h7.3a1.6 1.6 0 0 0 1.6-1.2l1.4-6.3H6.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="19.5" r="1.4" fill="currentColor"/><circle cx="16.8" cy="19.5" r="1.4" fill="currentColor"/></svg>',
   tlist:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 9.5l1.6 1.6L12.6 8M8 15h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -878,14 +916,14 @@ const S = {af: {},
   view: 'home', events: [], templates: [], solos: [], eventsLoaded: false, templatesLoaded: false, solosLoaded: false,
   tripId: null, guests: [], items: [], expenses: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false,
   soloId: null, soloItems: [], soloItemsLoaded: false,
-  tab: ['people', 'meals', 'shop', 'mine'].includes(lsGet('tab')) ? lsGet('tab') : 'group', cover: null, filter: 'all', soloFilter: 'all', bankOpen: null, homeTab: lsGet('htab') === 'money' ? 'money' : 'lists',
+  tab: ['people', 'meals', 'shop', 'mine', 'notes'].includes(lsGet('tab')) ? lsGet('tab') : 'group', cover: null, filter: 'all', soloFilter: 'all', bankOpen: null, homeTab: ['money', 'notes'].includes(lsGet('htab')) ? lsGet('htab') : 'lists',
   tplId: null, q: '', me: null, lastCat: CAT[lsGet('cat')] ? lsGet('cat') : 'general',
   deep: window.MM_DEEP || ''
 };
 let preTpl = null, ntMe = '', ntGuests = [], afterPick = null, viewUnsubs = [], undoStack = [];
 const tripSoloCache = {};
 let Assets = null, mineUnsub = null;
-const ALL_TABS = ['group', 'people', 'meals', 'shop', 'mine'];
+const ALL_TABS = ['group', 'people', 'meals', 'shop', 'mine', 'notes'];
 let TABS = ALL_TABS.filter(t => t !== 'meals');
 /* The one sound left in the app: "שולם" when a debt is settled — a festive cash register. */
 const PAID_SOUND = 'register';
@@ -1322,11 +1360,12 @@ function catsHTML(list, rowFn, countFn, addCtx) {
 function shellHome() {
   const ro = S.readOnly;
   return '<header class="top"><div class="wrap top-in"><span class="logo" role="img" aria-label="MiMaMoo"><svg class="logo-ic" viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" rx="30" fill="#F0ECFF"/><path d="M54 44V14" stroke="#5A4410" stroke-width="5" stroke-linecap="round"/><path d="M54 44L94 95H14Z" fill="#FFE08F" stroke="#FFE08F" stroke-width="6" stroke-linejoin="round"/><path d="M54 44L94 95H54Z" fill="#F7CF62" stroke="#F7CF62" stroke-width="6" stroke-linejoin="round"/><path d="M54 60L72 97H36Z" fill="#2B2833" stroke="#2B2833" stroke-width="3" stroke-linejoin="round"/><rect x="58" y="9" width="40" height="34" rx="9" fill="#9EDDBF"/><path d="M67 26L74 33L88 18" fill="none" stroke="#2B2833" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word" aria-hidden="true">MiMaMoo</span></span><button class="icon-btn gear" data-act="settings" aria-label="הגדרות">' + ICON.gear + '</button></div></header>'
-    + '<main class="wrap home"><div class="tabs two" role="tablist" id="r-htabs"></div>'
+    + '<main class="wrap home"><div class="tabs three" role="tablist" id="r-htabs"></div>'
     + '<div class="home-cols" id="h-lists">'
     + '<section class="home-col"><div class="col-top"><h2>רשימות משותפות</h2>' + (ro ? '' : '<button class="btn primary sm" data-act="new-trip">+ הוספה</button>') + '</div><div id="r-trips" class="trips"></div></section>'
     + '<section class="home-col"><div class="col-top"><h2>רשימות אישיות</h2><button class="btn primary sm" data-act="new-solo" id="btn-new-solo">+ הוספה</button></div><div id="r-solos" class="trips"></div></section>'
     + '</div>'
+    + '<section class="home-col" id="h-notes" hidden><div class="col-top"><h2>הערות</h2><p class="tab-note tn-mine">' + ICON.lock + 'רק לך</p></div><div id="r-hnotes"></div></section>'
     + '<section class="home-col" id="h-money"><div class="col-top"><h2>חלוקת הוצאות</h2>' + (ro ? '' : '<button class="btn primary sm" data-act="new-split">+ הוספה</button>') + '</div><div id="r-mtrips" class="trips"></div></section>'
     + '</main>';
 }
@@ -1346,8 +1385,9 @@ const byDate = list => { const ev = [...list].sort((a, b) => (a.date || '9999').
 function updateHome() {
   const r = byId('r-trips'), rs = byId('r-solos'); if (!r) return;
   const ro = S.readOnly;
-  byId('r-htabs').innerHTML = '<button role="tab" aria-selected="' + (S.homeTab === 'lists') + '" data-htab="lists">רשימות</button><button role="tab" aria-selected="' + (S.homeTab === 'money') + '" data-htab="money">חלוקת הוצאות</button>';
-  byId('h-lists').hidden = S.homeTab !== 'lists'; byId('h-money').hidden = S.homeTab !== 'money';
+  byId('r-htabs').innerHTML = '<button role="tab" aria-selected="' + (S.homeTab === 'lists') + '" data-htab="lists">רשימות</button><button role="tab" aria-selected="' + (S.homeTab === 'money') + '" data-htab="money">חלוקת הוצאות</button><button role="tab" aria-selected="' + (S.homeTab === 'notes') + '" data-htab="notes">הערות</button>';
+  byId('h-lists').hidden = S.homeTab !== 'lists'; byId('h-money').hidden = S.homeTab !== 'money'; byId('h-notes').hidden = S.homeTab !== 'notes';
+  if (!noteEdit) byId('r-hnotes').innerHTML = noteHTML('general');
   const rm = byId('r-mtrips');
   if (S.mode === 'connecting' || !S.eventsLoaded) rm.innerHTML = '<div class="empty muted">נטען…</div>';
   else if (!S.events.length) rm.innerHTML = '<div class="empty muted">עוד אין חלוקות</div>';
@@ -1410,6 +1450,7 @@ function shellTrip() {
     + '<section class="col" id="col-shop"><div class="panel col-panel">'
     + '<div class="col-head"><h2 class="label">קניות</h2></div>'
     + '<div id="r-shprog" class="prog-slot"></div><div id="r-shop"></div></div></section>'
+    + '<section class="col" id="col-notes"><div class="panel col-panel"><div id="r-notes"></div></div></section>'
     + '<section class="col" id="col-mine"><div class="panel col-panel">'
     + '<div class="col-head"><h2 class="label">רשימה אישית</h2>' + searchBtn() + '</div>'
     + foldOpen('mine') + '<form class="add-row" data-form="add-mine" id="mine-form" autocomplete="off">' + nameInput('am-name-' + e, 'am-qty-' + e, 'הוספת פריט') + miniStep('am-qty-' + e) + '<button class="btn primary" type="submit">הוספה</button></form>'
@@ -1453,6 +1494,54 @@ function personalDblRow(i, T) {
 }
 // The shared list's missing items, as they look in the shared list
 function missingHTML(T) { const f = S.filter; S.filter = 'need'; try { return groupHTML(T); } finally { S.filter = f; } }
+/* ---------- Notes to myself: a free page per event, and a general one. Private, kept with my personal lists ---------- */
+const NOTE_MAX = 40000;
+let noteEdit = null, noteT = 0;
+const noteDoc = key => (S.notes || []).find(n => n.id === 'note-' + key);
+const notePath = key => soloBase() + '/note-' + key;
+function linkify(t) {
+  return esc(t).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)\]'"])/g, u => '<a href="' + u + '" target="_blank" rel="noopener noreferrer">' + u + '</a>');
+}
+function noteHTML(key) {
+  if (!soloBase()) return '<p class="empty-in">זמין כשנכנסים עם חשבון</p>';
+  const n = noteDoc(key);
+  return '<div class="note" id="note-box" data-key="' + esc(key) + '">' + noteView(key, n && typeof n.text === 'string' ? n.text : '') + '</div>';
+}
+const noteView = (key, text) => '<div class="note-view' + (text ? '' : ' empty') + '" data-note-open="' + esc(key) + '" tabindex="0" role="textbox" aria-multiline="true" aria-label="הערות">' + (text ? linkify(text) : 'לחיצה לכתיבה…') + '</div>';
+function openNote(key) {
+  const box = byId('note-box'); if (!box || box.dataset.key !== key || !soloBase()) return;
+  noteEdit = key;
+  const n = noteDoc(key), ta = document.createElement('textarea');
+  ta.className = 'note-ta'; ta.maxLength = NOTE_MAX; ta.setAttribute('aria-label', 'הערות'); ta.placeholder = 'מחשבות, מתכונים, קישורים…';
+  ta.value = n && typeof n.text === 'string' ? n.text : '';
+  box.innerHTML = ''; box.appendChild(ta);
+  const grow = () => { ta.style.height = 'auto'; ta.style.height = Math.max(ta.scrollHeight, window.innerHeight * 0.5) + 'px'; };
+  grow(); ta.focus(); try { ta.setSelectionRange(ta.value.length, ta.value.length); } catch (_) {}
+  ta.addEventListener('input', () => { grow(); clearTimeout(noteT); noteT = setTimeout(() => saveNote(key, ta.value), 700); });
+  // leaving the page: back to reading, swapping only the page itself so a tap elsewhere (a tab, the other notes) still lands
+  ta.addEventListener('blur', () => { clearTimeout(noteT); saveNote(key, ta.value); noteEdit = null; if (box.isConnected) box.innerHTML = noteView(key, ta.value.slice(0, NOTE_MAX)); });
+}
+function saveNote(key, text) {
+  if (!soloBase()) return;
+  text = String(text || '').slice(0, NOTE_MAX);
+  const n = noteDoc(key);
+  if (n ? n.text === text : !text.trim()) return;
+  fire(Store.set(notePath(key), {kind: 'note', key, text, updated: Date.now()}));
+}
+function tripNotesHTML() {
+  const ev = S.noteScope !== 'general';
+  return '<div class="col-head note-head"><div class="seg"><button aria-pressed="' + ev + '" data-nscope="event">הערות לאירוע</button><button aria-pressed="' + !ev + '" data-nscope="general">הערות כלליות</button></div>'
+    + '<p class="tab-note tn-mine">' + ICON.lock + 'רק לך</p></div>' + noteHTML(ev ? S.tripId : 'general');
+}
+document.addEventListener('click', e => {
+  if (e.target.closest('a')) return;  // a link in a note opens; anywhere else starts writing
+  const v = e.target.closest('[data-note-open]'); if (v) openNote(v.dataset.noteOpen);
+});
+document.addEventListener('keydown', e => {
+  const v = e.target.closest && e.target.closest('[data-note-open]');
+  if (v && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openNote(v.dataset.noteOpen); }
+});
+
 /* ---------- Meals: which meals to plan, the dishes in each, their ingredients and who brings them ----------
    The event keeps meals = {on, plan: ['0b', '0l', '1d', …]} (day index + slot). Each dish is
    events/<id>/dishes/<did> = {day, slot, name, owner, items: [{n, a, got}], created, pos}. */
@@ -1711,7 +1800,7 @@ function groupHTML(T) {
     if (!ls.length && !ex.length) return '';
     const need = all.filter(L => L.needed).length;
     return '<div class="cat"><div class="cat-head">' + catPill(c) + '<span class="cat-count">' + (all.length - need) + '/' + all.length + '</span></div>'
-      + '<ul class="items">' + ls.map(L => lineRow(L, T)).join('') + ex.map(i => personalDblRow(i, T)).join('') + (ro ? '' : catAdd('g', c.id)) + '</ul></div>';
+      + '<ul class="items">' + ls.map(L => lineRow(L, T)).join('') + ex.map(i => personalDblRow(i, T)).join('') + '</ul></div>';
   }).join('');
 }
 const generator = b => { const k = kindOfName(b.name); return (k === 'meat' && meatType(b.name) === 'בשר') || (k === 'salad' && saladGeneric(b.name)) || k === 'soft'; };
@@ -1862,12 +1951,13 @@ function updateTrip() {
   TABS = ALL_TABS.filter(t => t !== 'meals' || mealsOn(ev));
   if (!TABS.includes(S.tab)) S.tab = 'group';
   const hn = byId('r-hnote'); if (hn) hn.classList.toggle('show', S.tab === 'mine' || window.innerWidth >= 960);
-  const tabLabel = {group: 'רשימה משותפת', mine: 'רשימה אישית', people: 'מי מביא מה', meals: 'ארוחות', shop: 'קניות'};
-  const tabIcon = {group: ICON.tlist, mine: ICON.tmine, people: ICON.tpeople, meals: ICON.tmeals, shop: ICON.tshop};
-  byId('r-tabs').className = 'tabs ' + (TABS.length === 5 ? 'five' : 'four');
+  const tabLabel = {group: 'רשימה משותפת', mine: 'רשימה אישית', people: 'מי מביא מה', meals: 'ארוחות', shop: 'קניות', notes: 'הערות'};
+  const tabIcon = {group: ICON.tlist, mine: ICON.tmine, people: ICON.tpeople, meals: ICON.tmeals, shop: ICON.tshop, notes: ICON.tnotes};
+  byId('r-tabs').className = 'tabs ' + ['', '', '', '', 'four', 'five', 'six'][TABS.length];
   byId('r-tabs').innerHTML = TABS.map(t => '<button role="tab" class="tab-' + t + '" aria-selected="' + (S.tab === t) + '" data-tab="' + t + '">' + tabIcon[t] + '<span>' + tabLabel[t] + '</span></button>').join('');
   ALL_TABS.forEach(t => byId('col-' + t).classList.toggle('on', S.tab === t));
   byId('r-meals').innerHTML = mealsOn(ev) ? mealsHTML(T) : '';
+  if (!noteEdit) byId('r-notes').innerHTML = tripNotesHTML();
   const mItems = S.soloId ? S.soloItems : [];
   byId('r-pfilter').innerHTML = '<button aria-pressed="' + (S.pfilter !== 'open') + '" data-pfilter="all">הכול</button><button aria-pressed="' + (S.pfilter === 'open') + '" data-pfilter="open">מה חסר</button>';
   byId('af-mine').hidden = !soloBase();
@@ -2138,7 +2228,8 @@ function coverSrc(d) {
 function openTrip(id) {
   stopView();
   if (S.tripId !== id) undoStack = [];
-  Object.assign(S, {view: 'trip', q: '', pbOpen: null, pfilter: 'all', tripId: id, soloId: null, soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
+  noteEdit = null;
+  Object.assign(S, {view: 'trip', q: '', pbOpen: null, pfilter: 'all', noteScope: 'event', tripId: id, soloId: null, soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
   linkTripSolo();
   viewUnsubs.push(Store.sub('events/' + id + '/media', l => { if (S.tripId !== id) return; S.cover = coverSrc(l.find(d => d.id === 'cover')); render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/guests', l => { if (S.tripId !== id) return; S.guests = l; S.guestsLoaded = true; render(); }));
@@ -2432,7 +2523,7 @@ function openItemSheet(id) {
   if (S.readOnly) return;
   const T = tripData(), it = S.items.find(i => i.id === id); if (!it) return;
   if (foreign(it)) { toast('ברשימה של ' + T.gmap[it.owner].name); return; }
-  const k = kindOf(it), owned = T.owned(it), me = S.me && T.gmap[S.me];
+  const k = kindOf(it), owned = T.owned(it), me = S.me && T.gmap[S.me], mineG = !!(it.owner && it.owner === S.me && it.scope !== 'p');
   const listVal = it.scope === 'p' && owned ? 'p:' + it.owner : (owned ? 'g:' + it.owner : 'g:');
   // anyone in the event can take the item over: me first, then everyone else
   const people = [...T.guests].sort((a, b) => (b.id === S.me) - (a.id === S.me));
@@ -2447,10 +2538,11 @@ function openItemSheet(id) {
     + amountFields
     + '<label class="field"><span>קטגוריה</span><select id="it-cat">' + catOptions(catOf(it)) + '</select></label>'
     + listField
-    + (it.owner && it.owner === S.me && it.scope !== 'p' ? '<div class="field"><span>קנייה</span><div class="seg-radio" role="radiogroup" aria-label="קנייה"><label><input type="radio" name="it-buy" value="0"' + (it.buy ? '' : ' checked') + '><span>יש לי</span></label><label><input type="radio" name="it-buy" value="1"' + (it.buy ? ' checked' : '') + '><span>צריך לקנות</span></label></div></div>' : '')
+    + (mineG ? '<div class="field"><span>קנייה</span><div class="buy-row"><div class="seg-radio" role="radiogroup" aria-label="קנייה"><label><input type="radio" name="it-buy" value="0"' + (it.buy ? '' : ' checked') + '><span>יש לי</span></label><label><input type="radio" name="it-buy" value="1"' + (it.buy ? ' checked' : '') + '><span>צריך לקנות</span></label></div>'
+      + '<button type="button" class="btn sm" data-exp-item="' + esc(id) + '">+ הוספה להוצאות</button></div></div>' : '')
     + (owned ? '<div class="sheet-tools">'
       + (it.scope !== 'p' ? '<button type="button" class="btn sm" data-putback="' + esc(id) + '">' + (k === 'meat' && (it.src || it.id) !== it.id ? 'הסרה מהרשימה שלי' : 'החזרה לרשימה המשותפת') + '</button>' : '')
-      + '<button type="button" class="btn sm" data-exp-item="' + esc(id) + '">+ הוספה להוצאות</button></div>' : '')
+      + (mineG ? '' : '<button type="button" class="btn sm" data-exp-item="' + esc(id) + '">+ הוספה להוצאות</button>') + '</div>' : '')
     + sheetActions('<button type="button" class="btn danger" data-confirm="delete-item" data-id="' + esc(id) + '">מחיקה</button>')
     + '</form>', root => { const s = root.querySelector('#it-list'); if (s) s.value = s.dataset.val; });
 }
@@ -2498,11 +2590,13 @@ function openGuestSheet(gid) {
     + sheetActions(hasMoney ? '' : '<button type="button" class="btn danger" data-confirm="remove-guest" data-id="' + esc(gid) + '">הסרה</button>')
     + '</form>');
 }
-function dateFields(e) {
-  const multi = !!(e && e.end);
-  return '<div class="field"><span>תאריכים</span><div class="seg-radio" role="radiogroup" aria-label="משך"><label><input type="radio" name="tf-mode" value="one"' + (multi ? '' : ' checked') + '><span>יום אחד</span></label><label><input type="radio" name="tf-mode" value="multi"' + (multi ? ' checked' : '') + '><span>כמה ימים</span></label></div></div>'
+// Dates: when editing an event that has them, a one-line summary opens the calendar on tap
+function dateFields(e, fold) {
+  const multi = !!(e && e.end), folded = !!(fold && e && e.date);
+  const seg = '<div class="seg-radio" role="radiogroup" aria-label="משך"><label><input type="radio" name="tf-mode" value="one"' + (multi ? '' : ' checked') + '><span>יום אחד</span></label><label><input type="radio" name="tf-mode" value="multi"' + (multi ? ' checked' : '') + '><span>כמה ימים</span></label></div>';
+  return '<div class="field inl"><span>תאריכים</span>' + (folded ? '<button type="button" class="date-sum" data-act="cal-open">' + esc(dateMeta(e)) + ICON.pen + '</button><span class="date-seg" hidden>' + seg + '</span>' : seg) + '</div>'
     + '<input type="hidden" id="tf-date" value="' + esc(e ? e.date || '' : '') + '"><input type="hidden" id="tf-end" value="' + esc(e ? e.end || '' : '') + '">'
-    + '<div class="cal" id="cal"></div>';
+    + '<div class="cal" id="cal"' + (folded ? ' hidden' : '') + '></div>';
 }
 // Inline calendar: in "כמה ימים" the first tap sets the start and the calendar stays open for the end date.
 function initCal(root) {
@@ -2551,15 +2645,15 @@ function openTripSheet(edit) {
   const ev = edit ? tripData().ev : null; if (edit && !ev) return;
   ntDefaults(edit);
   const tpls = sortedTpls(), pre = preTpl && tpls.some(t => t.id === preTpl) ? preTpl : (tpls[0] ? tpls[0].id : '');
-  const picker = '<label class="field"><span>תבניות</span><select id="tf-tpl">'
+  const picker = '<label class="field inl"><span>תבניות</span><select id="tf-tpl">'
     + tpls.map(t => '<option value="' + esc(t.id) + '"' + (t.id === pre ? ' selected' : '') + '>' + esc(t.name || 'ללא שם') + '</option>').join('')
     + '<option value=""' + (pre ? '' : ' selected') + '>בלי תבנית</option></select></label>';
   openSheet('<form class="stack-form" data-form="' + (edit ? 'edit-trip' : 'new-trip') + '" autocomplete="off">'
     + (edit ? '' : picker)
     + '<label class="field"><span>שם האירוע</span><input id="tf-name" maxlength="60" required value="' + esc(ev ? ev.name : '') + '"></label>'
     + (edit ? guestEditField() : '')
-    + dateFields(ev)
-    + '<div class="field"><span>ניהול ארוחות</span><div class="seg-radio" role="radiogroup" aria-label="ניהול ארוחות"><label><input type="radio" name="tf-meals" value="0"' + (mealsOn(ev) ? '' : ' checked') + '><span>לא</span></label><label><input type="radio" name="tf-meals" value="1"' + (mealsOn(ev) ? ' checked' : '') + '><span>כן</span></label></div></div>'
+    + dateFields(ev, edit)
+    + '<div class="field inl"><span>ניהול ארוחות</span><div class="seg-radio" role="radiogroup" aria-label="ניהול ארוחות"><label><input type="radio" name="tf-meals" value="0"' + (mealsOn(ev) ? '' : ' checked') + '><span>לא</span></label><label><input type="radio" name="tf-meals" value="1"' + (mealsOn(ev) ? ' checked' : '') + '><span>כן</span></label></div></div>'
     + (edit ? themeField(ev.theme) + coverRemove() : '')
     + (edit ? '' : '<div class="field"><span>משתתפים</span><div class="guest-chips" id="tf-chips"></div><div class="add-row"><input class="grow" id="tf-guest" placeholder="הוספת שם" maxlength="200" aria-label="משתתפים"><button type="button" class="btn" data-act="tf-add-guest">הוספה</button></div></div>')
     + (edit ? '<div class="sheet-tools"><button type="button" class="btn sm" data-act="save-as-tpl">' + ICON.tlist.replace('<svg ', '<svg class="ic" ') + 'שמירה כתבנית</button><button type="button" class="btn sm danger" data-confirm="delete-trip">' + ICON.trash + 'מחיקה</button></div>' : '')
@@ -2643,7 +2737,7 @@ function openSoloSheet(edit) {
   const L = edit ? soloData().list : null; if (edit && !L) return;
   openSheet('<form class="stack-form" data-form="' + (edit ? 'edit-solo' : 'new-solo') + '" autocomplete="off">'
     + '<label class="field"><span>שם הרשימה</span><input id="tf-name" maxlength="60" required value="' + esc(L ? L.name : '') + '"></label>'
-    + dateFields(L)
+    + dateFields(L, edit)
     + (edit ? themeField(L.theme) + coverRemove() : '')
     + (edit ? '<div class="sheet-tools"><button type="button" class="btn sm danger" data-confirm="delete-solo">' + ICON.trash + 'מחיקה</button></div>' : '')
     + sheetActions('', edit ? 'שמירה' : 'יצירה')
@@ -2796,9 +2890,7 @@ async function claim(itemId, n, gid, extra) {
       msg = label + ': ' + take + ' ברשימה ' + whoseList(gid) + ' · חסרים ' + (have - take);
     }
   } catch (e) { return; }
-  const merged = myId && myId !== itemId && S.items.find(i => i.id === myId);
-  // taking it myself: the "buy or have it?" sheet says what was taken, so no toast on top of it
-  if (myId && gid === S.me && !(merged && merged.buy)) setTimeout(() => askBuy(myId, label), 320); else if (msg) toast(msg);
+  if (msg) toast(msg);
 }
 function askBuy(id, label) {
   openSheet('<div class="stack-form"><h2 class="sheet-title">' + esc(label) + '</h2><p class="ask-buy">צריך לקנות, או שיש לך?</p>'
@@ -3130,6 +3222,7 @@ function act(a) {
     case 'undo': return runUndo();
     case 'bank-all': return bankAddAll();
     case 'meals-plan': return openMealsSheet();
+    case 'cal-open': { const r = $('#sheet-root .sheet'); if (!r) return; r.querySelector('.date-sum').hidden = true; r.querySelector('.date-seg').hidden = false; r.querySelector('#cal').hidden = false; return; }
     case 'dd-add': return dishAddItem();
     case 'pb-all': return soloAddAll();
     case 'bank-toggle': { const T = tripData(); const open = S.bankOpen != null ? S.bankOpen : T.lines.length < 3; S.bankOpen = !open; render(); return; }
@@ -3292,21 +3385,22 @@ function setTab(tab, dir) {
   if (from !== to && window.innerWidth < 960) slideIn(byId('col-' + tab), dir || (to > from ? 1 : -1));
   const b = $('.board'); if (b) { const y = b.getBoundingClientRect().top + window.scrollY - 70; if (window.scrollY > y) window.scrollTo(0, y); }
 }
+const HOME_TABS = ['lists', 'money', 'notes'];
 function setHomeTab(tab, dir) {
   exitSel();
-  const order = ['lists', 'money'], from = order.indexOf(S.homeTab), to = order.indexOf(tab);
+  const order = HOME_TABS, from = order.indexOf(S.homeTab), to = order.indexOf(tab);
   if (to < 0) return;
   S.homeTab = tab; lsSet('htab', tab); render();
-  if (from !== to) slideIn(byId(tab === 'money' ? 'h-money' : 'h-lists'), dir || (to > from ? 1 : -1));
+  if (from !== to) slideIn(byId('h-' + tab), dir || (to > from ? 1 : -1));
 }
 // Right-to-left layout: the next tab sits to the left, so dragging toward the right moves forward.
 function swipeEl() {
   if (S.view === 'trip' && window.innerWidth < 960) return byId('col-' + S.tab);
-  if (S.view === 'home') return byId(S.homeTab === 'money' ? 'h-money' : 'h-lists');
+  if (S.view === 'home') return byId('h-' + S.homeTab);
   return null;
 }
 function swipeTarget(dir) {
-  const order = S.view === 'trip' ? TABS : S.view === 'home' ? ['lists', 'money'] : null; if (!order) return null;
+  const order = S.view === 'trip' ? TABS : S.view === 'home' ? HOME_TABS : null; if (!order) return null;
   const n = order.indexOf(S.view === 'trip' ? S.tab : S.homeTab) + dir;
   return n >= 0 && n < order.length ? order[n] : null;
 }
@@ -3368,10 +3462,11 @@ document.addEventListener('click', e => {
   if (d.openTrip) return openTrip(d.openTrip);
   if (d.openSolo) return openSolo(d.openSolo);
   if (d.openMoney) return openMoney(d.openMoney);
-  if (d.htab) return setHomeTab(d.htab === 'money' ? 'money' : 'lists');
+  if (d.htab) return setHomeTab(['money', 'notes'].includes(d.htab) ? d.htab : 'lists');
   if (d.claim) return startClaim(d.claim);
   if (d.meat) return startMeat(d.meat);
   if (d.covered) return coveredTap(d.covered);
+  if (d.nscope) { S.noteScope = d.nscope === 'general' ? 'general' : 'event'; noteEdit = null; render(); return; }
   if (d.dishNew) { if (!needMe(() => openDishSheet(null, Number(d.dishNew.slice(0, -1)), d.dishNew.slice(-1)))) return; return openDishSheet(null, Number(d.dishNew.slice(0, -1)), d.dishNew.slice(-1)); }
   if (d.dish) return openDishSheet(d.dish);
   if (d.dishTake) return takeDish(d.dishTake);
@@ -3655,6 +3750,14 @@ document.addEventListener('keydown', e => {
     const n = byId(nx); if (n) { n.focus(); try { n.select(); } catch (_) {} }
   }
 });
+// "have it / need to buy" takes effect the moment it is tapped
+document.addEventListener('change', e => {
+  const r = e.target; if (r.name !== 'it-buy') return;
+  const f = r.closest('form[data-form="item"]'), it = f && S.items.find(i => i.id === f.dataset.id); if (!it || it.owner !== S.me) return;
+  const buy = r.value === '1'; if (!!it.buy === buy) return;
+  fire(Store.update(itemPath(it.id), {buy, bought: false}));
+  toast(buy ? 'נוסף לקניות' : 'הוסר מהקניות');
+});
 document.addEventListener('change', e => {
   if (e.target.id === 'cover-file') { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) setCover(f); return; }
   if (e.target.id === 'snd') { lsSet('sound', e.target.checked ? 'on' : 'off'); if (e.target.checked) sfx('check'); return; }
@@ -3703,10 +3806,10 @@ async function init() {
   });
   const b = soloBase();
   if (b) Store.sub(b, l => {
-    S.solos = l.filter(d => d.kind === 'list'); S.solosLoaded = true;
+    S.solos = l.filter(d => d.kind === 'list'); S.solosLoaded = true; S.notes = l.filter(d => d.kind === 'note');
     const bk = l.find(d => d.id === 'bank' && d.kind === 'bank');
     S.myBank = bk && Array.isArray(bk.items) ? bk.items.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim().slice(0, 40)).slice(0, 80) : null;
-    linkTripSolo(); render();
+    linkTripSolo(); if (!noteEdit) render();
   });
   render();
 }
