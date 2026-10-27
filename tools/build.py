@@ -203,7 +203,6 @@ function openInvite() {
   const link = spaceLink(S.tripId);
   openSheet('<h2 class="sheet-title">הזמנה ל״' + esc(ev.name) + '״</h2><p>כל מי שפותח את הקישור מצטרף לרשימות המשותפות שלכם ויכול לערוך.</p>'
     + '<div class="field"><span>קישור</span><div class="code-row"><code id="trip-code" dir="ltr">' + esc(link) + '</code><button type="button" class="btn sm" data-copy="' + esc(link) + '">העתקה</button></div></div>'
-    + joinedHTML(tripData())
     + '<div class="sheet-actions">' + (navigator.share ? '<button type="button" class="btn primary" data-act="share-link">שיתוף</button>' : '') + '<button type="button" class="btn" data-close>סגירה</button></div>');
 }
 async function shareLink() {

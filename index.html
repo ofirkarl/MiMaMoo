@@ -2126,12 +2126,6 @@ function markJoined(T, me) {
   joinDone.add(S.tripId + '/' + me.id);
   fire(Store.update('events/' + S.tripId + '/guests/' + me.id, {joined: Date.now()}));
 }
-function joinedHTML(T) {
-  if (!T.guests.length) return '';
-  const n = T.guests.filter(g => g.joined).length;
-  return '<div class="field"><span>הצטרפו ' + n + ' מתוך ' + T.guests.length + '</span><ul class="joined-list">'
-    + [...T.guests].sort((a, b) => !!b.joined - !!a.joined).map(g => '<li' + (g.joined ? ' class="in"' : '') + '>' + (g.joined ? ICON.check : '<i aria-hidden="true"></i>') + '<span>' + esc(g.name) + '</span>' + (g.joined ? '' : '<small>עוד לא נכנס/ה</small>') + '</li>').join('') + '</ul></div>';
-}
 // Participants in the banner: names in one flowing line, me first.
 function crewHTML(T) {
   if (!T.guests.length) return '';
@@ -3100,7 +3094,6 @@ function openInvite() {
   const link = spaceLink(S.tripId);
   openSheet('<h2 class="sheet-title">הזמנה ל״' + esc(ev.name) + '״</h2><p>כל מי שפותח את הקישור מצטרף לרשימות המשותפות שלכם ויכול לערוך.</p>'
     + '<div class="field"><span>קישור</span><div class="code-row"><code id="trip-code" dir="ltr">' + esc(link) + '</code><button type="button" class="btn sm" data-copy="' + esc(link) + '">העתקה</button></div></div>'
-    + joinedHTML(tripData())
     + '<div class="sheet-actions">' + (navigator.share ? '<button type="button" class="btn primary" data-act="share-link">שיתוף</button>' : '') + '<button type="button" class="btn" data-close>סגירה</button></div>');
 }
 async function shareLink() {

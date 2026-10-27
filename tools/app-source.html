@@ -2000,12 +2000,6 @@ function markJoined(T, me) {
   joinDone.add(S.tripId + '/' + me.id);
   fire(Store.update('events/' + S.tripId + '/guests/' + me.id, {joined: Date.now()}));
 }
-function joinedHTML(T) {
-  if (!T.guests.length) return '';
-  const n = T.guests.filter(g => g.joined).length;
-  return '<div class="field"><span>הצטרפו ' + n + ' מתוך ' + T.guests.length + '</span><ul class="joined-list">'
-    + [...T.guests].sort((a, b) => !!b.joined - !!a.joined).map(g => '<li' + (g.joined ? ' class="in"' : '') + '>' + (g.joined ? ICON.check : '<i aria-hidden="true"></i>') + '<span>' + esc(g.name) + '</span>' + (g.joined ? '' : '<small>עוד לא נכנס/ה</small>') + '</li>').join('') + '</ul></div>';
-}
 // Participants in the banner: names in one flowing line, me first.
 function crewHTML(T) {
   if (!T.guests.length) return '';
@@ -2969,7 +2963,6 @@ function openInvite() {
   const code = '#' + S.tripId;
   openSheet('<h2 class="sheet-title">הזמנה</h2><ol class="steps"><li>שיתוף הדף במייל, עם הרשאת עריכה (נדרש חשבון Claude).</li><li>כל אחד נכנס ל״' + esc(ev.name) + '״ ובוחר את השם שלו.</li></ol>'
     + '<div class="field"><span>קישור ישיר לאירוע: להוסיף לסוף הקישור</span><div class="code-row"><code id="trip-code">' + esc(code) + '</code><button type="button" class="btn sm" data-copy="' + esc(code) + '">העתקה</button></div></div>'
-    + joinedHTML(tripData())
     + '<div class="sheet-actions"><button type="button" class="btn primary" data-close>סגירה</button></div>');
 }
 function openExpenseSheet(id, prefill) {
