@@ -305,6 +305,9 @@ span.item-main{cursor:default}
 .panel{background:var(--surface);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow-sm)}
 .col-panel{display:flex;flex-direction:column;gap:14px}
 .prog-slot:empty{display:none}
+.tabs button{position:relative}
+.badge{position:absolute;top:5px;inset-inline-end:calc(50% - 25px);min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:var(--danger);color:#FFFFFF;box-shadow:0 0 0 2px var(--surface);font:700 11.5px/19px var(--f-body);text-align:center;font-variant-numeric:tabular-nums}
+.badge.in{position:static;display:inline-block;box-shadow:none;margin-inline-start:2px}
 .tabs.three{grid-template-columns:repeat(3,1fr)}
 .tabs.six{grid-template-columns:repeat(6,1fr);gap:2px;padding:3px}
 .tabs.six button{font-size:11.5px;padding-inline:0;min-height:60px;border-radius:14px;gap:3px}
@@ -1465,10 +1468,21 @@ function othersNotesHTML() {
     .map(n => '<article class="note-msg"><header><b>' + esc(n.name || 'משתתף') + '</b><time>' + esc(fmtWhen(n.updated)) + '</time></header><div class="note-msg-t">' + linkify(n.text) + '</div></article>').join('');
 }
 const notesBlock = key => '<div class="notes-wrap">' + noteHTML(key) + '</div>';
+// New in the group page: others' pages written or changed since I last had it open (remembered on this device)
+const notesSeenKey = eid => 'nseen:' + eid;
+const othersNotes = () => (S.evNotes || []).filter(n => n.id !== myKey() && typeof n.text === 'string' && n.text.trim());
+function unreadNotes(eid) {
+  const seen = Number(lsGet(notesSeenKey(eid))) || 0;
+  return othersNotes().filter(n => (Number(n.updated) || 0) > seen).length;
+}
+function markNotesSeen(eid) {
+  const mx = othersNotes().reduce((m, n) => Math.max(m, Number(n.updated) || 0), 0);
+  if (mx > (Number(lsGet(notesSeenKey(eid))) || 0)) lsSet(notesSeenKey(eid), String(mx));
+}
 function tripNotesHTML() {
   const g = S.noteTab === 'group';
   return '<div class="notes-wrap"><div class="seg note-vis" role="tablist" aria-label="דף הערות">'
-    + '<button role="tab" aria-pressed="' + g + '" aria-selected="' + g + '" data-ntab="group">' + ICON.tpeople + 'קבוצתי</button>'
+    + '<button role="tab" aria-pressed="' + g + '" aria-selected="' + g + '" data-ntab="group">' + ICON.tpeople + 'קבוצתי' + (!g && unreadNotes(S.tripId) ? '<b class="badge in">' + unreadNotes(S.tripId) + '</b>' : '') + '</button>'
     + '<button role="tab" aria-pressed="' + !g + '" aria-selected="' + !g + '" data-ntab="mine">' + ICON.lock + 'אישי</button></div>'
     + (g ? noteHTML('g:' + S.tripId) + othersNotesHTML() : noteHTML(S.tripId)) + '</div>';
 }
@@ -1893,7 +1907,10 @@ function updateTrip() {
   const tabLabel = {group: 'רשימה משותפת', mine: 'רשימה אישית', people: 'מי מביא מה', meals: 'ארוחות', shop: 'קניות', notes: 'הערות'};
   const tabIcon = {group: ICON.tlist, mine: ICON.tmine, people: ICON.tpeople, meals: ICON.tmeals, shop: ICON.tshop, notes: ICON.tnotes};
   byId('r-tabs').className = 'tabs ' + ['', '', '', '', 'four', 'five', 'six'][TABS.length];
-  byId('r-tabs').innerHTML = TABS.map(t => '<button role="tab" class="tab-' + t + '" aria-selected="' + (S.tab === t) + '" data-tab="' + t + '">' + tabIcon[t] + '<span>' + tabLabel[t] + '</span></button>').join('');
+  if (S.tab === 'notes' && S.noteTab === 'group') markNotesSeen(S.tripId);
+  const unread = unreadNotes(S.tripId);
+  byId('r-tabs').innerHTML = TABS.map(t => '<button role="tab" class="tab-' + t + '" aria-selected="' + (S.tab === t) + '" data-tab="' + t + '">' + tabIcon[t] + '<span>' + tabLabel[t] + '</span>'
+    + (t === 'notes' && unread ? '<b class="badge" aria-label="' + unread + ' הערות חדשות">' + unread + '</b>' : '') + '</button>').join('');
   ALL_TABS.forEach(t => byId('col-' + t).classList.toggle('on', S.tab === t));
   byId('r-meals').innerHTML = mealsOn(ev) ? mealsHTML(T) : '';
   if (!noteEdit) byId('r-notes').innerHTML = tripNotesHTML();
