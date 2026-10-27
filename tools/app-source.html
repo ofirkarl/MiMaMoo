@@ -336,7 +336,7 @@ span.item-main{cursor:default}
 .sheet .sheet-title{font-size:22px}
 .sheet .sheet-tools{padding-top:10px}
 .sheet .seg-radio span{min-height:36px;padding:0 14px}
-.field.inl{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+.field.inl{flex-direction:row;align-items:center;justify-content:flex-start;gap:12px}
 .field.inl>span{flex:none}
 .field.inl select{flex:1;max-width:62%}
 .date-sum{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:999px;background:var(--sunk);font-weight:600;font-size:15px;color:var(--ink);text-align:start}
@@ -1392,77 +1392,86 @@ function personalDblRow(i, T) {
 }
 // The shared list's missing items, as they look in the shared list
 function missingHTML(T) { const f = S.filter; S.filter = 'need'; try { return groupHTML(T); } finally { S.filter = f; } }
-/* ---------- Notes to myself: a free page per event, and a general one. Private, kept with my personal lists ---------- */
+/* ---------- Notes: free pages to write on ----------
+   An event has two separate pages: "אישי", private, kept with my personal lists (<private>/note-<event>),
+   and "קבוצתי", where each person writes their own page under the event (events/<event>/notes/<me>) and reads
+   everyone else's, with their name, without changing them. The home page has one more private page, the general one. */
 const NOTE_MAX = 40000;
 let noteEdit = null, noteT = 0;
 const noteDoc = key => (S.notes || []).find(n => n.id === 'note-' + key);
 const notePath = key => soloBase() + '/note-' + key;
+const isGroupNote = key => key.indexOf('g:') === 0;
+const myKey = () => { if (S.uid) return String(S.uid); let k = lsGet('devId'); if (!k) { k = uid('u'); lsSet('devId', k); } return k; };
+const groupNotePath = key => 'events/' + key.slice(2) + '/notes/' + myKey();
+function storedNote(key) {
+  const d = isGroupNote(key) ? (S.evNotes || []).find(n => n.id === myKey()) : noteDoc(key);
+  return d && typeof d.text === 'string' ? d.text : '';
+}
+// Text left on a page waits here a moment before it is saved, so the tap that left the page lands before anything redraws
+const notePend = {};
+const noteText = key => (key in notePend ? notePend[key] : storedNote(key));
+function noteAuthor() {
+  const T = tripData(); if (S.me && T.gmap[S.me]) return T.gmap[S.me].name;
+  return lsGet('myName') || S.profileName || 'משתתף';
+}
 function linkify(t) {
   return esc(t).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)\]'"])/g, u => '<a href="' + u + '" target="_blank" rel="noopener noreferrer">' + u + '</a>');
 }
+const noteView = (key, text) => '<div class="note-view' + (text ? '' : ' empty') + '" data-note-open="' + esc(key) + '" tabindex="0" role="textbox" aria-multiline="true" aria-label="הערות">'
+  + (text ? linkify(text) : isGroupNote(key) ? 'לחיצה לכתיבה לקבוצה…' : 'לחיצה לכתיבה…') + '</div>';
 function noteHTML(key) {
-  if (!soloBase()) return '<p class="empty-in">זמין כשנכנסים עם חשבון</p>';
-  const n = noteDoc(key);
-  return '<div class="note" id="note-box" data-key="' + esc(key) + '">' + noteView(key, n && typeof n.text === 'string' ? n.text : '') + '</div>';
+  if (!isGroupNote(key) && !soloBase()) return '<p class="empty-in">זמין כשנכנסים עם חשבון</p>';
+  return '<div class="note" id="note-box" data-key="' + esc(key) + '">' + noteView(key, noteText(key)) + '</div>';
 }
-const noteView = (key, text) => '<div class="note-view' + (text ? '' : ' empty') + '" data-note-open="' + esc(key) + '" tabindex="0" role="textbox" aria-multiline="true" aria-label="הערות">' + (text ? linkify(text) : 'לחיצה לכתיבה…') + '</div>';
 function openNote(key) {
-  const box = byId('note-box'); if (!box || box.dataset.key !== key || !soloBase()) return;
+  const box = byId('note-box'); if (!box || box.dataset.key !== key) return;
+  if (isGroupNote(key) ? S.readOnly : !soloBase()) return;
   noteEdit = key;
-  const n = noteDoc(key), ta = document.createElement('textarea');
-  ta.className = 'note-ta'; ta.maxLength = NOTE_MAX; ta.setAttribute('aria-label', 'הערות'); ta.placeholder = 'מחשבות, מתכונים, קישורים…';
-  ta.value = n && typeof n.text === 'string' ? n.text : '';
+  const ta = document.createElement('textarea');
+  ta.className = 'note-ta'; ta.maxLength = NOTE_MAX; ta.setAttribute('aria-label', 'הערות');
+  ta.placeholder = isGroupNote(key) ? 'מה שכולם צריכים לדעת…' : 'מחשבות, מתכונים, קישורים…';
+  ta.value = noteText(key);
   box.innerHTML = ''; box.appendChild(ta);
   const grow = () => { ta.style.height = 'auto'; ta.style.height = Math.max(ta.scrollHeight, window.innerHeight * 0.42) + 'px'; };
   grow(); ta.focus(); try { ta.setSelectionRange(ta.value.length, ta.value.length); } catch (_) {}
   ta.addEventListener('input', () => { grow(); clearTimeout(noteT); noteT = setTimeout(() => saveNote(key, ta.value), 700); });
-  // leaving the page: back to reading, swapping only the page itself so a tap elsewhere (a tab, the other notes) still lands
-  ta.addEventListener('blur', () => { clearTimeout(noteT); saveNote(key, ta.value); noteEdit = null; if (box.isConnected) box.innerHTML = noteView(key, ta.value.slice(0, NOTE_MAX)); });
+  // leaving the page saves it and goes back to reading, swapping only the page so a tap elsewhere (the other page, a tab) still lands
+  ta.addEventListener('blur', () => {
+    clearTimeout(noteT); notePend[key] = ta.value.slice(0, NOTE_MAX); noteEdit = null;
+    if (box.isConnected) box.innerHTML = noteView(key, notePend[key]);
+    setTimeout(() => { if (key in notePend) saveNote(key, notePend[key]); }, 350);
+  });
 }
 function saveNote(key, text) {
-  if (!soloBase()) return;
   text = String(text || '').slice(0, NOTE_MAX);
-  const n = noteDoc(key), shared = !!(n && n.shared);
-  if (n ? n.text === text : !text.trim()) return;
-  fire(Store.set(notePath(key), {kind: 'note', key, text, updated: Date.now(), shared}));
-  if (shared && !S.readOnly && key !== 'general') publishNote(key, text);
-}
-// A shared note is a copy under the group's data, one per writer: others read it with the writer's name and can't change it.
-// Only an event's notes can be shared, with that event's people; the general notes page stays personal.
-const myKey = () => { if (S.uid) return String(S.uid); let k = lsGet('devId'); if (!k) { k = uid('u'); lsSet('devId', k); } return k; };
-const notePubPath = key => 'events/' + key + '/notes/' + myKey();
-const noteShared = key => !!(noteDoc(key) && noteDoc(key).shared);
-function noteAuthor(key) {
-  if (key !== 'general' && S.tripId === key) { const T = tripData(); if (S.me && T.gmap[S.me]) return T.gmap[S.me].name; }
-  return lsGet('myName') || S.profileName || 'משתתף';
-}
-function publishNote(key, text) {
-  if (text.trim()) fire(Store.set(notePubPath(key), {name: noteAuthor(key).slice(0, 40), text, updated: Date.now()}));
-  else fire(Store.del(notePubPath(key)).catch(() => {}));
-}
-function setNoteShare(key, on) {
-  if (S.readOnly || !soloBase() || key === 'general' || noteShared(key) === on) return;
-  const n = noteDoc(key), text = n && typeof n.text === 'string' ? n.text : '';
-  fire(Store.set(notePath(key), {kind: 'note', key, text, updated: (n && n.updated) || Date.now(), shared: on}));
-  if (on) publishNote(key, text); else fire(Store.del(notePubPath(key)).catch(() => {}));
-  toast(on ? 'ההערות גלויות לקבוצה' : 'ההערות אישיות, רק אצלך');
-}
-function noteVisHTML(key) {
-  if (S.readOnly || !soloBase()) return '';
-  const on = noteShared(key);
-  return '<div class="seg note-vis" role="group" aria-label="מי רואה את ההערות"><button aria-pressed="' + on + '" data-nvis="1|' + esc(key) + '">' + ICON.tpeople + 'קבוצתי</button><button aria-pressed="' + !on + '" data-nvis="0|' + esc(key) + '">' + ICON.lock + 'אישי</button></div>';
+  delete notePend[key];
+  if (text === storedNote(key)) return;
+  if (isGroupNote(key)) {
+    if (S.readOnly) return;
+    if (text.trim()) fire(Store.set(groupNotePath(key), {name: noteAuthor().slice(0, 40), text, updated: Date.now()}));
+    else fire(Store.del(groupNotePath(key)).catch(() => {}));
+    return;
+  }
+  if (!soloBase() || (!noteDoc(key) && !text.trim())) return;
+  fire(Store.set(notePath(key), {kind: 'note', key, text, updated: Date.now()}));
 }
 function fmtWhen(ts) {
   const d = new Date(Number(ts) || 0), now = new Date(), hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   return d.toDateString() === now.toDateString() ? hm : d.getDate() + '.' + (d.getMonth() + 1) + ' · ' + hm;
 }
-function othersNotesHTML(key) {
-  const me = myKey(), list = S.evNotes || [];
-  const xs = list.filter(n => n.id !== me && typeof n.text === 'string' && n.text.trim()).sort((a, b) => (b.updated || 0) - (a.updated || 0));
-  return xs.map(n => '<article class="note-msg"><header><b>' + esc(n.name || 'משתתף') + '</b><time>' + esc(fmtWhen(n.updated)) + '</time></header><div class="note-msg-t">' + linkify(n.text) + '</div></article>').join('');
+function othersNotesHTML() {
+  const me = myKey();
+  return (S.evNotes || []).filter(n => n.id !== me && typeof n.text === 'string' && n.text.trim()).sort((a, b) => (b.updated || 0) - (a.updated || 0))
+    .map(n => '<article class="note-msg"><header><b>' + esc(n.name || 'משתתף') + '</b><time>' + esc(fmtWhen(n.updated)) + '</time></header><div class="note-msg-t">' + linkify(n.text) + '</div></article>').join('');
 }
-const notesBlock = key => '<div class="notes-wrap">' + (key === 'general' ? noteHTML(key) : noteVisHTML(key) + noteHTML(key) + othersNotesHTML(key)) + '</div>';
-const tripNotesHTML = () => notesBlock(S.tripId);
+const notesBlock = key => '<div class="notes-wrap">' + noteHTML(key) + '</div>';
+function tripNotesHTML() {
+  const g = S.noteTab === 'group';
+  return '<div class="notes-wrap"><div class="seg note-vis" role="tablist" aria-label="דף הערות">'
+    + '<button role="tab" aria-pressed="' + g + '" aria-selected="' + g + '" data-ntab="group">' + ICON.tpeople + 'קבוצתי</button>'
+    + '<button role="tab" aria-pressed="' + !g + '" aria-selected="' + !g + '" data-ntab="mine">' + ICON.lock + 'אישי</button></div>'
+    + (g ? noteHTML('g:' + S.tripId) + othersNotesHTML() : noteHTML(S.tripId)) + '</div>';
+}
 document.addEventListener('click', e => {
   if (e.target.closest('a')) return;  // a link in a note opens; anywhere else starts writing
   const v = e.target.closest('[data-note-open]'); if (v) openNote(v.dataset.noteOpen);
@@ -2159,7 +2168,7 @@ function openTrip(id) {
   stopView();
   if (S.tripId !== id) undoStack = [];
   noteEdit = null;
-  Object.assign(S, {view: 'trip', q: '', pbOpen: null, pfilter: 'all', tripId: id, soloId: null, soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], evNotes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
+  Object.assign(S, {view: 'trip', q: '', pbOpen: null, pfilter: 'all', noteTab: 'mine', tripId: id, soloId: null, soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], evNotes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
   linkTripSolo();
   viewUnsubs.push(Store.sub('events/' + id + '/media', l => { if (S.tripId !== id) return; S.cover = coverSrc(l.find(d => d.id === 'cover')); render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/guests', l => { if (S.tripId !== id) return; S.guests = l; S.guestsLoaded = true; render(); }));
@@ -3385,7 +3394,7 @@ document.addEventListener('click', e => {
   if (d.claim) return startClaim(d.claim);
   if (d.meat) return startMeat(d.meat);
   if (d.covered) return coveredTap(d.covered);
-  if (d.nvis) { const [on, key] = d.nvis.split('|'); setNoteShare(key, on === '1'); return; }
+  if (d.ntab) { S.noteTab = d.ntab === 'group' ? 'group' : 'mine'; render(); return; }
   if (d.dishNew) { if (!needMe(() => openDishSheet(null, Number(d.dishNew.slice(0, -1)), d.dishNew.slice(-1)))) return; return openDishSheet(null, Number(d.dishNew.slice(0, -1)), d.dishNew.slice(-1)); }
   if (d.dish) return openDishSheet(d.dish);
   if (d.dishTake) return takeDish(d.dishTake);
