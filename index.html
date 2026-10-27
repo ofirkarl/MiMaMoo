@@ -533,6 +533,8 @@ button.set-row{width:100%;padding-inline:8px;text-align:start;gap:12px}
 /* a person's items hang under their name: set in, along a thread in their color */
 .lane-body{margin-top:8px;margin-inline-start:20px;padding-inline-start:16px;border-inline-start:2.5px solid var(--line-2);border-inline-start-color:color-mix(in srgb,var(--gc,#8A8594) 34%,transparent)}
 .lane-body .lane-cat:first-child{margin-top:6px}
+.lane-body .lane-items{margin-top:2px}
+.lane-body .lane-items>.item:first-child{border-top:0}
 .lane-body .lane-empty{padding-top:4px}
 .sub-label{margin-top:12px;font-size:13px}
 .lane-empty{color:var(--muted);font-size:15px;padding:12px 0 8px}
@@ -2010,7 +2012,7 @@ function lane(g, T) {
     + (solo ? '<button class="btn sm" data-tab="mine">הרשימה שלי</button>' : '')
     + '</header><div class="lane-body">'
     + (mine.length ? '<div class="bar thin"><i style="width:' + Math.round(pk / mine.length * 100) + '%"></i></div>' : '')
-    + CATS.map(c => { const ls = shown.filter(i => catOf(i) === c.id).sort((a, b) => posOf(a) - posOf(b)); if (!ls.length) return ''; return '<div class="lane-cat">' + catPill(c, 'span') + '<ul class="items" data-cat="' + esc(c.id) + '">' + ls.map(i => laneRow(i, T)).join('') + '</ul></div>'; }).join('')
+    + (shown.length ? '<ul class="items lane-items">' + [...shown].sort((a, b) => posOf(a) - posOf(b)).map(i => laneRow(i, T)).join('') + '</ul>' : '')
     + laneDishesHTML(T, g.id)
     + (mine.length || S.dishes.some(d => d.owner === g.id) ? '' : '<p class="lane-empty">אין פריטים</p>')
     + '</div></article>';
@@ -3423,7 +3425,7 @@ function dragAim() {
   document.querySelectorAll('.lane.drop-on').forEach(l => { if (l !== laneEl) l.classList.remove('drop-on'); });
   if (!laneEl || (it.scope === 'p' && laneEl.dataset.gid !== it.owner)) { dg.target = null; dg.line.style.display = 'none'; return; }
   laneEl.classList.add('drop-on');
-  const ul = laneEl.querySelector('ul[data-cat="' + CSS.escape(catOf(it)) + '"]');
+  const ul = laneEl.querySelector('ul.lane-items');
   const rows = ul ? [...ul.children].filter(r => r.dataset.iid && r.dataset.iid !== it.id) : [];
   let i = rows.findIndex(r => { const b = r.getBoundingClientRect(); return y < b.top + b.height / 2; });
   if (i < 0) i = rows.length;
