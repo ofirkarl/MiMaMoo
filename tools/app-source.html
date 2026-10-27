@@ -3310,6 +3310,64 @@ function addSoloItem(name, qty, cat) {
 }
 
 /* ---------- Templates ---------- */
+// Starter templates, added once to every space (fixed ids, so two phones adding them at once make no copies;
+// one already there by the same name is left alone, and a deleted one does not come back).
+// g: suggestions for the shared list, p: what each person packs for themselves.
+const STARTER_TPLS = [
+  {id: 'tpl-camping', name: 'קמפינג',
+   g: {common: ['יריעת צל', 'כיסאות מתקפלים', 'שולחן מתקפל', 'מחצלת', 'פנס לד גדול', 'רמקול'],
+       kitchen: ['גזייה', 'בלון גז', 'סיר', 'מחבת', 'קומקום', 'קרש חיתוך', 'סכין', 'כלים חד פעמיים', 'סבון כלים וספוג', 'נייר סופג', 'שקיות זבל'],
+       gear: ['צידנית', 'מנגל', 'פחמים', 'מצית', "ג'ריקן מים", 'ערכת עזרה ראשונה'],
+       food: ['בשר למנגל', 'לחם', 'ביצים', 'ירקות לסלט', 'חטיפים', 'קפה', 'תה וסוכר', 'חלב'],
+       drinks: ['מים', 'קרח', 'שתייה קלה']},
+   p: {sleep: ['אוהל', 'שק שינה', 'מזרן', 'כרית'],
+       gear: ['פנס ראש', 'מטען נייד', 'בקבוק מים'],
+       care: ['בגדים חמים', 'כובע', 'קרם הגנה', 'דוחה יתושים', 'מגבת', 'מברשת ומשחת שיניים', 'כפכפים', 'נעלי הליכה', 'תרופות אישיות']}},
+  {id: 'tpl-festival', name: 'פסטיבל',
+   g: {common: ['יריעת צל', 'כיסאות מתקפלים', 'מחצלת', 'שרשרת אורות', 'רמקול', 'דגל לזיהוי המאהל'],
+       kitchen: ['גזייה', 'קומקום', 'כוסות חד פעמיות', 'שקיות זבל', 'מגבונים', 'נייר טואלט'],
+       gear: ['צידנית', 'מטען נייד גדול', 'ערכת עזרה ראשונה'],
+       food: ['חטיפים', 'פירות', 'כריכים', 'קפה'],
+       drinks: ['מים', 'קרח', 'בירה', 'שתייה קלה']},
+   p: {sleep: ['אוהל', 'שק שינה', 'מזרן', 'אטמי אוזניים'],
+       gear: ['כרטיס כניסה', 'תעודה מזהה', 'פנס ראש', 'מטען נייד', 'בקבוק מים רב פעמי', 'תיק קטן', 'מזומן'],
+       care: ['כובע', 'משקפי שמש', 'קרם הגנה', 'סווטשירט', "פונצ'ו לגשם", 'בגדים להחלפה', 'נעליים נוחות', 'כפכפים', 'מגבת', 'ערכת רחצה']}},
+  {id: 'tpl-beach', name: 'הולכים לים',
+   g: {common: ['שמשייה', 'מחצלת חוף', 'כיסאות חוף', 'מטקות', 'כדור', 'רמקול'],
+       gear: ['צידנית'],
+       kitchen: ['סכין וקרש חיתוך', 'כוסות חד פעמיות', 'שקיות זבל', 'מגבונים'],
+       food: ['אבטיח', 'פירות', 'כריכים', 'חטיפים'],
+       drinks: ['מים', 'קרח', 'שתייה קלה']},
+   p: {care: ['בגד ים', 'מגבת', 'קרם הגנה', 'כובע', 'משקפי שמש', 'כפכפים', 'בגדים להחלפה', 'שקית לבגדים רטובים'],
+       gear: ['בקבוק מים', 'משקפת שחייה', 'ספר']}},
+  {id: 'tpl-trip', name: 'טיול',
+   g: {gear: ['ערכת עזרה ראשונה', 'פנס', 'מצית'],
+       kitchen: ['גזייה', "פינג'אן", 'כוסות', 'סכין וקרש חיתוך', 'שקיות זבל', 'מגבונים', 'נייר טואלט'],
+       food: ['פיתות', 'חומוס', 'טונה', 'ירקות', 'פירות', 'חטיפי אנרגיה', 'קפה', 'תה וסוכר'],
+       drinks: ['מים']},
+   p: {gear: ['תיק גב', 'שלוקר', 'פנס ראש', 'מטען נייד', 'תעודה מזהה', 'מזומן'],
+       care: ['נעלי הליכה', 'גרביים', 'כובע', 'משקפי שמש', 'קרם הגנה', 'מעיל קל', 'בגדים להחלפה', 'תרופות אישיות']}},
+  {id: 'tpl-meal', name: 'ארוחה משותפת',
+   g: {food: ['מנה עיקרית', 'תוספת', 'סלט ירקות', 'סלט נוסף', 'לחם', 'מטבלים', 'קינוח', 'פירות'],
+       drinks: ['מים', 'שתייה קלה', 'יין', 'בירה', 'קרח'],
+       kitchen: ['צלחות', 'כוסות', 'סכו״ם', 'מפיות', 'כלי הגשה', 'שקיות זבל'],
+       common: ['מפה לשולחן', 'נרות']},
+   p: {general: ['מתנה למארחים', 'קופסאות לשאריות']}}
+];
+let tplSeeding = false;
+function seedStarterTpls() {
+  if (tplSeeding || !S.templatesLoaded || !S.settingsLoaded || S.readOnly || S.seedTpl >= 1 || !['db', 'local'].includes(S.mode)) return;
+  tplSeeding = true;
+  const have = new Set(S.templates.map(t => String(t.name || '').trim())), now = Date.now();
+  const mk = (cat, name, scope) => { const d = applyDefaults({name, cat, qty: 1}); return {id: uid('ti'), name, cat: CAT[d.cat] ? d.cat : 'general', qty: d.qty || 1, unit: d.unit || '', scope}; };
+  const list = groups => Object.entries(groups).flatMap(([cat, names]) => names.map(n => [cat, n]));
+  STARTER_TPLS.forEach((t, k) => {
+    if (have.has(t.name)) return;
+    const items = list(t.g).map(([c, n]) => mk(c, n, 'g')).concat(list(t.p).map(([c, n]) => mk(c, n, 'p')));
+    fire(Store.set('templates/' + t.id, {name: t.name, order: now + k, items}));
+  });
+  fire(Store.set('settings/seed', {tpl: 1}));
+}
 function saveTpl(id, mut) {
   const t = S.templates.find(x => x.id === id); if (!t) return;
   const next = {name: t.name || '', order: t.order || 0, items: (t.items || []).map(x => Object.assign({}, x))};
@@ -4004,12 +4062,13 @@ async function init() {
     }
   } else S.mode = 'local';
   Store.sub('events', l => { S.events = l; S.eventsLoaded = true; tryDeep(); render(); });
-  Store.sub('templates', l => { S.templates = l; S.templatesLoaded = true; render(); });
+  Store.sub('templates', l => { S.templates = l; S.templatesLoaded = true; seedStarterTpls(); render(); });
   Store.sub('settings', l => {
     const c = l.find(d => d.id === 'cats'), p = l.find(d => d.id === 'prefs'), lr = l.find(d => d.id === 'learn');
     setCats(c && c.list); setPrefs(p);
     LEARN = {}; if (lr && Array.isArray(lr.pairs)) lr.pairs.forEach(x => { if (Array.isArray(x) && typeof x[0] === 'string' && typeof x[1] === 'string') LEARN[x[0]] = x[1]; });
-    render();
+    const sd = l.find(d => d.id === 'seed'); S.seedTpl = sd ? Number(sd.tpl) || 0 : 0; S.settingsLoaded = true;
+    seedStarterTpls(); render();
   });
   const b = soloBase();
   if (b) Store.sub(b, l => {
