@@ -1907,7 +1907,7 @@ function dishRow(T, d) {
     + '</li>';
 }
 // Which meals to plan: a row per day, a chip per meal
-function openMealsSheet() {
+function openMealsSheet(fresh) {
   const T = tripData(), ev = T.ev; if (!ev || S.readOnly) return;
   const plan = mealsOn(ev) && Array.isArray(ev.meals.plan) ? mealPlan(ev) : defaultMealPlan(ev), n = mealDayCount(ev);
   let rows = '';
@@ -1915,7 +1915,7 @@ function openMealsSheet() {
     rows += '<div class="mg-row">' + (n > 1 || parseD(ev.date) ? '<span class="mg-day">' + esc(mealDayLabel(ev, i)) + '</span>' : '')
       + '<div class="mg-slots">' + SLOTS.map(([k, , short]) => '<label class="mg-chip"><input type="checkbox" name="mp" value="' + i + k + '"' + (plan.includes(i + k) ? ' checked' : '') + '><span>' + short + '</span></label>').join('') + '</div></div>';
   }
-  openSheet('<form class="stack-form" data-form="meals" autocomplete="off"><h2 class="sheet-title">אילו ארוחות לתכנן?</h2><div class="meal-grid">' + rows + '</div>' + sheetActions('', 'שמירה') + '</form>');
+  openSheet('<form class="stack-form" data-form="meals"' + (fresh ? ' data-fresh="1"' : '') + ' autocomplete="off"><h2 class="sheet-title">אילו ארוחות לתכנן?</h2><div class="meal-grid">' + rows + '</div>' + sheetActions('', 'שמירה') + '</form>');
 }
 // One dish: name (with ideas for this meal), who brings it, and its ingredients
 let dishDraft = null;
@@ -3417,6 +3417,7 @@ async function createTrip(f) {
   const mg = ntMe ? guests.find(g => same(g.name, ntMe)) : guests[0];
   if (mg) { lsSet('me:' + eid, mg.id); lsSet('myName', mg.name); }
   openTrip(eid, 'group');
+  if (mOn) setTimeout(() => { if (S.tripId === eid) openMealsSheet(true); }, 450);
   await runLimited(guests.map(g => () => Store.set('events/' + eid + '/guests/' + g.id, {name: g.name, color: g.color, created: g.created})), 4);
 }
 async function deleteTrip() {
@@ -3969,7 +3970,7 @@ const forms = {
     const plan = [...f.querySelectorAll('input[name="mp"]:checked')].map(x => x.value);
     closeSheet();
     fire(Store.update('events/' + S.tripId, {meals: {on: true, plan}}));
-    if (S.tab !== 'meals') setTab('meals');
+    if (!f.dataset.fresh && S.tab !== 'meals') setTab('meals');  // right after creating the event, stay on the shared list
   },
   dish(f) { saveDish(f); },
   'mark-dish'(f) { markDish(f); },
