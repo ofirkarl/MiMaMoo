@@ -489,6 +489,9 @@ body.is-dragging{-webkit-user-select:none;user-select:none;cursor:grabbing}
 .pk{grid-row:span 2;align-self:start;margin-top:2px;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--line-2);display:grid;place-items:center;color:transparent;transition:background .12s}
 .pk.on{background:var(--good-bg);border-color:var(--good-fill);color:var(--good)}
 .pk:disabled:not(.on){opacity:.45}
+.new-dot{display:inline-block;width:9px;height:9px;margin-inline-start:8px;vertical-align:2px;border-radius:50%;background:#4F79C9;box-shadow:0 0 0 3.5px rgba(79,121,201,.2);animation:newdot 10s linear forwards}
+@keyframes newdot{0%,80%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.new-dot{animation-timing-function:steps(1,end)}}
 .item.packed .item-name{text-decoration:line-through;text-decoration-thickness:1.5px;color:var(--muted)}
 .flag{font-weight:700;font-size:12.5px;padding:2px 8px;border-radius:999px;background:var(--danger-bg);color:var(--danger)}
 .tag{font-size:12.5px;font-weight:600;color:var(--muted);background:var(--sunk);border-radius:999px;padding:1px 8px}
@@ -1313,7 +1316,7 @@ async function runLimited(fns, n) {
   await Promise.all(Array.from({length: Math.min(n || 4, fns.length)}, worker));
 }
 function itemDoc(d, id) {
-  const o = {name: String(d.name).slice(0, 80), cat: CAT[d.cat] ? d.cat : 'general', qty: clampQ(d.qty), unit: d.unit || '', packed: false, src: d.src || id, created: d.created || Date.now()};
+  const o = {name: String(d.name).slice(0, 80), cat: CAT[d.cat] ? d.cat : 'general', qty: clampQ(d.qty), unit: d.unit || '', packed: false, src: d.src || id, created: d.created || Date.now(), by: myKey()};
   if (d.scope) { o.scope = d.scope === 'p' ? 'p' : 'g'; o.owner = d.owner || null; }
   if (d.detail) o.detail = String(d.detail).slice(0, 40);
   if (d.grams) o.grams = clampG(d.grams);
@@ -1562,6 +1565,33 @@ function shellTrip() {
     + '<div id="r-ess"></div>' + foldClose + '<div id="r-mprog" class="prog-slot"></div><div id="r-mine"></div></div></section>'
     + '</main></div>';
 }
+/* New in the shared list: what someone else added since I last had this event open, or while I'm in it.
+   A blue dot sits by it for 10 seconds from when it is first on screen, fading at the end. */
+const NEW_MS = 10000;
+let newDots = {}, knownItems = null, newBase = 0;
+function startNewDots(id) { newDots = {}; knownItems = null; newBase = Number(lsGet('iseen:' + id)) || 0; }
+function trackNewItems() {
+  const me = myKey(), first = !knownItems;
+  if (first) knownItems = new Set();
+  S.items.forEach(i => {
+    if (knownItems.has(i.id)) return;
+    knownItems.add(i.id);
+    if (i.scope === 'p' || (i.src && i.src !== i.id) || i.by === me) return;  // personal items, a share split off a line, my own
+    if (!first || (newBase && (Number(i.created) || 0) > newBase)) newDots[i.id] = 0;  // 0: waiting to be seen
+  });
+  lsSet('iseen:' + S.tripId, String(Date.now()));
+}
+function newDot(items) {
+  const vis = S.tab === 'group' || window.innerWidth >= 960, now = Date.now();
+  for (const it of items) {
+    if (!it || !(it.id in newDots)) continue;
+    if (!newDots[it.id]) { if (!vis) return ''; newDots[it.id] = now; setTimeout(() => render(), NEW_MS + 80); }
+    const age = now - newDots[it.id];
+    if (age >= NEW_MS) { delete newDots[it.id]; continue; }
+    return '<i class="new-dot" style="animation-delay:-' + age + 'ms" role="img" aria-label="חדש" title="חדש"></i>';
+  }
+  return '';
+}
 function lineRow(L, T) {
   const ro = S.readOnly, nm = esc(L.name), u = L.unit && L.unit !== SIX ? ' ' + esc(L.unit) : (L.unit === SIX ? ' ' + SIX : '');
   const over = meatOver(T.meatPP);
@@ -1589,7 +1619,7 @@ function lineRow(L, T) {
       + '<span class="who-name">' + esc(g.name) + '</span>' + (extra ? '<span class="who-q">' + extra + '</span>' : '') + (p.packed ? ICON.check : '') + '</button>';
   }).join('');
   return '<li class="item' + (L.needed ? '' : ' covered') + '">' + box
-    + '<button class="item-main" data-edit="' + esc(L.ref.id) + '"' + (ro || (!L.open && foreign(L.ref)) ? ' disabled' : '') + '><span class="item-name">' + nm + '</span>' + q + flag + '</button>'
+    + '<button class="item-main" data-edit="' + esc(L.ref.id) + '"' + (ro || (!L.open && foreign(L.ref)) ? ' disabled' : '') + '><span class="item-name">' + nm + newDot([L.ref, L.open].concat(L.parts)) + '</span>' + q + flag + '</button>'
     + (chips ? '<div class="parts">' + chips + '</div>' : '') + '</li>';
 }
 function personalDblRow(i, T) {
@@ -2496,7 +2526,8 @@ function openTrip(id, tab) {
   linkTripSolo(); linkTripShop();
   viewUnsubs.push(Store.sub('events/' + id + '/media', l => { if (S.tripId !== id) return; S.cover = coverSrc(l.find(d => d.id === 'cover')); render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/guests', l => { if (S.tripId !== id) return; S.guests = l; S.guestsLoaded = true; render(); }));
-  viewUnsubs.push(Store.sub('events/' + id + '/items', l => { if (S.tripId !== id) return; S.items = l; S.itemsLoaded = true; render(); }));
+  startNewDots(id);
+  viewUnsubs.push(Store.sub('events/' + id + '/items', l => { if (S.tripId !== id) return; S.items = l; S.itemsLoaded = true; trackNewItems(); render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/expenses', l => { if (S.tripId !== id) return; S.expenses = l; S.expensesLoaded = true; render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/dishes', l => { if (S.tripId !== id) return; S.dishes = l; S.dishesLoaded = true; render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/notes', l => { if (S.tripId !== id) return; S.evNotes = l; if (!noteEdit) render(); }));
