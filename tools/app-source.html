@@ -1425,12 +1425,12 @@ function saveNote(key, text) {
   const n = noteDoc(key), shared = !!(n && n.shared);
   if (n ? n.text === text : !text.trim()) return;
   fire(Store.set(notePath(key), {kind: 'note', key, text, updated: Date.now(), shared}));
-  if (shared && !S.readOnly) publishNote(key, text);
+  if (shared && !S.readOnly && key !== 'general') publishNote(key, text);
 }
 // A shared note is a copy under the group's data, one per writer: others read it with the writer's name and can't change it.
-// Event notes go to that event's people; general notes to everyone who shares these lists.
+// Only an event's notes can be shared, with that event's people; the general notes page stays personal.
 const myKey = () => { if (S.uid) return String(S.uid); let k = lsGet('devId'); if (!k) { k = uid('u'); lsSet('devId', k); } return k; };
-const notePubPath = key => (key === 'general' ? 'notes/' : 'events/' + key + '/notes/') + myKey();
+const notePubPath = key => 'events/' + key + '/notes/' + myKey();
 const noteShared = key => !!(noteDoc(key) && noteDoc(key).shared);
 function noteAuthor(key) {
   if (key !== 'general' && S.tripId === key) { const T = tripData(); if (S.me && T.gmap[S.me]) return T.gmap[S.me].name; }
@@ -1441,32 +1441,28 @@ function publishNote(key, text) {
   else fire(Store.del(notePubPath(key)).catch(() => {}));
 }
 function setNoteShare(key, on) {
-  if (S.readOnly || !soloBase() || noteShared(key) === on) return;
+  if (S.readOnly || !soloBase() || key === 'general' || noteShared(key) === on) return;
   const n = noteDoc(key), text = n && typeof n.text === 'string' ? n.text : '';
   fire(Store.set(notePath(key), {kind: 'note', key, text, updated: (n && n.updated) || Date.now(), shared: on}));
   if (on) publishNote(key, text); else fire(Store.del(notePubPath(key)).catch(() => {}));
-  toast(on ? (key === 'general' ? 'ההערות גלויות לכולם' : 'ההערות גלויות לקבוצה') : 'ההערות רק שלך');
+  toast(on ? 'ההערות גלויות לקבוצה' : 'ההערות אישיות, רק אצלך');
 }
 function noteVisHTML(key) {
   if (S.readOnly || !soloBase()) return '';
   const on = noteShared(key);
-  return '<div class="seg note-vis" role="group" aria-label="מי רואה את ההערות"><button aria-pressed="' + !on + '" data-nvis="0|' + esc(key) + '">' + ICON.lock + 'רק לי</button><button aria-pressed="' + on + '" data-nvis="1|' + esc(key) + '">' + ICON.tpeople + (key === 'general' ? 'גלוי לכולם' : 'גלוי לקבוצה') + '</button></div>';
+  return '<div class="seg note-vis" role="group" aria-label="מי רואה את ההערות"><button aria-pressed="' + on + '" data-nvis="1|' + esc(key) + '">' + ICON.tpeople + 'קבוצתי</button><button aria-pressed="' + !on + '" data-nvis="0|' + esc(key) + '">' + ICON.lock + 'אישי</button></div>';
 }
 function fmtWhen(ts) {
   const d = new Date(Number(ts) || 0), now = new Date(), hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   return d.toDateString() === now.toDateString() ? hm : d.getDate() + '.' + (d.getMonth() + 1) + ' · ' + hm;
 }
 function othersNotesHTML(key) {
-  const me = myKey(), list = (key === 'general' ? S.pubNotes : S.evNotes) || [];
+  const me = myKey(), list = S.evNotes || [];
   const xs = list.filter(n => n.id !== me && typeof n.text === 'string' && n.text.trim()).sort((a, b) => (b.updated || 0) - (a.updated || 0));
   return xs.map(n => '<article class="note-msg"><header><b>' + esc(n.name || 'משתתף') + '</b><time>' + esc(fmtWhen(n.updated)) + '</time></header><div class="note-msg-t">' + linkify(n.text) + '</div></article>').join('');
 }
-const notesBlock = key => '<div class="notes-wrap">' + noteVisHTML(key) + noteHTML(key) + othersNotesHTML(key) + '</div>';
-function tripNotesHTML() {
-  const ev = S.noteScope !== 'general';
-  return '<div class="notes-wrap"><div class="seg note-scope"><button aria-pressed="' + ev + '" data-nscope="event">הערות לאירוע</button><button aria-pressed="' + !ev + '" data-nscope="general">הערות כלליות</button></div>'
-    + notesBlock(ev ? S.tripId : 'general') + '</div>';
-}
+const notesBlock = key => '<div class="notes-wrap">' + (key === 'general' ? noteHTML(key) : noteVisHTML(key) + noteHTML(key) + othersNotesHTML(key)) + '</div>';
+const tripNotesHTML = () => notesBlock(S.tripId);
 document.addEventListener('click', e => {
   if (e.target.closest('a')) return;  // a link in a note opens; anywhere else starts writing
   const v = e.target.closest('[data-note-open]'); if (v) openNote(v.dataset.noteOpen);
@@ -2163,7 +2159,7 @@ function openTrip(id) {
   stopView();
   if (S.tripId !== id) undoStack = [];
   noteEdit = null;
-  Object.assign(S, {view: 'trip', q: '', pbOpen: null, pfilter: 'all', noteScope: 'event', tripId: id, soloId: null, soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], evNotes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
+  Object.assign(S, {view: 'trip', q: '', pbOpen: null, pfilter: 'all', tripId: id, soloId: null, soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], evNotes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
   linkTripSolo();
   viewUnsubs.push(Store.sub('events/' + id + '/media', l => { if (S.tripId !== id) return; S.cover = coverSrc(l.find(d => d.id === 'cover')); render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/guests', l => { if (S.tripId !== id) return; S.guests = l; S.guestsLoaded = true; render(); }));
@@ -3390,7 +3386,6 @@ document.addEventListener('click', e => {
   if (d.meat) return startMeat(d.meat);
   if (d.covered) return coveredTap(d.covered);
   if (d.nvis) { const [on, key] = d.nvis.split('|'); setNoteShare(key, on === '1'); return; }
-  if (d.nscope) { S.noteScope = d.nscope === 'general' ? 'general' : 'event'; noteEdit = null; render(); return; }
   if (d.dishNew) { if (!needMe(() => openDishSheet(null, Number(d.dishNew.slice(0, -1)), d.dishNew.slice(-1)))) return; return openDishSheet(null, Number(d.dishNew.slice(0, -1)), d.dishNew.slice(-1)); }
   if (d.dish) return openDishSheet(d.dish);
   if (d.dishTake) return takeDish(d.dishTake);
@@ -3717,7 +3712,6 @@ async function init() {
   } else S.mode = 'local';
   Store.sub('events', l => { S.events = l; S.eventsLoaded = true; tryDeep(); render(); });
   Store.sub('templates', l => { S.templates = l; S.templatesLoaded = true; render(); });
-  Store.sub('notes', l => { S.pubNotes = l; if (!noteEdit) render(); });
   Store.sub('settings', l => {
     const c = l.find(d => d.id === 'cats'), p = l.find(d => d.id === 'prefs'), lr = l.find(d => d.id === 'learn');
     setCats(c && c.list); setPrefs(p);
