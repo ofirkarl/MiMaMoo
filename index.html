@@ -292,6 +292,7 @@ span.chip{cursor:default}
 .tabs.two{grid-template-columns:repeat(2,1fr)}
 .tabs.four{grid-template-columns:repeat(4,1fr);gap:3px}
 .tabs.four button{font-size:13px;padding-inline:2px}
+.home .tabs.four button{font-size:15.5px}
 .tabs.five{grid-template-columns:repeat(5,1fr);gap:2px;padding:4px}
 .tabs.five button{font-size:12px;padding-inline:1px;min-height:60px;border-radius:15px}
 .tabs.five button svg{width:20px;height:20px}
@@ -987,7 +988,7 @@ const S = {af: {},
   view: 'home', events: [], templates: [], solos: [], shops: [], shopId: null, shopItems: [], eventsLoaded: false, templatesLoaded: false, solosLoaded: false,
   tripId: null, guests: [], items: [], expenses: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false,
   soloId: null, soloItems: [], soloItemsLoaded: false,
-  tab: 'group', cover: null, filter: 'all', soloFilter: 'all', bankOpen: null, homeTab: ['money', 'notes'].includes(lsGet('htab')) ? lsGet('htab') : 'lists',
+  tab: 'group', cover: null, filter: 'all', soloFilter: 'all', bankOpen: null, homeTab: ['shop', 'money', 'notes'].includes(lsGet('htab')) ? lsGet('htab') : 'lists',
   tplId: null, q: '', me: null, lastCat: CAT[lsGet('cat')] ? lsGet('cat') : 'general',
   deep: window.MM_DEEP || ''
 };
@@ -1448,10 +1449,14 @@ function catsHTML(list, rowFn, countFn, addCtx) {
 function shellHome() {
   const ro = S.readOnly;
   return '<header class="top"><div class="wrap top-in"><span class="logo" role="img" aria-label="MiMaMoo"><svg class="logo-ic" viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" rx="30" fill="#F0ECFF"/><path d="M54 44V14" stroke="#5A4410" stroke-width="5" stroke-linecap="round"/><path d="M54 44L94 95H14Z" fill="#FFE08F" stroke="#FFE08F" stroke-width="6" stroke-linejoin="round"/><path d="M54 44L94 95H54Z" fill="#F7CF62" stroke="#F7CF62" stroke-width="6" stroke-linejoin="round"/><path d="M54 60L72 97H36Z" fill="#2B2833" stroke="#2B2833" stroke-width="3" stroke-linejoin="round"/><rect x="58" y="9" width="40" height="34" rx="9" fill="#9EDDBF"/><path d="M67 26L74 33L88 18" fill="none" stroke="#2B2833" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-text" aria-hidden="true"><span class="logo-word">MiMaMoo</span><span class="logo-tag" dir="rtl">מי · מביא · מה</span></span></span><button class="icon-btn gear" data-act="settings" aria-label="הגדרות">' + ICON.gear + '</button></div><div class="wrap" id="r-hello"></div></header>'
-    + '<main class="wrap home"><div class="tabs three" role="tablist" id="r-htabs"></div>'
+    + '<main class="wrap home"><div class="tabs four" role="tablist" id="r-htabs"></div>'
     + '<div class="home-cols" id="h-lists">'
     + '<section class="home-col"><div class="col-top"><h2>רשימות משותפות</h2>' + (ro ? '' : '<button class="btn primary sm" data-act="new-trip">+ הוספה</button>') + '</div><div id="r-trips" class="trips"></div></section>'
     + '<section class="home-col"><div class="col-top"><h2>רשימות אישיות</h2><button class="btn primary sm" data-act="new-solo" id="btn-new-solo">+ הוספה</button></div><div id="r-solos" class="trips"></div></section>'
+    + '</div>'
+    + '<div class="home-cols" id="h-shop" hidden>'
+    + '<section class="home-col"><div class="col-top"><h2>קניות לאירועים</h2></div><div id="r-shev" class="trips"></div></section>'
+    + '<section class="home-col"><div class="col-top"><h2>רשימות קניות</h2><button class="btn primary sm" data-act="new-shop" id="btn-new-shop">+ הוספה</button></div><div id="r-shops" class="trips"></div></section>'
     + '</div>'
     + '<section class="home-col" id="h-notes" hidden><div class="col-top"><h2>הערות</h2></div><div id="r-hnotes"></div></section>'
     + '<section class="home-col" id="h-money"><div class="col-top"><h2>חלוקת הוצאות</h2>' + (ro ? '' : '<button class="btn primary sm" data-act="new-split">+ הוספה</button>') + '</div><div id="r-mtrips" class="trips"></div></section>'
@@ -1485,7 +1490,19 @@ function updateHome() {
   const r = byId('r-trips'), rs = byId('r-solos'); if (!r) return;
   const ro = S.readOnly;
   const hs = byId('r-hello'); if (hs && !(document.activeElement && document.activeElement.id === 'hello-in')) hs.innerHTML = helloHTML();
-  byId('r-htabs').innerHTML = '<button role="tab" aria-selected="' + (S.homeTab === 'lists') + '" data-htab="lists">רשימות</button><button role="tab" aria-selected="' + (S.homeTab === 'money') + '" data-htab="money">חלוקת הוצאות</button><button role="tab" aria-selected="' + (S.homeTab === 'notes') + '" data-htab="notes">הערות</button>';
+  const htab = (k, label) => '<button role="tab" aria-selected="' + (S.homeTab === k) + '" data-htab="' + k + '">' + label + '</button>';
+  byId('r-htabs').innerHTML = htab('lists', 'רשימות') + htab('shop', 'קניות') + htab('money', 'הוצאות') + htab('notes', 'הערות');
+  byId('h-shop').hidden = S.homeTab !== 'shop';
+  // Shopping: a row for each event still ahead (its "קניות" tab), and lists of my own that belong to no event
+  const rse = byId('r-shev'), rsh = byId('r-shops'), sbase = soloBase();
+  const openEv = byDate(S.events.filter(e => e.kind !== 'split' && !isPast(e)));
+  if (S.mode === 'connecting' || !S.eventsLoaded) rse.innerHTML = '<div class="empty muted">נטען…</div>';
+  else rse.innerHTML = openEv.length ? openEv.map(e => dateCard(e, 'data-open-trip-shop="' + esc(e.id) + '"', 'shop-ev')).join('') : '<div class="empty muted">אין אירועים פתוחים</div>';
+  const loose = S.shops.filter(l => !l.tripId || !S.events.some(e => e.id === l.tripId)).sort((a, b) => (b.created || 0) - (a.created || 0));
+  const bsh = byId('btn-new-shop'); if (bsh) bsh.hidden = !sbase && S.mode !== 'connecting';
+  if (S.mode === 'connecting' || (sbase && !S.solosLoaded)) rsh.innerHTML = '<div class="empty muted">נטען…</div>';
+  else if (!sbase) rsh.innerHTML = '<div class="empty muted">זמין כשנכנסים עם חשבון</div>';
+  else rsh.innerHTML = loose.length ? loose.map(l => dateCard(l, 'data-open-solo="' + esc(l.id) + '"', 'solo-card shop-card', 'solos')).join('') : '<div class="empty muted">רשימה שלא שייכת לאף אירוע, למשל לסופר</div>';
   byId('h-lists').hidden = S.homeTab !== 'lists'; byId('h-money').hidden = S.homeTab !== 'money'; byId('h-notes').hidden = S.homeTab !== 'notes';
   if (!noteEdit) byId('r-hnotes').innerHTML = notesBlock('general');
   const rm = byId('r-mtrips');
@@ -3749,7 +3766,7 @@ function setTab(tab, dir) {
   if (from !== to && window.innerWidth < 960) slideIn(byId('col-' + tab), dir || (to > from ? 1 : -1));
   const b = $('.board'); if (b) { const y = b.getBoundingClientRect().top + window.scrollY - 70; if (window.scrollY > y) window.scrollTo(0, y); }
 }
-const HOME_TABS = ['lists', 'money', 'notes'];
+const HOME_TABS = ['lists', 'shop', 'money', 'notes'];
 function setHomeTab(tab, dir) {
   exitSel();
   const order = HOME_TABS, from = order.indexOf(S.homeTab), to = order.indexOf(tab);
@@ -3830,7 +3847,7 @@ document.addEventListener('click', e => {
   if (d.ownedit) return openShopItemSheet(d.ownedit);
   if (d.openSolo) return openSolo(d.openSolo);
   if (d.openMoney) return openMoney(d.openMoney);
-  if (d.htab) return setHomeTab(['money', 'notes'].includes(d.htab) ? d.htab : 'lists');
+  if (d.htab) return setHomeTab(HOME_TABS.includes(d.htab) ? d.htab : 'lists');
   if (d.claim) return startClaim(d.claim);
   if (d.meat) return startMeat(d.meat);
   if (d.covered) return coveredTap(d.covered);
