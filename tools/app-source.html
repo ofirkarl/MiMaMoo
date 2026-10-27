@@ -455,6 +455,16 @@ body.is-dragging{-webkit-user-select:none;user-select:none;cursor:grabbing}
 .who-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:16ch}
 .who-q{font-variant-numeric:tabular-nums;opacity:.75;font-weight:600}
 .who svg{color:var(--good)}
+.who.also{background:transparent;border:1.5px dashed var(--accent-line);color:var(--accent-deep);padding-inline:10px}
+.who.also:hover{background:var(--accent-soft)}
+.qty-tot{color:var(--muted);font-weight:500}
+.multi-row{display:flex;align-items:center;gap:12px;min-height:44px;font-weight:600;font-size:15.5px;cursor:pointer}
+.multi-row input{position:absolute;opacity:0;width:1px;height:1px;min-height:0}
+.multi-sw{position:relative;flex:none;width:44px;height:26px;border-radius:999px;background:var(--line-2);transition:background .15s}
+.multi-sw::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:20px;height:20px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .15s}
+.multi-row input:checked+.multi-sw{background:var(--good-fill)}
+.multi-row input:checked+.multi-sw::after{transform:translateX(-18px)}
+.multi-row input:focus-visible+.multi-sw{outline:2.5px solid var(--ring);outline-offset:2px}
 .cbox{grid-row:span 2;align-self:start;margin-top:2px;width:28px;height:28px;border-radius:9px;border:1.5px solid var(--line-2);display:grid;place-items:center;background:var(--surface);color:var(--good);transition:background .12s,border-color .12s}
 .cbox:hover:not(:disabled){background:var(--accent-soft);border-color:var(--accent)}
 .cbox.on{background:var(--good-bg);border-color:var(--good-fill);color:var(--good)}
@@ -860,6 +870,11 @@ const isSixName = name => {
 };
 // Ice comes in bags: "קרח", "שקית קרח", "שקיות קרח"
 const isIceName = name => { const ts = toks(name); return hasTok(ts, ['קרח']) && ts.every(t => base(t).some(b => ['קרח', 'שקית', 'שקיות', 'קוביות', 'של'].includes(b))); };
+// Items more than one person can bring with no warning (chairs, coolers, drinks…): by name, unless set on the item itself
+const MULTI_TOKS = new Set(['כיסא', 'כיסאות', 'כסא', 'כסאות', 'צידנית', 'צידניות', 'מחצלת', 'מחצלות', 'פנס', 'פנסים', 'שולחן', 'שולחנות', 'שמשייה', 'שמשיות', 'כרית', 'כריות', 'שמיכה', 'שמיכות', 'קרח', 'מים', 'בירה', 'בירות', 'פחמים', 'כוסות', 'צלחות', 'מפיות', 'מגבונים', 'חטיפים']);
+const multiByName = name => toks(name).some(t => MULTI_TOKS.has(t));
+const isMulti = i => !!i && (typeof i.multi === 'boolean' ? i.multi : multiByName(i.name));
+const multiKind = k => k !== 'meat' && k !== 'salad' && k !== 'soft';
 const kindCache = new Map();
 function kindOfName(name) {
   name = String(name || '');
@@ -1207,6 +1222,8 @@ function itemDoc(d, id) {
   if (d.scope) { o.scope = d.scope === 'p' ? 'p' : 'g'; o.owner = d.owner || null; }
   if (d.detail) o.detail = String(d.detail).slice(0, 40);
   if (d.grams) o.grams = clampG(d.grams);
+  if (typeof d.multi === 'boolean') o.multi = d.multi;
+  if (d.extra) o.extra = true;
   return o;
 }
 const noId = x => { const o = Object.assign({}, x); delete o.id; return o; };
@@ -1230,7 +1247,8 @@ function tripData() {
   });
   const lines = [...lmap.values()].map(L => {
     const ref = L.open || L.parts[0], kind = kindOf(ref), pool = kind === 'meat' && isPool(ref);
-    return Object.assign(L, {ref, kind, pool, name: ref.name, cat: catOf(ref), unit: ref.unit || '', nk: norm(ref.name),
+    return Object.assign(L, {ref, kind, pool, name: ref.name, cat: catOf(ref), unit: ref.unit || '', nk: norm(ref.name), multi: multiKind(kind) && isMulti(ref),
+      brought: L.parts.reduce((s, p) => s + Q(p), 0),
       grams: L.parts.reduce((s, p) => s + (Number(p.grams) || 0), 0), needed: pool ? !L.parts.length : !!L.open});
   });
   const plain = k => k !== 'meat' && k !== 'salad' && k !== 'soft';
@@ -1245,7 +1263,8 @@ function tripData() {
   const ownedAll = items.filter(owned);
   const meatTotal = items.filter(i => kindOf(i) === 'meat' && (i.scope !== 'p' || owned(i))).reduce((s, i) => s + (Number(i.grams) || 0), 0);
   const meatPeople = Math.max(1, guests.length || Number(ev && ev.meatPeople) || 1);
-  return {ev, guests, gmap, owned, items, group, personal, lines, lineDbl, itemDbl, dblCount, covered,
+  const lineBy = new Map(lines.map(L => [L.key, L]));
+  return {ev, guests, gmap, owned, items, group, personal, lines, lineBy, lineDbl, itemDbl, dblCount, covered,
           needed: lines.length - covered, ownedCount: ownedAll.length, packed: ownedAll.filter(i => i.packed).length,
           meatTotal, meatPeople, meatPP: meatTotal / meatPeople};
 }
@@ -1503,7 +1522,7 @@ function lineRow(L, T) {
     if (L.kind === 'meat' && L.ref.grams) q = '<span class="qty">' + fmtG(L.ref.grams) + '</span>';
     else if (L.open && L.parts.length) q = '<span class="qty"><b>' + L.openQty + '</b> חסרים מתוך ' + L.total + u + '</span>';
     else { const t = fmtQ(L.open ? L.openQty : L.total, L.unit); if (t) q = '<span class="qty">' + esc(t) + '</span>'; }
-    if (T.lineDbl(L)) flag = '<span class="flag">כפילות</span>';
+    if (T.lineDbl(L) || (!L.multi && L.parts.some(p => p.extra))) flag = '<span class="flag">כפילות</span>';
     if (L.ref.dish) { if (L.ref.amt && !(L.open && L.parts.length)) q = '<span class="qty">' + esc(L.ref.amt) + '</span>'; if (L.ref.dishName) flag = '<span class="tag">ל' + esc(L.ref.dishName) + '</span>'; }
   }
   if (L.kind === 'meat' && over) flag = '<span class="flag">מעל ' + MEAT_MAX + ' גרם לראש</span>';
@@ -1515,9 +1534,10 @@ function lineRow(L, T) {
     return '<button class="who' + (p.owner === S.me ? ' mine' : '') + '" data-edit="' + esc(p.id) + '"' + (ro || foreign(p) ? ' disabled' : '') + '>' + av(g, 'xs')
       + '<span class="who-name">' + esc(g.name) + '</span>' + (extra ? '<span class="who-q">' + extra + '</span>' : '') + (p.packed ? ICON.check : '') + '</button>';
   }).join('');
+  const also = L.multi && !L.pool && !L.open && !ro && L.parts.length && !L.parts.some(p => p.owner === S.me) ? '<button class="who also" data-also="' + esc(L.key) + '">+ גם אני</button>' : '';
   return '<li class="item' + (L.needed ? '' : ' covered') + '">' + box
     + '<button class="item-main" data-edit="' + esc(L.ref.id) + '"' + (ro || (!L.open && foreign(L.ref)) ? ' disabled' : '') + '><span class="item-name">' + nm + newDot([L.ref, L.open].concat(L.parts)) + '</span>' + q + flag + '</button>'
-    + (chips ? '<div class="parts">' + chips + '</div>' : '') + '</li>';
+    + (chips || also ? '<div class="parts">' + chips + also + '</div>' : '') + '</li>';
 }
 function personalDblRow(i, T) {
   const g = T.gmap[i.owner];
@@ -1955,7 +1975,12 @@ function essHTML(T) {
     + '</div>';
 }
 function laneRow(i, T) {
-  const ro = S.readOnly || foreign(i), pro = S.readOnly || othersOwn(i), q = amtHTML(i), c = catOf(i), drag = !ro && !SEL.ctx;
+  const ro = S.readOnly || foreign(i), pro = S.readOnly || othersOwn(i), c = catOf(i), drag = !ro && !SEL.ctx;
+  const L = i.scope !== 'p' && T.lineBy ? T.lineBy.get(i.src || i.id) : null, several = L && !L.pool && L.parts.length > 1;
+  let q = amtHTML(i);
+  const nq = (n, u) => u ? fmtQ(n, u) : String(n);  // plain numbers here: "2 · סה״כ 6"
+  if (several || (L && L.multi && !q)) q = esc(nq(Q(i), i.unit || ''));
+  if (several) q += '<span class="qty-tot"> · סה״כ ' + esc(nq(L.brought, L.unit)) + '</span>';
   return '<li class="item' + (i.packed ? ' packed' : '') + (drag ? ' has-grip' : '') + '" data-iid="' + esc(i.id) + '"><button class="pk' + (i.packed ? ' on' : '') + '" data-pack="' + esc(i.id) + '" aria-pressed="' + !!i.packed + '" aria-label="ארוז: ' + esc(dispName(i)) + '"' + (pro ? ' disabled' : '') + '>' + ICON.check + '</button>'
     + '<button class="item-main" data-edit="' + esc(i.id) + '"' + (ro ? ' disabled' : '') + '>' + '<span class="item-name">' + esc(dispName(i)) + '</span>' + (q ? '<span class="qty">' + q + '</span>' : '') + (i.scope === 'p' ? '<span class="tag">אישי</span>' : '') + (i.buy && !i.bought ? '<span class="tag buy">לקנות</span>' : '') + (i.dishName ? '<span class="tag">ל' + esc(i.dishName) + '</span>' : '') + (T.itemDbl(i) ? '<span class="flag">כפילות</span>' : '') + '</button>'
     + (drag ? '<span class="grip" data-drag="' + esc(i.id) + '" aria-hidden="true">' + ICON.grip + '</span>' : '') + '</li>';
@@ -2717,6 +2742,7 @@ function openMeatPeopleSheet() {
 }
 
 /* Item editing */
+const multiField = (id, on) => '<label class="multi-row"><input type="checkbox" id="' + id + '"' + (on ? ' checked' : '') + '><span class="multi-sw" aria-hidden="true"></span><span>אפשר שכמה יביאו</span></label>';
 function openItemSheet(id) {
   if (S.readOnly) return;
   const T = tripData(), it = S.items.find(i => i.id === id); if (!it) return;
@@ -2736,6 +2762,7 @@ function openItemSheet(id) {
     + amountFields
     + '<label class="field"><span>קטגוריה</span><select id="it-cat">' + catOptions(catOf(it)) + '</select></label>'
     + listField
+    + (it.scope !== 'p' && multiKind(k) ? multiField('it-multi', isMulti(it)) : '')
     + (mineG ? '<div class="field"><span>קנייה</span><div class="buy-row"><div class="seg-radio" role="radiogroup" aria-label="קנייה"><label><input type="radio" name="it-buy" value="0"' + (it.buy ? '' : ' checked') + '><span>יש לי</span></label><label><input type="radio" name="it-buy" value="1"' + (it.buy ? ' checked' : '') + '><span>צריך לקנות</span></label></div>'
       + '<button type="button" class="btn sm" data-exp-item="' + esc(id) + '">+ הוספה להוצאות</button></div></div>' : '')
     + (owned && !mineG ? '<div class="sheet-tools"><button type="button" class="btn sm" data-exp-item="' + esc(id) + '">+ הוספה להוצאות</button></div>' : '')
@@ -3030,6 +3057,7 @@ function openTplItemSheet(iid) {
     + (k === 'meat' ? '' : '<div class="field"><span>כמות</span><div class="add-row">' + miniStep('ti-qty', Q(it)) + (k === 'six' ? unitSelect('ti-unit', it.unit) : '') + '</div></div>')
     + '<label class="field"><span>קטגוריה</span><select id="ti-cat">' + catOptions(catOf(it)) + '</select></label>'
     + '<label class="field"><span>רשימה</span><select id="ti-scope"><option value="g"' + (it.scope !== 'p' ? ' selected' : '') + '>משותף</option><option value="p"' + (it.scope === 'p' ? ' selected' : '') + '>רשימה אישית</option></select></label>'
+    + (multiKind(k) ? multiField('ti-multi', isMulti(it)) : '')
     + sheetActions('')
     + '</form>');
 }
@@ -3108,6 +3136,7 @@ async function putBack(itemId, quiet) {
   try {
     if (k === 'meat' && (it.src || it.id) !== it.id) { await Store.del(path); if (!quiet) toast(dispName(it) + ' הוסר'); return; }
     if (it.scope === 'p') await Store.update(path, {scope: 'g', owner: null, packed: false});
+    else if (it.extra) { await Store.del(path); if (!quiet) toast(dispName(it) + ' הוסר מהרשימה שלך'); return; }
     else {
       const src = it.src || it.id;
       const open = S.items.find(i => i.id !== it.id && i.scope !== 'p' && !T.owned(i) && (i.src || i.id) === src);
@@ -3121,7 +3150,29 @@ function coveredTap(key) {
   const T = tripData(), L = T.lines.find(l => l.key === key); if (!L) return;
   const mine = L.parts.find(p => p.owner === S.me);
   if (mine) { fire(putBack(mine.id)); return; }
-  toast('ברשימה של ' + listNames(L.parts.map(p => T.gmap[p.owner].name)));
+  if (S.readOnly || L.pool || !multiKind(L.kind)) { toast('ברשימה של ' + listNames(L.parts.map(p => T.gmap[p.owner].name))); return; }
+  if (L.multi) return joinLine(key, false);
+  const names = L.parts.map(p => T.gmap[p.owner].name);
+  openSheet('<h2 class="sheet-title">' + esc(L.name) + '</h2><p class="sheet-lead">' + esc(listNames(names)) + (names.length > 1 ? ' כבר מביאים.' : ' כבר מביא/ה.') + ' להביא בכל זאת?</p>'
+    + '<div class="sheet-actions"><button type="button" class="btn" data-close>ביטול</button><button type="button" class="btn primary" data-also-extra="' + esc(key) + '">גם אני מביא/ה</button></div>');
+}
+// I bring some of an item others already bring: my own share of the same line (taken back, it simply goes away)
+function joinLine(key, dup) {
+  if (S.readOnly) return;
+  if (!needMe(() => joinLine(key, dup))) return;
+  const L = tripData().lines.find(l => l.key === key); if (!L) return;
+  closeSheet();
+  const go = n => addShare(L, n, dup);
+  if (L.kind === 'six' || L.kind === 'ice') openSixSheet(L.name, n => go(n), 1, L.kind === 'ice' ? BAG : (L.unit === SIX ? SIX : ''));
+  else openAddQtySheet(L.name, 1, L.unit, go);
+}
+function addShare(L, n, dup) {
+  const r = L.ref, id = uid('i'), mine = L.parts.find(p => p.owner === S.me && p.extra);
+  sfx('check');
+  if (mine) { fire(Store.update(itemPath(mine.id), {qty: Q(mine) + clampQ(n), packed: false})); return; }
+  const d = itemDoc({name: r.name, cat: catOf(r), qty: n, unit: r.unit || '', scope: 'g', owner: S.me, src: r.src || r.id, detail: r.detail || '', multi: typeof r.multi === 'boolean' ? r.multi : undefined, extra: true, created: (Number(r.created) || Date.now()) + 0.002}, id);
+  fire(Store.set(itemPath(id), d));
+  toast(dispName(r) + ' ברשימה שלך' + (dup ? ' · מסומן ככפילות' : ''));
 }
 function addItem(d) { const id = uid('i'); sfx('add'); return fire(Store.set(itemPath(id), itemDoc(d, id))); }
 
@@ -3191,9 +3242,10 @@ function bankAdd(b) {
   const name = b.name, cat = CAT[b.cat] ? b.cat : 'general', k = kindOfName(name), q = Q(b), unit = b.unit || '';
   if (k === 'meat' || k === 'salad' || k === 'soft') return addGroupFlow(name, q, cat, unit);
   if (dupGroup(name)) { dupToast(name); return; }
-  if (k === 'six' || k === 'ice') return openSixSheet(name, (n, u) => addItem(applyDefaults({name, cat, qty: n, unit: u, scope: 'g'})), q, k === 'ice' ? BAG : SIX);
-  if (q > 1 || unit) return openAddQtySheet(name, q, unit, n => addItem({name, cat, qty: n, unit, scope: 'g'}));
-  addItem({name, cat, qty: q, unit, scope: 'g'});
+  const mu = typeof b.multi === 'boolean' ? {multi: b.multi} : {};
+  if (k === 'six' || k === 'ice') return openSixSheet(name, (n, u) => addItem(Object.assign(applyDefaults({name, cat, qty: n, unit: u, scope: 'g'}), mu)), q, k === 'ice' ? BAG : SIX);
+  if (q > 1 || unit) return openAddQtySheet(name, q, unit, n => addItem(Object.assign({name, cat, qty: n, unit, scope: 'g'}, mu)));
+  addItem(Object.assign({name, cat, qty: q, unit, scope: 'g'}, mu));
 }
 /* Personal list mirror: items you add for yourself also land in your private list for this trip */
 async function ensureTripSolo(quiet) {
@@ -3286,7 +3338,7 @@ async function createTrip(f) {
   const {date, end} = readDates(f);
   const tid = (f.querySelector('#tf-tpl') || {}).value || '';
   const tpl = S.templates.find(t => t.id === tid), titems = (tpl && tpl.items) || [];
-  const pick = i => ({name: i.name, cat: CAT[i.cat] ? i.cat : 'general', qty: Q(i), unit: i.unit || ''});
+  const pick = i => Object.assign({name: i.name, cat: CAT[i.cat] ? i.cat : 'general', qty: Q(i), unit: i.unit || ''}, typeof i.multi === 'boolean' ? {multi: i.multi} : {});
   const bank = titems.filter(i => i.scope !== 'p').map(pick), essentials = titems.filter(i => i.scope === 'p').map(pick);
   const eid = uid('t'), now = Date.now();
   const guests = ntGuests.map((n, i) => ({id: uid('g'), name: n, color: i % GCOL.length, created: now + i}));
@@ -3736,6 +3788,8 @@ document.addEventListener('click', e => {
   if (d.claim) return startClaim(d.claim);
   if (d.meat) return startMeat(d.meat);
   if (d.covered) return coveredTap(d.covered);
+  if (d.also) return joinLine(d.also, false);
+  if (d.alsoExtra) return joinLine(d.alsoExtra, true);
   if (d.ntab) { S.noteTab = d.ntab === 'group' ? 'group' : 'mine'; render(); return; }
   if (d.msgDel) { const n = (S.evNotes || []).find(x => x.id === d.msgDel); if (n && msgBy(n) === myKey() && !S.readOnly) { sfx('delete'); fire(Store.del('events/' + S.tripId + '/notes/' + n.id)); toast('ההודעה נמחקה'); } return; }
   if (d.act === 'hello-edit') { S.helloEdit = true; render(); const i = byId('hello-in'); if (i) { i.focus(); i.select(); } return; }
@@ -3944,8 +3998,11 @@ const forms = {
     if (owner !== it.owner) { patch.buy = false; patch.bought = false; }
     else if (bb) { patch.buy = bb.value === '1'; if (!patch.buy) patch.bought = false; }
     if (patch.cat !== catOf(it)) learnCat(name, patch.cat);
+    const mu = f.querySelector('#it-multi');
     closeSheet();
     fire(Store.update(itemPath(id), patch));
+    // the switch belongs to the whole line: every share of this item gets it
+    if (mu && mu.checked !== isMulti(it)) { const src = it.src || it.id; S.items.filter(x => (x.src || x.id) === src && x.scope !== 'p').forEach(x => fire(Store.update(itemPath(x.id), {multi: mu.checked}))); }
     if (owner && owner !== it.owner && owner !== S.me) toast('הועבר לרשימה של ' + tripData().gmap[owner].name);
   },
   'solo-item'(f) {
@@ -4021,6 +4078,7 @@ const forms = {
     const patch = {name, cat: f.querySelector('#ti-cat').value, scope: f.querySelector('#ti-scope').value === 'p' ? 'p' : 'g'};
     if (qi) patch.qty = clampQ(qi.value);
     if (ui) patch.unit = ui.value;
+    const tm = f.querySelector('#ti-multi'); if (tm && patch.scope === 'g') patch.multi = tm.checked;
     const k = kindOfName(name); if (k === 'meat' || k === 'salad') patch.cat = 'food';
     if (k === 'ice') patch.unit = BAG;
     const oldT = t && (t.items || []).find(i => i.id === iid); if (oldT && catOf(oldT) !== patch.cat) learnCat(name, patch.cat);
