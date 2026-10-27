@@ -18,9 +18,10 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  // The app's own files: the network first, so an update shows at once; the saved copy when offline.
+  // The app's own files: the network first, asking the server past the browser's short-term cache,
+  // so an update (or a new config.js) shows at once; the saved copy when offline.
   if (url.origin === self.location.origin) {
-    e.respondWith(fetch(req).then(res => keep(req, res))
+    e.respondWith(fetch(req.url, {cache: 'no-cache'}).then(res => res.redirected ? fetch(req) : res).then(res => keep(req, res))
       .catch(() => caches.match(req, {ignoreSearch: true}).then(m => m || caches.match('index.html'))));
     return;
   }
