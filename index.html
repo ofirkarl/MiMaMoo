@@ -2033,7 +2033,7 @@ function bankHTML(T) {
   const fromBank = SHARED_BANK.filter(n => !seen.some(x => same(x, n))).map(n => ({name: n, cat: guessCat(n)})).filter(b => generator(b) || !dupGroup(b.name));
   const left = fromTpl.concat(fromBank);
   if (!left.length) return '';
-  const open = S.bankOpen != null ? S.bankOpen : T.lines.length < 3;
+  const open = S.bankOpen === true;  // closed until opened, every time the event is entered
   const chip = b => b.i != null ? '<button class="bchip" data-bank="' + b.i + '">+ ' + esc(b.name) + '</button>' : '<button class="bchip" data-sb="' + esc(b.name) + '">+ ' + esc(b.name) + '</button>';
   return '<div class="bank"><div class="bank-top"><button class="bank-toggle" data-act="bank-toggle" aria-expanded="' + open + '">' + ICON.down + '<span>הצעות (' + left.length + ')</span></button>' + (open ? '<button type="button" class="btn sm" data-act="bank-all">הוספת הכול</button>' : '') + '</div>'
     + (open ? CATS.map(c => { const ls = left.filter(b => b.cat === c.id); if (!ls.length) return ''; return '<div class="bank-cat">' + blaze(c.id) + '<div class="chip-list">' + ls.map(chip).join('') + '</div></div>'; }).join('') : '')
@@ -2202,7 +2202,7 @@ function updateTrip() {
   const mItems = S.soloId ? S.soloItems : [];
   byId('r-pfilter').innerHTML = '<button aria-pressed="' + (S.pfilter !== 'open') + '" data-pfilter="all">הכול</button><button aria-pressed="' + (S.pfilter === 'open') + '" data-pfilter="open">מה חסר</button>';
   byId('af-mine').hidden = !soloBase();
-  syncFold('group', false); syncFold('mine', !(S.soloId && MD.items.length));
+  syncFold('group', !T.lines.length); syncFold('mine', !(S.soloId && MD.items.length));
   byId('r-mine').innerHTML = mineHTML();
   byId('r-filter').innerHTML = '<button aria-pressed="' + (S.filter === 'all') + '" data-filter="all">הכול</button><button aria-pressed="' + (S.filter === 'need') + '" data-filter="need">מה חסר</button>'
     + (T.dblCount ? '<button aria-pressed="' + (S.filter === 'dbl') + '" data-filter="dbl">כפילויות</button>' : '');
@@ -2520,12 +2520,12 @@ function coverSrc(d) {
   if (typeof d.data === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(d.data)) return d.data;
   return null;
 }
-// Entering an event always starts on the shared list, with the add-and-suggestions drawer closed
+// Entering an event always starts on the shared list, its suggestions drawer closed
 function openTrip(id, tab) {
   stopView();
   if (S.tripId !== id) undoStack = [];
   noteEdit = null;
-  Object.assign(S, {view: 'trip', tab: tab || 'group', af: {}, q: '', pbOpen: null, pfilter: 'all', noteTab: 'group', askMe: true, tripId: id, soloId: null, shopId: null, shopItems: [], soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], evNotes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
+  Object.assign(S, {view: 'trip', tab: tab || 'group', q: '', pbOpen: null, pfilter: 'all', noteTab: 'group', askMe: true, tripId: id, soloId: null, shopId: null, shopItems: [], soloItems: [], soloItemsLoaded: false, soloFilter: 'all', cover: null, guests: [], items: [], expenses: [], dishes: [], evNotes: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false, dishesLoaded: false, filter: 'all', bankOpen: null, me: lsGet('me:' + id)});
   linkTripSolo(); linkTripShop();
   viewUnsubs.push(Store.sub('events/' + id + '/media', l => { if (S.tripId !== id) return; S.cover = coverSrc(l.find(d => d.id === 'cover')); render(); }));
   viewUnsubs.push(Store.sub('events/' + id + '/guests', l => { if (S.tripId !== id) return; S.guests = l; S.guestsLoaded = true; render(); }));
@@ -3596,7 +3596,7 @@ function act(a) {
     case 'cal-open': { const r = $('#sheet-root .sheet'); if (!r) return; r.querySelector('.date-sum').hidden = true; r.querySelector('.date-seg').hidden = false; r.querySelector('#cal').hidden = false; return; }
     case 'dd-add': return dishAddItem();
     case 'pb-all': return soloAddAll();
-    case 'bank-toggle': { const T = tripData(); const open = S.bankOpen != null ? S.bankOpen : T.lines.length < 3; S.bankOpen = !open; render(); return; }
+    case 'bank-toggle': { S.bankOpen = S.bankOpen !== true; render(); return; }
     case 'meat-people': return openMeatPeopleSheet();
     case 'guests': return openGuestsSheet();
     case 'new-split': return openSplitSheet(false);
