@@ -216,7 +216,7 @@ fieldset.field>legend{margin-bottom:8px}
 /* Participants: one typographic line, names split by soft dots; a wrapped line never starts with a dot */
 .crew-line{display:flex;align-items:flex-start;gap:7px;margin-top:6px;max-width:640px;color:var(--accent-deep)}
 .trip-head[data-theme="sand"] .crew-line{color:var(--sel-ink)}
-.trip-head.has-cover .crew-line{color:var(--accent)}
+.trip-head.has-cover .crew-line{color:#FFFFFF}
 .crew-ic{flex:none;display:grid;place-items:center;height:22px;opacity:.55}
 .crew-ic svg{width:17px;height:17px}
 .crew-box{flex:1;min-width:0;overflow:hidden}
@@ -246,11 +246,14 @@ fieldset.field>legend{margin-bottom:8px}
 .me-btn{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 14px;border-radius:999px;background:var(--surface);color:var(--ink);font-size:15px;box-shadow:var(--shadow-sm)}
 .me-btn.ask-me{background:var(--accent);color:var(--accent-ink);font-weight:700}
 .trip-head.has-cover{background:#D9D3E6 var(--cover) center/cover no-repeat;color:#FFFFFF}
-.trip-head.has-cover::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(30,24,44,.22),rgba(30,24,44,0) 42%,rgba(30,24,44,.5))}
+/* a soft shade rising from the bottom, ending at 30%, behind the title and the names */
+.trip-head.has-cover::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(24,20,36,0) 0%,rgba(24,20,36,0) 30%,rgba(24,20,36,.12) 62%,rgba(24,20,36,.3) 100%)}
 .trip-head.has-cover>.wrap{min-height:200px;display:flex;flex-direction:column}
 .trip-head.has-cover #r-head{margin-top:auto}
 .trip-head.has-cover .trip-title{text-shadow:0 2px 16px rgba(0,0,0,.35)}
-.trip-head.has-cover :is(.trip-meta,.eyebrow){opacity:.92}
+.trip-head.has-cover :is(.trip-meta,.eyebrow){opacity:.95}
+.trip-head.has-cover :is(.trip-meta,.eyebrow){text-shadow:0 1px 10px rgba(0,0,0,.35)}
+.trip-head.has-cover .crew li{text-shadow:0 1px 3px rgba(0,0,0,.4)}
 .trip-head.can-cover>.wrap{pointer-events:none}
 .trip-head.can-cover>.wrap :is(button,a,input,select,label){pointer-events:auto}
 .cover-hit{position:absolute;inset:0;z-index:1;width:100%;height:100%;min-height:0;padding:0;border:0;border-radius:0;opacity:0;cursor:pointer;font-size:0}
