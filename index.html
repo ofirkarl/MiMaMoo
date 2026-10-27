@@ -1452,7 +1452,6 @@ function shellHome() {
     + '<div class="home-cols" id="h-lists">'
     + '<section class="home-col"><div class="col-top"><h2>רשימות משותפות</h2>' + (ro ? '' : '<button class="btn primary sm" data-act="new-trip">+ הוספה</button>') + '</div><div id="r-trips" class="trips"></div></section>'
     + '<section class="home-col"><div class="col-top"><h2>רשימות אישיות</h2><button class="btn primary sm" data-act="new-solo" id="btn-new-solo">+ הוספה</button></div><div id="r-solos" class="trips"></div></section>'
-    + '<section class="home-col"><div class="col-top"><h2>רשימות קניות</h2><button class="btn primary sm" data-act="new-shop" id="btn-new-shop">+ הוספה</button></div><div id="r-shops" class="trips"></div></section>'
     + '</div>'
     + '<section class="home-col" id="h-notes" hidden><div class="col-top"><h2>הערות</h2></div><div id="r-hnotes"></div></section>'
     + '<section class="home-col" id="h-money"><div class="col-top"><h2>חלוקת הוצאות</h2>' + (ro ? '' : '<button class="btn primary sm" data-act="new-split">+ הוספה</button>') + '</div><div id="r-mtrips" class="trips"></div></section>'
@@ -1503,12 +1502,6 @@ function updateHome() {
   else if (!sb) rs.innerHTML = '<div class="empty muted">זמין כשנכנסים עם חשבון</div>';
   else if (!S.solos.length) rs.innerHTML = '<div class="empty muted">עוד אין רשימות</div>';
   else rs.innerHTML = byDate(S.solos).map(l => dateCard(l, 'data-open-solo="' + esc(l.id) + '"', 'solo-card', 'solos')).join('');
-  const rsh = byId('r-shops'), bsh = byId('btn-new-shop');
-  if (bsh) bsh.hidden = !sb && S.mode !== 'connecting';
-  if (S.mode === 'connecting' || (sb && !S.solosLoaded)) rsh.innerHTML = '<div class="empty muted">נטען…</div>';
-  else if (!sb) rsh.innerHTML = '<div class="empty muted">זמין כשנכנסים עם חשבון</div>';
-  else if (!S.shops.length) rsh.innerHTML = '<div class="empty muted">עוד אין רשימות</div>';
-  else rsh.innerHTML = [...S.shops].sort((a, b) => (b.created || 0) - (a.created || 0)).map(l => dateCard(l, 'data-open-solo="' + esc(l.id) + '"', 'solo-card shop-card', 'solos')).join('');
 }
 
 /* Header ("banner"): color theme and a picture picked by tapping it */
