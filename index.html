@@ -192,6 +192,8 @@ fieldset.field>legend{margin-bottom:8px}
 .bought-head{display:flex;align-items:center;gap:6px;font-family:var(--f-display);font-weight:600;font-size:14.5px;color:var(--good);padding-bottom:2px}
 .bought-head svg{width:15px;height:15px}
 .shop-add{margin-bottom:14px}
+.share-app{display:flex;flex-direction:column;gap:12px}
+.share-app .btn.primary{align-self:flex-start}
 .field-hint{font-size:14px;color:var(--muted);margin-top:-8px}
 .stub-dow,.stub-mon{font-weight:600;font-size:12px;line-height:1.1;opacity:.75}
 .stub-day{font-family:var(--f-display);font-weight:600;font-size:23px;line-height:1.05;font-variant-numeric:tabular-nums}
@@ -2339,6 +2341,8 @@ function updateMoney() {
 }
 
 /* Templates: banks of items to pick from */
+// The app itself, without any group in the link: whoever opens it starts their own
+const appLink = () => location.origin + location.pathname;
 function shellSettings() {
   const ro = S.readOnly;
   const sec = (k, title, add, body) => '<section class="set-sec"><div class="col-top"><button class="sec-fold" data-fold="' + k + '" aria-expanded="false"><h2>' + title + '</h2>' + ICON.down + '</button>'
@@ -2346,6 +2350,9 @@ function shellSettings() {
   return '<header class="top"><div class="wrap top-in"><button class="back" data-act="home">' + ICON.back + '<span>חזרה</span></button></div></header>'
     + '<main class="wrap page"><h1 class="page-h">הגדרות</h1>'
     + '<section class="set-sec"><div class="col-top"><h2>השם שלי</h2></div><div class="panel"><input id="my-name" maxlength="40" placeholder="שם" aria-label="השם שלי" value="' + esc(lsGet('myName') || '') + '"></div></section>'
+    + (window.MM_SPACE ? '<section class="set-sec"><div class="col-top"><h2>שיתוף האפליקציה</h2></div><div class="panel share-app"><p class="muted">לחבר שרוצה MiMaMoo משלו: האפליקציה נפתחת אצלו ריקה, בלי האירועים שלך</p>'
+      + '<div class="code-row"><code dir="ltr">' + esc(appLink()) + '</code><button type="button" class="btn sm" data-copy="' + esc(appLink()) + '">העתקה</button></div>'
+      + (navigator.share ? '<button type="button" class="btn primary" data-act="share-app">שיתוף</button>' : '') + '</div></section>' : '')
     + sec('tpls', 'תבניות', 'new-tpl', '<div id="r-tpls" class="tpl-list" data-fold-body="tpls" hidden></div>')
     + sec('cats', 'קטגוריות', 'new-cat', '<div id="r-cats" class="panel set-list" data-fold-body="cats" hidden></div>')
     + sec('prefs', 'עריכת פריטים', '', '<div id="r-prefs" class="panel set-list" data-fold-body="prefs" hidden></div>')
@@ -3604,6 +3611,7 @@ function act(a) {
     case 'edit-solo': return soloData().list && soloData().list.kind === 'shop' ? openShopSheet(true) : openSoloSheet(true);
     case 'invite': return openInvite();
     case 'share-link': return shareLink();
+    case 'share-app': if (navigator.share) navigator.share({title: 'MiMaMoo', text: 'MiMaMoo · מי מביא מה', url: appLink()}).catch(() => {}); return;
     case 'pick-me': return openMePicker(null);
     case 'tf-add-guest': return ntAdd();
     case 'save-as-tpl': return saveAsTemplate();
