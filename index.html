@@ -1770,8 +1770,9 @@ function update() {
   else updateHome();
 }
 const sortedTpls = () => [...S.templates].sort((a, b) => (a.order || 0) - (b.order || 0));
-const tplCount = t => (t.items || []).length + ' פריטים';
-function tplBlazes(t) { return [...new Set((t.items || []).map(catOf))].sort((a, b) => CATS.findIndex(c => c.id === a) - CATS.findIndex(c => c.id === b)).slice(0, 7).map(blaze).join(''); }
+const tplShared = t => (t.items || []).filter(i => i.scope !== 'p');
+const tplCount = t => tplShared(t).length + ' הצעות';
+function tplBlazes(t) { return [...new Set(tplShared(t).map(catOf))].sort((a, b) => CATS.findIndex(c => c.id === a) - CATS.findIndex(c => c.id === b)).slice(0, 7).map(blaze).join(''); }
 function catsHTML(list, rowFn, countFn, addCtx) {
   return CATS.map(c => {
     const ls = list.filter(i => catOf(i) === c.id); if (!ls.length) return '';
@@ -2516,7 +2517,7 @@ function tplOf(ev) {
   return (ev.tplId && S.templates.find(t => t.id === ev.tplId)) || (ev.tpl && S.templates.find(t => String(t.name || '').trim() === String(ev.tpl).trim())) || null;
 }
 const tplPick = i => Object.assign({name: i.name, cat: CAT[i.cat] ? i.cat : 'general', qty: Q(i), unit: i.unit || ''}, typeof i.multi === 'boolean' ? {multi: i.multi} : {});
-const tplCopy = t => ({tpl: t ? t.name || '' : '', tplId: t ? t.id : '', bank: t ? (t.items || []).filter(i => i.scope !== 'p').map(tplPick) : [], essentials: t ? (t.items || []).filter(i => i.scope === 'p').map(tplPick) : []});
+const tplCopy = t => ({tpl: t ? t.name || '' : '', tplId: t ? t.id : '', bank: t ? tplShared(t).map(tplPick) : [], essentials: []});
 // The shared list's suggestions: its template's (the copy the event keeps); an event with no template gets the general ones
 function evSugg(ev) {
   if (!ev) return [];
@@ -2961,11 +2962,9 @@ function shellTemplate() {
     + '</div></header>'
     + '<main class="wrap page">'
     + (ro ? '<h1 class="display trip-title" id="tpl-title"></h1>' : '<input id="tpl-name" class="title-input" maxlength="60" aria-label="שם התבנית" value="' + esc(t ? t.name : '') + '">')
-    + '<p class="set-hint">אירוע מהתבנית הזאת מקבל את ההצעות האלה</p>'
-    + '<section class="panel col-panel"><div class="tpl-sec"><div class="tpl-h"><h2 class="label" id="tpl-g-h">הצעות לרשימה המשותפת</h2>' + searchBtn() + '</div>'
-    + (ro ? '' : '<form class="add-row add-one" data-form="tpl-add" autocomplete="off">' + nameInput('tpl-add-name', 'tpl-add-qty', 'הוספת הצעה') + '</form>') + '<div id="r-tpl-g"></div></div>'
-    + '<div class="tpl-sec"><div class="tpl-h"><h2 class="label" id="tpl-p-h">הצעות לרשימה האישית</h2></div>'
-    + (ro ? '' : '<form class="add-row add-one" data-form="tpl-add-p" autocomplete="off">' + nameInput('tpl-addp-name', 'tpl-addp-qty', 'הוספת הצעה') + '</form>') + '<div id="r-tpl-p"></div></div></section>'
+    + '<p class="set-hint">אירוע מהתבנית הזאת מקבל את ההצעות האלה ברשימה המשותפת</p>'
+    + '<section class="panel col-panel"><div class="tpl-sec"><div class="tpl-h"><h2 class="label" id="tpl-g-h">הצעות</h2>' + searchBtn() + '</div>'
+    + (ro ? '' : '<form class="add-row add-one" data-form="tpl-add" autocomplete="off">' + nameInput('tpl-add-name', 'tpl-add-qty', 'הוספת הצעה') + '</form>') + '<div id="r-tpl-g"></div></div></section>'
     + '</main>';
 }
 function tplRow(i) {
@@ -2974,15 +2973,14 @@ function tplRow(i) {
     + (ro ? '' : '<button class="icon-btn" data-tpl-del="' + esc(i.id) + '" aria-label="הסרת ' + esc(i.name) + '">' + ICON.x + '</button>') + '</li>';
 }
 function updateTemplate() {
-  const r = byId('r-tpl-g'), rp = byId('r-tpl-p'); if (!r) return;
+  const r = byId('r-tpl-g'); if (!r) return;
   const t = S.templates.find(x => x.id === S.tplId);
-  if (!t) { r.innerHTML = S.templatesLoaded ? '<p class="muted">התבנית נמחקה</p>' : '<p class="muted">נטען…</p>'; rp.innerHTML = ''; return; }
+  if (!t) { r.innerHTML = S.templatesLoaded ? '<p class="muted">התבנית נמחקה</p>' : '<p class="muted">נטען…</p>'; return; }
   const ni = byId('tpl-name'); if (ni && document.activeElement !== ni && ni.value !== (t.name || '')) ni.value = t.name || '';
   const tt = byId('tpl-title'); if (tt) tt.textContent = t.name || 'ללא שם';
-  const items = (t.items || []).filter(i => matchQ(i.name)), g = items.filter(i => i.scope !== 'p'), p = items.filter(i => i.scope === 'p'), ro = S.readOnly;
-  byId('tpl-g-h').textContent = 'הצעות לרשימה המשותפת · ' + g.length; byId('tpl-p-h').textContent = 'הצעות לרשימה האישית · ' + p.length;
+  const g = tplShared(t).filter(i => matchQ(i.name));
+  byId('tpl-g-h').textContent = 'הצעות · ' + tplShared(t).length;
   r.innerHTML = g.length ? catsHTML(g, tplRow) : (S.q ? noHits : '');
-  rp.innerHTML = p.length ? catsHTML(p, tplRow) : '';
 }
 
 /* ---------- Navigation ---------- */
@@ -3951,8 +3949,7 @@ async function deleteTrip() {
 }
 function saveAsTemplate() {
   const T = tripData(), ev = T.ev; if (!ev) return;
-  const items = T.lines.map(L => ({id: uid('ti'), name: L.name, cat: L.cat, qty: L.kind === 'meat' ? 1 : L.total, unit: L.unit, scope: 'g'}))
-    .concat((ev.essentials || []).map(i => ({id: uid('ti'), name: i.name, cat: CAT[i.cat] ? i.cat : 'general', qty: Q(i), unit: i.unit || '', scope: 'p'})));
+  const items = T.lines.map(L => ({id: uid('ti'), name: L.name, cat: L.cat, qty: L.kind === 'meat' ? 1 : L.total, unit: L.unit, scope: 'g'}));
   closeSheet();
   fire(Store.set('templates/' + uid('tpl'), {name: ev.name || 'אירוע', order: Date.now(), items}).then(() => toast('נשמר כתבנית')));
 }
@@ -4041,7 +4038,7 @@ function seedStarterTpls() {
   const list = groups => Object.entries(groups).flatMap(([cat, names]) => names.map(n => [cat, n]));
   STARTER_TPLS.forEach((t, k) => {
     if (have.has(t.name)) return;
-    const items = list(t.g).map(([c, n]) => mk(c, n, 'g')).concat(list(t.p).map(([c, n]) => mk(c, n, 'p')));
+    const items = list(t.g).map(([c, n]) => mk(c, n, 'g'));
     fire(Store.set('templates/' + t.id, {name: t.name, order: now + k, items}));
   });
   fire(Store.set('settings/seed', {tpl: 1}));
@@ -4054,7 +4051,7 @@ function saveTpl(id, mut) {
 }
 function addTplItem(name, qty, cat, scope) {
   const t = S.templates.find(x => x.id === S.tplId);
-  if (t && (t.items || []).some(i => same(i.name, name))) { dupToast(name); return false; }
+  if (t && tplShared(t).some(i => same(i.name, name))) { dupToast(name); return false; }
   const d = applyDefaults({name, cat, qty});
   sfx('add'); saveTpl(S.tplId, x => { x.items.push({id: uid('ti'), name, cat: d.cat, qty: d.qty, unit: d.unit || '', scope}); });
   return true;
@@ -4703,11 +4700,6 @@ const forms = {
     const {ni, qi, name, qty} = readAdd('tpl-add-name', 'tpl-add-qty');
     if (!name) { ni.focus(); return; }
     if (addTplItem(name, qty, guessCat(name), 'g')) resetAdd(ni, qi); else ni.focus();
-  },
-  'tpl-add-p'() {
-    const {ni, qi, name, qty} = readAdd('tpl-addp-name', 'tpl-addp-qty');
-    if (!name) { ni.focus(); return; }
-    if (addTplItem(name, qty, guessCat(name), 'p')) resetAdd(ni, qi); else ni.focus();
   },
   'tpl-item'(f) {
     const iid = f.dataset.id, name = f.querySelector('#ti-name').value.trim(); if (!name) return;
