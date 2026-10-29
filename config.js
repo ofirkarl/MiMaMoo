@@ -11,7 +11,7 @@ window.MM_CONFIG = {
     appId: "1:136294577790:web:5f3e7c4a58db74bc4b4a2f"
   },
   // Google sign-in (everything follows you to every device): true once Google is switched on in Firebase Authentication
-  login: false,
+  login: true,
   // the app's home is now Firebase Hosting; the old github.io address forwards people here with their data
   moveTo: "https://mimamoo-b37c7.firebaseapp.com/"
 };
