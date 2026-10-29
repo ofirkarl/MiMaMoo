@@ -45,34 +45,39 @@ rep('<title>MiMaMoo</title>\n<meta name="claude:viewport-fit-sides" content="cov
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <script src="config.js"></script>
 <script>
-/* Shared space: everyone who opens the same link shares the same events (like sharing the artifact).
-   Link shape: …/#<space> or …/#<space>/<event>. The space is remembered on this device. */
+/* Groups ("spaces"): each event lives in a space of its own, and its link (…/#<space>/<event>) is the invitation.
+   This device remembers every space it has been invited to (they all show together), plus a home space of its own
+   for templates, settings and the events made before spaces were per event. */
 (function () {
   var h = (location.hash || '').replace(/^#/, '').split('/'), sid = null, deep = '';
   if (/^[A-Za-z0-9]{16,40}$/.test(h[0] || '')) { sid = h[0]; deep = h[1] || ''; }
   var standalone = false; try { standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) {}
-  // every group this device has been in is remembered, so joining another one never hides the first
-  var keep = function (x) { try { var a = JSON.parse(localStorage.getItem('mm:spaces') || '[]'); if (a.indexOf(x) < 0) { a.push(x); localStorage.setItem('mm:spaces', JSON.stringify(a.slice(-12))); } } catch (e) {} };
-  try { var prev = localStorage.getItem('mm:space'); if (sid && prev && prev !== sid) keep(prev); } catch (e) {}
-  try { if (sid) localStorage.setItem('mm:space', sid); else sid = localStorage.getItem('mm:space'); } catch (e) {}
-  // opened from the home screen with nothing stored yet: on iPhone this storage is separate from Safari's, so offer to rejoin
-  window.MM_FRESH = !sid && standalone;
-  if (!sid) {
-    var a = new Uint8Array(15), abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
-    crypto.getRandomValues(a); sid = ''; for (var i = 0; i < a.length; i++) sid += abc[a[i] % abc.length];
-    sid += 'mm' + Date.now().toString(36).slice(-4);
-    try { localStorage.setItem('mm:space', sid); } catch (e) {}
-  }
-  keep(sid);
-  window.MM_SPACE = sid; window.MM_DEEP = deep;
-  // the group stays in the address, so a page added to the home screen keeps it
-  try { history.replaceState(null, '', location.pathname + location.search + '#' + sid); } catch (e) {}
-  // iPhone saves the manifest's start address: give it one that carries the group
+  var get = function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  var put = function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} };
+  var newId = function () {
+    var a = new Uint8Array(15), abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789', s = '';
+    crypto.getRandomValues(a); for (var i = 0; i < a.length; i++) s += abc[a[i] % abc.length];
+    return s + 'mm' + Date.now().toString(36).slice(-4);
+  };
+  var list = []; try { list = JSON.parse(get('mm:spaces') || '[]'); if (!Array.isArray(list)) list = []; } catch (e) { list = []; }
+  var home = get('mm:home') || get('mm:space');  // a device from before keeps its one group as home
+  // opened from the home screen with nothing stored: on iPhone that storage is separate from Safari's, so offer to rejoin
+  window.MM_FRESH = !home && !list.length && !sid && standalone;
+  if (!home) home = newId();
+  put('mm:home', home); put('mm:space', home);
+  [home, sid].forEach(function (x) { if (x && list.indexOf(x) < 0) list.push(x); });
+  put('mm:spaces', JSON.stringify(list.slice(-80)));
+  window.MM_SPACE = home; window.MM_SPACES = list; window.MM_DEEP = deep; window.MM_DEEP_SPACE = sid || '';
+  window.MM_NEWID = newId;
+  // the invitation stays in the address, so a page added to the home screen keeps it
+  var keepHash = sid ? sid + (deep ? '/' + deep : '') : home;
+  try { history.replaceState(null, '', location.pathname + location.search + '#' + keepHash); } catch (e) {}
+  // iPhone saves the manifest's start address: give it one that carries the invitation
   try {
     var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     if (ios && !standalone) {
       var base = location.origin + location.pathname, ml = document.querySelector('link[rel="manifest"]');
-      var man = {name: 'MiMaMoo', short_name: 'MiMaMoo', lang: 'he', dir: 'rtl', id: base, start_url: base + '#' + sid, scope: base, display: 'standalone', background_color: '#FAF9FC', theme_color: '#FAF9FC',
+      var man = {name: 'MiMaMoo', short_name: 'MiMaMoo', lang: 'he', dir: 'rtl', id: base, start_url: base + '#' + keepHash, scope: base, display: 'standalone', background_color: '#FAF9FC', theme_color: '#FAF9FC',
         icons: [{src: base + 'icons/icon-192.png', sizes: '192x192', type: 'image/png'}, {src: base + 'icons/icon-512.png', sizes: '512x512', type: 'image/png'}]};
       if (ml) ml.href = 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(man));
     }
@@ -111,8 +116,10 @@ function loadLocal() {
 }
 
 /* Firebase adapter with the same surface as Claude's db: collection().onSnapshot/get, doc().set/update/delete/get/acquire.
-   App paths stay as they are; they are placed under the shared space, and personal lists under the signed-in user. */
-async function connectFire(cfg, sid) {
+   App paths stay as they are. "events" is every event in every space this device knows, as one list; an event's own data
+   lives in its space; a new event gets a new space; templates and settings live in the home space; personal lists
+   under the signed-in user. */
+async function connectFire(cfg, home, spaceList) {
   const base = 'https://www.gstatic.com/firebasejs/""" + FIREBASE_SDK + """/';
   const [A, AU, F] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
   const app = A.initializeApp(cfg);
@@ -125,9 +132,25 @@ async function connectFire(cfg, sid) {
     AU.signInAnonymously(auth).catch(e => { off(); rej(e); });
   });
   const mine = 'data/users/';
-  const map = p => {
-    if (p.indexOf(mine) === 0) { const r = p.slice(mine.length), i = r.indexOf('/'); return 'users/' + (i < 0 ? r : r.slice(0, i)) + '/s/' + sid + '/lists' + (i < 0 ? '' : r.slice(i)); }
-    return 'spaces/' + sid + '/' + p;
+  const spaces = new Set((spaceList || []).filter(Boolean)); spaces.add(home);
+  const evSpace = new Map(), watchers = new Set();
+  const remember = sid => {
+    if (spaces.has(sid)) return;
+    spaces.add(sid);
+    try { localStorage.setItem('mm:spaces', JSON.stringify([...spaces].slice(-80))); } catch (e) {}
+    watchers.forEach(w => w.add(sid));
+  };
+  const spaceOf = eid => evSpace.get(eid) || (eid && eid === window.MM_DEEP && window.MM_DEEP_SPACE) || home;
+  window.MM_SPACEOF = spaceOf;
+  // a brand-new event (its first write) gets a space of its own
+  const map = (p, creating) => {
+    if (p.indexOf(mine) === 0) { const r = p.slice(mine.length), i = r.indexOf('/'); return 'users/' + (i < 0 ? r : r.slice(0, i)) + '/s/' + home + '/lists' + (i < 0 ? '' : r.slice(i)); }
+    const seg = p.split('/');
+    if (seg[0] === 'events' && seg[1]) {
+      if (creating && seg.length === 2 && !evSpace.has(seg[1])) { const sid = window.MM_NEWID(); evSpace.set(seg[1], sid); remember(sid); }
+      return 'spaces/' + spaceOf(seg[1]) + '/' + p;
+    }
+    return 'spaces/' + home + '/' + p;
   };
   // Firestore keeps no arrays inside arrays: wrap inner ones as {_a: [...]}
   const enc = v => Array.isArray(v) ? v.map(x => Array.isArray(x) ? {_a: enc(x)} : enc(x))
@@ -144,15 +167,37 @@ async function connectFire(cfg, sid) {
     }
     return out;
   };
+  // every space's events, merged; the first answer waits (briefly) for all spaces, so nothing flickers in and out
+  const allEvents = {
+    onSnapshot: (cb, err) => {
+      const per = new Map(), offs = new Map(), waiting = new Set();
+      let ready = false;
+      const emit = () => { if (!ready) return; const docs = []; per.forEach((list, sid) => list.forEach(d => { evSpace.set(d.id, sid); docs.push(d); })); cb({docs}); };
+      const w = {add: sid => {
+        if (offs.has(sid)) return;
+        waiting.add(sid);
+        offs.set(sid, F.onSnapshot(F.collection(fs, 'spaces/' + sid + '/events'),
+          s => { per.set(sid, snap(s).docs); waiting.delete(sid); if (!waiting.size) ready = true; emit(); },
+          e => { console.warn(e); per.set(sid, []); waiting.delete(sid); if (!waiting.size) ready = true; emit(); }));
+      }};
+      watchers.add(w); spaces.forEach(sid => w.add(sid));
+      setTimeout(() => { if (!ready) { ready = true; emit(); } }, 2500);
+      return () => { watchers.delete(w); offs.forEach(off => { try { off(); } catch (e) {} }); };
+    },
+    get: async () => {
+      const lists = await Promise.all([...spaces].map(sid => F.getDocs(F.collection(fs, 'spaces/' + sid + '/events')).then(s => snap(s).docs.map(d => { evSpace.set(d.id, sid); return d; }), () => [])));
+      return {docs: lists.flat()};
+    }
+  };
   const db = {
-    collection: col => ({
+    collection: col => col === 'events' ? allEvents : ({
       onSnapshot: (cb, err) => F.onSnapshot(F.collection(fs, map(col)), s => cb(snap(s)), e => { console.warn(e); if (err) err({code: CODES[e && e.code] || 'unknown'}); }),
       get: () => F.getDocs(F.collection(fs, map(col))).then(snap, wrap)
     }),
     doc: path => {
       const ref = F.doc(fs, map(path));
       return {
-        set: d => F.setDoc(ref, enc(d)).catch(wrap),
+        set: d => F.setDoc(F.doc(fs, map(path, true)), enc(d)).catch(wrap),
         update: d => {
           const args = []; flat(enc(d), [], []).forEach(([p, v]) => { args.push(new F.FieldPath(...p), v); });
           return args.length ? F.updateDoc(ref, ...args).catch(wrap) : Promise.resolve();
@@ -161,7 +206,7 @@ async function connectFire(cfg, sid) {
         get: () => F.getDoc(ref).then(s => ({exists: s.exists(), id: s.id, data: () => dec(s.data())}), wrap),
         // a short lease kept in its own document, so the item itself is never touched
         acquire: ({holder, ttlMs}) => {
-          const lk = F.doc(fs, 'spaces/' + sid + '/_locks/' + path.replace(/\\//g, '~'));
+          const lk = F.doc(fs, map(path).split('/').slice(0, 2).join('/') + '/_locks/' + path.replace(/\\//g, '~'));
           return F.runTransaction(fs, async tx => {
             const s = await tx.get(lk), now = Date.now(), d = s.exists() ? s.data() : null;
             if (d && d.holder !== holder && d.until > now) return {acquired: false};
@@ -197,7 +242,7 @@ rep("""  } catch (e) {}
     Store.db = db; S.mode = 'db';""", """  } catch (e) {}
   const fcfg = window.MM_CONFIG && window.MM_CONFIG.firebase;
   if (!db && fcfg && fcfg.apiKey) {
-    try { const c = await connectFire(fcfg, window.MM_SPACE); db = c.db; S.uid = c.uid; S.canWrite = true; await moveLocalUp(db, c.uid); }
+    try { const c = await connectFire(fcfg, window.MM_SPACE, window.MM_SPACES); db = c.db; S.uid = c.uid; S.canWrite = true; await moveLocalUp(db, c.uid); }
     catch (e) { console.warn(e); toast('אין חיבור לענן כרגע. עובדים על המכשיר הזה.', true); }
   }
   if (db) {
@@ -211,7 +256,7 @@ rep("<div class=\"banner\"><div class=\"wrap\">אין חיבור. שום דבר 
 # ---------- invite: a link anyone can open, shared with the phone's share sheet ----------
 i = s.index('function openInvite() {')
 j = s.index('\n}\n', i) + 3
-s = s[:i] + r"""const spaceLink = eid => location.origin + location.pathname + '#' + window.MM_SPACE + (eid ? '/' + eid : '');
+s = s[:i] + r"""const spaceLink = eid => location.origin + location.pathname + '#' + ((eid && window.MM_SPACEOF) ? window.MM_SPACEOF(eid) : window.MM_SPACE) + (eid ? '/' + eid : '');
 function openInvite() {
   const ev = tripData().ev; if (!ev) return;
   if (S.mode !== 'db') {
@@ -219,7 +264,7 @@ function openInvite() {
     return;
   }
   const link = spaceLink(S.tripId);
-  openSheet('<h2 class="sheet-title">הזמנה ל״' + esc(ev.name) + '״</h2><p>כל מי שפותח את הקישור מצטרף לרשימות המשותפות שלכם ויכול לערוך.</p>'
+  openSheet('<h2 class="sheet-title">הזמנה ל״' + esc(ev.name) + '״</h2><p>מי שפותח את הקישור מצטרף לאירוע הזה, רואה אותו ויכול לערוך.</p>'
     + '<div class="field"><span>קישור</span><div class="code-row"><code id="trip-code" dir="ltr">' + esc(link) + '</code><button type="button" class="btn sm" data-copy="' + esc(link) + '">העתקה</button></div></div>'
     + '<div class="sheet-actions">' + (navigator.share ? '<button type="button" class="btn primary" data-act="share-link">שיתוף</button>' : '') + '<button type="button" class="btn" data-close>סגירה</button></div>');
 }
