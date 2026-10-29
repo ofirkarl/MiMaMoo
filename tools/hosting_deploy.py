@@ -82,6 +82,8 @@ def main():
     # is Google sign-in switched on, and for which addresses
     IDT = 'https://identitytoolkit.googleapis.com/admin/v2/projects/%s/' % project
     g, c = s.get(IDT + 'defaultSupportedIdpConfigs/google.com'), s.get(IDT + 'config')
+    lst = s.get(IDT + 'defaultSupportedIdpConfigs')
+    say('notice', 'providers set up: %s' % ([x.get('name', '').rsplit('/', 1)[-1] + (' on' if x.get('enabled') else ' off') for x in lst.json().get('defaultSupportedIdpConfigs', [])] if lst.ok else lst.status_code))
     say('notice', 'sign-in: Google %s; anonymous %s; allowed addresses: %s' % (
         ('on' if g.json().get('enabled') else 'off') if g.ok else 'not set up (%s)' % g.status_code,
         ('on' if c.json().get('signIn', {}).get('anonymous', {}).get('enabled') else 'off') if c.ok else '?',
