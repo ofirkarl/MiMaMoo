@@ -2283,7 +2283,7 @@ function openMarkDish(id) {
     return '<div class="tk-row' + (q ? ' has-q' : '') + '"><label class="tk"><input type="checkbox" name="tk" value="' + i + '"' + (x.sh && !x.part && !x.open ? '' : ' checked') + '><span class="tk-box">' + ICON.check + '</span><span class="tk-n">' + esc(x.n) + (x.a && !q ? '<small>' + esc(x.a) + '</small>' : '') + '</span></label>' + q + dest + '</div>';
   }).join('');
   openSheet('<form class="stack-form" data-form="mark-dish" data-id="' + esc(id) + '" autocomplete="off"><h2 class="sheet-title">' + esc(d.name) + '</h2>'
-    + '<p class="ask-buy">מה שלא תביאו יעבור לרשימה המשותפת. מה שצריך לקנות יופיע ב"קניות", ומה שכבר יש, ייכנס לרשימה האישית.</p><div class="tk-list">' + rows + '</div>'
+    + '<p class="ask-buy">מה שלא תביאו יעבור לרשימה המשותפת. מה שצריך לקנות יופיע ב"קניות", ומה שכבר יש, יכנס לרשימה האישית.</p><div class="tk-list">' + rows + '</div>'
     + sheetActions('', 'אני מביא') + '</form>');
 }
 function markDish(f) {
