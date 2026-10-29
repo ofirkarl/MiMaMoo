@@ -59,6 +59,16 @@ rep('<title>MiMaMoo</title>\n<meta name="claude:viewport-fit-sides" content="cov
     crypto.getRandomValues(a); for (var i = 0; i < a.length; i++) s += abc[a[i] % abc.length];
     return s + 'mm' + Date.now().toString(36).slice(-4);
   };
+  // arriving from the old address: take over its groups and settings, then carry on as if opened normally
+  if (/^import=/.test(location.hash.slice(1))) {
+    try {
+      var raw = location.hash.slice(8).replace(/-/g, '+').replace(/_/g, '/'), pay = JSON.parse(decodeURIComponent(escape(atob(raw))));
+      Object.keys(pay.ls || {}).forEach(function (k) { if (/^(wbw:|mm:(home|spaces)$)/.test(k)) put(k, pay.ls[k]); });
+      window.MM_IMPORT = {move: pay.move || ''};
+      h = String(pay.at || '').split('/'); sid = null; deep = '';
+      if (/^[A-Za-z0-9]{16,40}$/.test(h[0] || '')) { sid = h[0]; deep = h[1] || ''; }
+    } catch (e) {}
+  }
   var list = []; try { list = JSON.parse(get('mm:spaces') || '[]'); if (!Array.isArray(list)) list = []; } catch (e) { list = []; }
   var home = get('mm:home') || get('mm:space');  // a device from before keeps its one group as home
   // opened from the home screen with nothing stored: on iPhone that storage is separate from Safari's, so offer to rejoin
@@ -122,15 +132,76 @@ function loadLocal() {
 async function connectFire(cfg, home, spaceList) {
   const base = 'https://www.gstatic.com/firebasejs/""" + FIREBASE_SDK + """/';
   const [A, AU, F] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
+  // on Firebase's own address sign-in runs on the same address, so it works inside an iPhone home-screen app too
+  const onFbHost = /\\.(firebaseapp\\.com|web\\.app)$/.test(location.hostname);
+  if (onFbHost) cfg = Object.assign({}, cfg, {authDomain: location.hostname});
+  const standalone = (() => { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) { return false; } })();
   const app = A.initializeApp(cfg);
   const auth = AU.getAuth(app);
   let fs;
   try { fs = F.initializeFirestore(app, {ignoreUndefinedProperties: true, localCache: F.persistentLocalCache({tabManager: F.persistentMultipleTabManager()})}); }
   catch (e) { fs = F.initializeFirestore(app, {ignoreUndefinedProperties: true}); }
-  const user = await new Promise((res, rej) => {
-    const off = AU.onAuthStateChanged(auth, u => { if (u) { off(); res(u); } });
-    AU.signInAnonymously(auth).catch(e => { off(); rej(e); });
-  });
+  let redirectErr = null;
+  try { await AU.getRedirectResult(auth); } catch (e) { redirectErr = e; }
+  try { await auth.authStateReady(); } catch (e) {}
+  if (!auth.currentUser) await AU.signInAnonymously(auth);
+  const user = auth.currentUser;
+  // the lists this (anonymous) device keeps, to carry them into an account or to a new address
+  const listsRoot = (uid, h) => 'users/' + uid + '/s/' + h + '/lists';
+  async function ownDocs(uid, h) {
+    const out = [], root = listsRoot(uid, h);
+    const top = await F.getDocs(F.collection(fs, root)).catch(() => null); if (!top) return out;
+    for (const d of top.docs) {
+      out.push({r: d.id, d: d.data()});
+      const its = await F.getDocs(F.collection(fs, root + '/' + d.id + '/items')).catch(() => null);
+      if (its) its.docs.forEach(x => out.push({r: d.id + '/items/' + x.id, d: x.data()}));
+    }
+    return out;
+  }
+  const putDocs = (uid, h, docs) => Promise.all(docs.map(x => F.setDoc(F.doc(fs, listsRoot(uid, h) + '/' + x.r), x.d).catch(() => {})));
+  // the Google account already has a home elsewhere: bring this device's lists into it, then switch to it
+  async function adopt(cred) {
+    const anon = auth.currentUser, carry = anon && anon.isAnonymous ? await ownDocs(anon.uid, home) : [];
+    const r = await AU.signInWithCredential(auth, cred);
+    const ps = await F.getDoc(F.doc(fs, 'users/' + r.user.uid + '/meta/profile')).catch(() => null);
+    await putDocs(r.user.uid, (ps && ps.exists() && ps.data().home) || home, carry);
+  }
+  if (redirectErr && redirectErr.code === 'auth/credential-already-in-use') {
+    const cred = AU.GoogleAuthProvider.credentialFromError(redirectErr);
+    if (cred) { await adopt(cred); location.reload(); await new Promise(() => {}); }
+  }
+  // signed in: the account keeps the home and the list of groups, for every device
+  const profRef = user.isAnonymous ? null : F.doc(fs, 'users/' + user.uid + '/meta/profile');
+  if (profRef) {
+    const ps = await F.getDoc(profRef).catch(() => null), prof = ps && ps.exists() ? ps.data() : {};
+    if (prof.home) home = prof.home;
+    spaceList = [...new Set([...(Array.isArray(prof.spaces) ? prof.spaces : []), ...(spaceList || []), home])];
+    try { localStorage.setItem('mm:home', home); localStorage.setItem('mm:space', home); localStorage.setItem('mm:spaces', JSON.stringify(spaceList.slice(-80))); } catch (e) {}
+    F.setDoc(profRef, {home, spaces: spaceList.slice(-200), updated: Date.now()}, {merge: true}).catch(() => {});
+  }
+  window.MM_SPACE = home;
+  const provider = new AU.GoogleAuthProvider();
+  try { provider.setCustomParameters({prompt: 'select_account'}); } catch (e) {}
+  window.MM_AUTH = {
+    user: () => { const u = auth.currentUser; return u && !u.isAnonymous ? {name: u.displayName || '', email: u.email || ''} : null; },
+    signIn: async () => {
+      const u = auth.currentUser;
+      try {
+        if (standalone && onFbHost) { if (u && u.isAnonymous) await AU.linkWithRedirect(u, provider); else await AU.signInWithRedirect(auth, provider); return; }
+        if (u && u.isAnonymous) await AU.linkWithPopup(u, provider); else await AU.signInWithPopup(auth, provider);
+      } catch (e) {
+        if (e && e.code === 'auth/credential-already-in-use') { const cred = AU.GoogleAuthProvider.credentialFromError(e); if (!cred) throw e; await adopt(cred); }
+        else if (e && /popup-closed-by-user|cancelled-popup-request/.test(e.code || '')) return;
+        else throw e;
+      }
+      location.reload();
+    },
+    signOut: async () => {
+      await AU.signOut(auth);
+      try { ['mm:home', 'mm:space', 'mm:spaces'].forEach(k => localStorage.removeItem(k)); } catch (e) {}
+      location.replace(location.pathname); location.reload();
+    }
+  };
   const mine = 'data/users/';
   const spaces = new Set((spaceList || []).filter(Boolean)); spaces.add(home);
   const evSpace = new Map(), watchers = new Set();
@@ -138,6 +209,7 @@ async function connectFire(cfg, home, spaceList) {
     if (spaces.has(sid)) return;
     spaces.add(sid);
     try { localStorage.setItem('mm:spaces', JSON.stringify([...spaces].slice(-80))); } catch (e) {}
+    if (profRef) F.setDoc(profRef, {spaces: F.arrayUnion(sid)}, {merge: true}).catch(() => {});
     watchers.forEach(w => w.add(sid));
   };
   const spaceOf = eid => evSpace.get(eid) || (eid && eid === window.MM_DEEP && window.MM_DEEP_SPACE) || home;
@@ -216,7 +288,36 @@ async function connectFire(cfg, home, spaceList) {
       };
     }
   };
-  return {db, uid: user.uid};
+  // moving between addresses: this device's lists wait in a hidden note in its home group, picked up on the other side
+  const stash = async () => {
+    const docs = await ownDocs(user.uid, home); if (!docs.length) return '';
+    const token = window.MM_NEWID();
+    await F.setDoc(F.doc(fs, 'spaces/' + home + '/_moves/' + token), {docs: enc(docs), created: Date.now()});
+    return token;
+  };
+  const unstash = async token => {
+    const ref = F.doc(fs, 'spaces/' + home + '/_moves/' + token), s = await F.getDoc(ref).catch(() => null);
+    if (!s || !s.exists()) return;
+    const docs = dec(s.data().docs || []);
+    await putDocs(user.uid, home, docs);
+    await F.deleteDoc(ref).catch(() => {});
+  };
+  return {db, uid: user.uid, home, stash, unstash};
+}
+
+/* MiMaMoo moved to Firebase's address. From the old one: carry this device's groups, settings and lists across.
+   A home-screen app can't leave its address, so it shows the way instead (and the new one is added to the home screen). */
+async function moveHouse(c, to) {
+  let token = ''; try { token = await c.stash(); } catch (e) {}
+  const ls = {}; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/^(wbw:|mm:(home|spaces)$)/.test(k)) ls[k] = localStorage.getItem(k); } } catch (e) {}
+  const pay = btoa(unescape(encodeURIComponent(JSON.stringify({ls, move: token, at: location.hash.slice(1)})))).replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/, '');
+  const url = to + '#import=' + pay;
+  const standalone = (() => { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) { return false; } })();
+  if (!standalone) { location.replace(url); return; }
+  document.body.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:32px 24px;direction:rtl;font-family:system-ui,sans-serif;background:#FAF9FC;color:#2B2833">'
+    + '<h1 style="font-size:26px;margin:0">MiMaMoo עברה לבית חדש</h1>'
+    + '<p style="font-size:17px;line-height:1.5;margin:0">כל האירועים והרשימות שלך עוברים איתך. לוחצים על הכפתור, ובדפדפן שנפתח: שיתוף ← "הוספה למסך הבית". אחר כך אפשר למחוק את האייקון הישן.</p>'
+    + '<a href="' + url + '" target="_blank" rel="noopener" style="align-self:flex-start;padding:14px 22px;border-radius:999px;background:#FFE08F;color:#5A4410;font-weight:700;font-size:17px;text-decoration:none">פתיחה בכתובת החדשה</a></div>';
 }
 
 /* The first time this device connects to the cloud, what it kept on its own (before the cloud existed)
@@ -242,7 +343,13 @@ rep("""  } catch (e) {}
     Store.db = db; S.mode = 'db';""", """  } catch (e) {}
   const fcfg = window.MM_CONFIG && window.MM_CONFIG.firebase;
   if (!db && fcfg && fcfg.apiKey) {
-    try { const c = await connectFire(fcfg, window.MM_SPACE, window.MM_SPACES); db = c.db; S.uid = c.uid; S.canWrite = true; await moveLocalUp(db, c.uid); }
+    try {
+      const c = await connectFire(fcfg, window.MM_SPACE, window.MM_SPACES); db = c.db; S.uid = c.uid; S.canWrite = true; await moveLocalUp(db, c.uid);
+      const au = window.MM_AUTH && window.MM_AUTH.user(); if (au && au.name) S.profileName = au.name.trim().split(/\\s+/)[0];
+      if (window.MM_IMPORT && window.MM_IMPORT.move) await c.unstash(window.MM_IMPORT.move).catch(() => {});
+      const to = window.MM_CONFIG.moveTo;
+      if (to && /github\\.io$/.test(location.hostname)) { await moveHouse(c, to); return; }
+    }
     catch (e) { console.warn(e); toast('אין חיבור לענן כרגע. עובדים על המכשיר הזה.', true); }
   }
   if (db) {

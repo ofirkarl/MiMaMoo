@@ -761,6 +761,10 @@ button.gchip.leaving{opacity:0;transform:scale(.85)}
 .inst-x{position:absolute;top:6px;inset-inline-end:6px;width:30px;height:30px;display:grid;place-items:center;border-radius:50%;color:var(--muted)}
 .inst-x svg{width:14px;height:14px}
 .install.join{flex-direction:column;align-items:stretch}
+.acct{display:flex;align-items:center;gap:12px;padding:14px 16px}
+.acct-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.acct-t b{font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acct-t small{font-size:13.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .join-paste{display:inline-flex;align-items:center;justify-content:center;gap:8px}
 .join-paste svg{width:18px;height:18px}
 .join-manual{display:none}
@@ -1498,6 +1502,22 @@ function installHTML() {
   if (isIOS()) return '<div class="install">' + x + '<span class="inst-t"><b>התקנת MiMaMoo</b><span>ב-Safari: כפתור השיתוף <span class="inst-ic">' + ICON.iosShare + '</span> ← "הוספה למסך הבית"</span></span></div>';
   return '';
 }
+// A Google account keeps everything (events, lists, settings) on every device
+const loginOn = () => !!(window.MM_AUTH && window.MM_CONFIG && window.MM_CONFIG.login);  // switched on in config.js once Google sign-in is set up
+function loginCardHTML() {
+  if (!loginOn() || window.MM_AUTH.user() || lsGet('noLogin')) return '';
+  return '<div class="install login"><button type="button" class="inst-x" data-act="login-no" aria-label="לא עכשיו">' + ICON.x + '</button>'
+    + '<span class="inst-t"><b>כניסה עם Google</b>האירועים והרשימות שלך יחכו לך בכל מכשיר, גם בטלפון חדש</span>'
+    + '<button type="button" class="btn primary sm" data-act="login">התחברות</button></div>';
+}
+function accountHTML() {
+  if (!loginOn()) return '';
+  const u = window.MM_AUTH.user();
+  return '<section class="set-sec"><div class="col-top"><h2>חשבון</h2></div><div class="panel acct">'
+    + (u ? '<span class="acct-t"><b>' + esc(u.name || u.email) + '</b><small dir="ltr">' + esc(u.email) + '</small></span><button type="button" class="btn sm" data-act="logout">יציאה</button>'
+      : '<span class="acct-t"><b>לא מחובר</b><small>עם חשבון Google הכול נשמר ומחכה לך בכל מכשיר</small></span><button type="button" class="btn primary sm" data-act="login">התחברות עם Google</button>')
+    + '</div></section>';
+}
 function helloHTML() {
   const nm = lsGet('myName') || S.profileName || '';
   if (nm && !S.helloEdit) return '<p class="hello">שלום, <b>' + esc(nm) + '</b><button type="button" class="hello-edit" data-act="hello-edit" aria-label="שינוי השם">' + ICON.pen + '</button></p>';
@@ -1510,7 +1530,7 @@ function updateHome() {
   const r = byId('r-trips'), rs = byId('r-solos'); if (!r) return;
   const ro = S.readOnly;
   const hs = byId('r-hello'); if (hs && !(document.activeElement && document.activeElement.id === 'hello-in')) hs.innerHTML = helloHTML();
-  const ri = byId('r-install'); if (ri) ri.innerHTML = installHTML();
+  const ri = byId('r-install'); if (ri) ri.innerHTML = installHTML() + loginCardHTML();
   const htab = (k, label) => '<button role="tab" aria-selected="' + (S.homeTab === k) + '" data-htab="' + k + '">' + label + '</button>';
   byId('r-htabs').innerHTML = htab('lists', 'רשימות') + htab('shop', 'קניות') + htab('money', 'הוצאות') + htab('notes', 'הערות');
   byId('h-shop').hidden = S.homeTab !== 'shop';
@@ -2399,7 +2419,7 @@ function shellSettings() {
     + (add && !ro ? '<button class="btn primary sm" data-act="' + add + '" data-fold-add="' + k + '" hidden>+ הוספה</button>' : '') + '</div>' + body + '</section>';
   return '<header class="top"><div class="wrap top-in"><button class="back" data-act="home">' + ICON.back + '<span>חזרה</span></button>'
     + (window.MM_SPACE ? '<button class="icon-btn gear share-btn" data-act="share-app" aria-label="שיתוף האפליקציה" title="שיתוף האפליקציה">' + ICON.share + '</button>' : '') + '</div></header>'
-    + '<main class="wrap page"><h1 class="page-h">הגדרות</h1>'
+    + '<main class="wrap page"><h1 class="page-h">הגדרות</h1>' + accountHTML()
     + sec('tpls', 'תבניות', 'new-tpl', '<div id="r-tpls" class="tpl-list" data-fold-body="tpls" hidden></div>')
     + sec('cats', 'קטגוריות', 'new-cat', '<div id="r-cats" class="panel set-list" data-fold-body="cats" hidden></div>')
     + sec('prefs', 'עריכת פריטים', '', '<div id="r-prefs" class="panel set-list" data-fold-body="prefs" hidden></div>')
@@ -3683,6 +3703,9 @@ function act(a) {
     case 'install-no': lsSet('noInstall', '1'); render(); return;
     case 'join-no': lsSet('joinAsked', '1'); render(); return;
     case 'join-paste': pasteJoin(); return;
+    case 'login-no': lsSet('noLogin', '1'); render(); return;
+    case 'login': if (window.MM_AUTH) window.MM_AUTH.signIn().catch(e => { console.warn(e); toast('ההתחברות לא הצליחה. נסו שוב', true); }); return;
+    case 'logout': if (window.MM_AUTH) window.MM_AUTH.signOut(); return;
     case 'share-app':
       if (navigator.share) navigator.share({title: 'MiMaMoo', text: 'MiMaMoo · מי מביא מה', url: appLink()}).catch(() => {});
       else try { navigator.clipboard.writeText(appLink()).then(() => toast('הקישור לאפליקציה הועתק'), () => {}); } catch (e) {}

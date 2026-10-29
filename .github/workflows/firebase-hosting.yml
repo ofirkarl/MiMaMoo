@@ -1,0 +1,24 @@
+# Publishes the app to Firebase Hosting (https://mimamoo-b37c7.firebaseapp.com) on every push.
+# Google sign-in inside an iPhone home-screen app needs the app to be served from the
+# Firebase address. Skips quietly until the FIREBASE_SERVICE_ACCOUNT secret is added.
+name: Firebase Hosting
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HAS_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+    steps:
+      - if: env.HAS_KEY != 'true'
+        run: echo "FIREBASE_SERVICE_ACCOUNT is not set yet, nothing to publish"
+      - if: env.HAS_KEY == 'true'
+        uses: actions/checkout@v4
+      - if: env.HAS_KEY == 'true'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: mimamoo-b37c7
+          channelId: live
