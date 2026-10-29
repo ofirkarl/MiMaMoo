@@ -377,25 +377,28 @@ button.gchip small{font-size:12.5px;font-weight:600;opacity:.65;margin-inline-st
 .cat-pill.dish-pill small{font-weight:500;opacity:.7;font-size:12.5px}
 span.item-main{cursor:default}
 .dish-miss{font-size:12.5px;font-weight:600;color:var(--accent-deep);line-height:1.35}
-.tk-list{display:flex;flex-direction:column;gap:2px;max-height:46vh;overflow:auto;margin-inline:-4px;padding-inline:4px}
-.tk-row{display:flex;align-items:center;gap:8px}
-.tk-row>.tk{flex:1;min-width:0}
-.tk-row{flex-wrap:wrap}
-.tk-dest{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 8px;padding-inline-start:40px}
-.tk-row:has(input[name="tk"]:not(:checked)) .tk-dest{display:none}
+/* "אני מביא": one plain list, like the ingredients page — the sheet scrolls, not a box inside it.
+   A row: the check and the name; at its end how many (when counted) and where it goes — to buy, or I have it. */
+.tk-list{display:flex;flex-direction:column}
+.tk-row{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"tk dest";align-items:center;column-gap:8px;row-gap:6px;padding-block:6px;border-bottom:1px solid var(--line)}
+.tk-row.has-q{grid-template-areas:"tk q" "tk dest"}
+.tk-row>.tk{grid-area:tk;min-width:0}
+.tk-row>.tk.taken{grid-column:1/-1}
+.tk-q{grid-area:q;justify-self:end;display:flex;align-items:center;gap:6px}
+.tk-dest{grid-area:dest;justify-self:end;display:inline-flex;gap:2px;padding:2px;border-radius:999px;background:var(--sunk)}
+.tk-row:has(input[name="tk"]:not(:checked)) :is(.tk-dest,.tk-q){display:none}
 .tk-dest label{position:relative;cursor:pointer}
 .tk-dest input{position:absolute;opacity:0;width:1px;height:1px;min-height:0}
-.tk-dest span{display:inline-flex;align-items:center;gap:5px;min-height:30px;padding:0 10px;border-radius:999px;border:1.5px solid var(--line);font-size:13.5px;font-weight:600;color:var(--muted)}
-.tk-dest svg{width:15px;height:15px}
-.tk-dest input:checked+span{border-color:var(--good-fill);background:var(--good-bg);color:var(--good)}
-.tk-dest label:last-child input:checked+span{border-color:var(--mine-line);background:var(--mine-bg);color:var(--mine-ink)}
+.tk-dest span{display:inline-flex;align-items:center;gap:4px;min-height:28px;padding:0 10px;border-radius:999px;font-size:13px;font-weight:600;color:var(--muted);transition:background .15s,color .15s}
+.tk-dest svg{width:14px;height:14px}
+.tk-dest input:checked+span{background:var(--good-bg);color:var(--good);box-shadow:0 1px 2px rgba(60,52,90,.08)}
+.tk-dest label:last-child input:checked+span{background:var(--mine-bg);color:var(--mine-ink)}
 .tk-dest input:focus-visible+span{outline:2.5px solid var(--ring)}
-.tk-q{display:flex;align-items:center;gap:6px;flex:none}
-.tk-q .mstep{min-height:36px}
+.tk-q .mstep{min-height:34px}
 #sheet-root .mstep input{min-height:0;height:auto}
-.tk-q .mstep button{width:32px;font-size:19px}
-.tk-q .mstep input{width:34px}
-.tk-of{font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
+.tk-q .mstep button{width:30px;font-size:18px}
+.tk-q .mstep input{width:32px}
+.tk-of{min-width:50px;font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
 /* A dish's ingredients: a plain list (name, amount in a small pill, ×) and one more row in the same columns to add to it */
 .dish-ings{display:flex;flex-direction:column}
 .ding-row,.ding-add{display:grid;grid-template-columns:minmax(0,1fr) 80px 34px;align-items:center;column-gap:8px}
@@ -418,13 +421,13 @@ span.item-main{cursor:default}
 .tk-q .mstep input{font-weight:700;color:var(--accent-ink)}
 .dish-shop{flex:none;display:inline-flex;align-items:center;gap:4px;min-height:32px;padding:0 10px;border-radius:999px;background:var(--good-bg);color:var(--good);font-size:14px}
 .dish-shop svg{width:17px;height:17px}
-.tk{display:flex;align-items:center;gap:12px;min-height:46px;padding:4px 2px;cursor:pointer}
+.tk{display:flex;align-items:center;gap:12px;min-height:40px;padding:2px;cursor:pointer}
 .tk input{position:absolute;opacity:0;width:1px;height:1px;min-height:0}
-.tk-box{flex:none;width:28px;height:28px;border-radius:9px;border:1.5px solid var(--line-2);display:grid;place-items:center;color:transparent;background:var(--surface)}
+.tk-box{flex:none;width:26px;height:26px;border-radius:8px;border:1.5px solid var(--line-2);display:grid;place-items:center;color:transparent;background:var(--surface)}
 .tk input:checked+.tk-box{background:var(--good-bg);border-color:var(--good-fill);color:var(--good)}
 .tk input:focus-visible+.tk-box{outline:2.5px solid var(--ring)}
-.tk-n{flex:1;font-size:16.5px;font-weight:600}
-.tk-n small{font-size:13px;font-weight:600;color:var(--muted);margin-inline-start:8px}
+.tk-n{flex:1;min-width:0;font-size:16px;font-weight:600;overflow-wrap:anywhere}
+.tk-n small{font-size:13px;font-weight:600;color:var(--muted);margin-inline-start:6px}
 .tk.taken{cursor:default;color:var(--muted)}
 .tk.taken small{margin-inline-start:auto;font-weight:600}
 .tabs button{min-height:42px;border-radius:17px;font-family:var(--f-display);font-weight:500;font-size:14.5px;line-height:1.15;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:5px;color:var(--muted);padding-inline:4px;transition:background .18s,color .18s}
@@ -819,6 +822,8 @@ button.row{width:100%;text-align:start}
 .sheet-actions .grow{flex:1}
 .sheet-actions .btn{min-height:48px}
 .sheet-actions:has(.primary) .grow{display:none}
+[data-form="mark-dish"] .sheet-actions{margin-top:22px;position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:3;background:var(--surface);box-shadow:0 0 0 10px var(--surface),0 40px 0 10px var(--surface)}
+[data-form="mark-dish"] .sheet-actions::before{content:"";position:absolute;left:-18px;right:-18px;bottom:calc(100% + 10px);height:22px;background:linear-gradient(rgba(255,255,255,0),var(--surface));pointer-events:none}
 .sheet-actions .btn.primary{flex:1 1 140px;max-width:380px}
 .sheet-actions:has(.primary) [data-close]:not(.primary){background:transparent;color:var(--muted);padding-inline:12px}
 .sheet-tools{display:flex;flex-wrap:wrap;gap:8px;padding-top:14px;border-top:1px solid var(--line)}
