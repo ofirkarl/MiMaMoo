@@ -22,6 +22,19 @@ jobs:
           SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
           printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+          # a quick look at the key's shape (never its contents), so a wrong paste is easy to spot
+          python3 - "$RUNNER_TEMP/sa.json" <<'PY'
+          import json, sys
+          raw = open(sys.argv[1]).read()
+          try:
+              k = json.loads(raw)
+              msg = "key: JSON ok, type=%s, project=%s, has client_email=%s, private_key looks right=%s, %d chars" % (
+                  k.get("type"), k.get("project_id"), bool(k.get("client_email")),
+                  str(k.get("private_key", "")).startswith("-----BEGIN PRIVATE KEY-----"), len(raw))
+          except Exception as e:
+              msg = "key: not JSON (%s), %d chars, starts with %r" % (type(e).__name__, len(raw), raw[:1])
+          print("::notice::" + msg)
+          PY
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
           set +e
           npx -y firebase-tools@latest deploy --only hosting --project mimamoo-b37c7 --non-interactive > "$RUNNER_TEMP/out.txt" 2>&1
