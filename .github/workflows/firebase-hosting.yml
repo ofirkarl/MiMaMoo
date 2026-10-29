@@ -42,6 +42,25 @@ jobs:
                   t[:1] == "{" and t[-1:] == "}", raw.count('"'), sum(raw.count(c) for c in "\u201c\u201d\u2018\u2019"),
                   sum(raw.count(c) for c in "\u2013\u2014"), "PRIVATE KEY" in raw, "client_email" in raw))
           print("::notice::" + msg)
+          # a paste that wrapped long lines leaves raw line breaks inside the values: take them out again
+          if not msg.startswith("key: JSON ok"):
+              out, inside, esc, dropped = [], False, False, 0
+              for c in raw:
+                  if inside and c in "\r\n":
+                      dropped += 1; continue
+                  out.append(c)
+                  if esc: esc = False
+                  elif c == "\\": esc = inside
+                  elif c == '"': inside = not inside
+              try:
+                  k = json.loads("".join(out))
+                  import base64, re
+                  body = re.sub(r"-----[A-Z ]+-----|\s", "", k.get("private_key", ""))
+                  base64.b64decode(body, validate=True)
+                  open(sys.argv[1], "w").write(json.dumps(k))
+                  print("::notice::key repaired: removed %d line breaks inside values; the private key decodes" % dropped)
+              except Exception as e:
+                  print("::error::key could not be repaired (%s). Please paste it again." % type(e).__name__)
           PY
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
           set +e
