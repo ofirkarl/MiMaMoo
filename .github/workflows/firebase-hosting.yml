@@ -63,11 +63,9 @@ jobs:
                   print("::error::key could not be repaired (%s). Please paste it again." % type(e).__name__)
           PY
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          pip install -q google-auth requests
           set +e
-          npx -y firebase-tools@latest deploy --only hosting --project mimamoo-b37c7 --non-interactive > "$RUNNER_TEMP/out.txt" 2>&1
+          python3 tools/hosting_deploy.py mimamoo-b37c7
           code=$?
           rm -f "$RUNNER_TEMP/sa.json"
-          cat "$RUNNER_TEMP/out.txt"
-          # the error, readable from the run's summary as well
-          if [ $code -ne 0 ]; then echo "::error::$(tail -c 2500 "$RUNNER_TEMP/out.txt" | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')"; fi
           exit $code
