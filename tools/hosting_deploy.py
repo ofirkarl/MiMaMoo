@@ -67,6 +67,18 @@ def main():
     call('POST', 'sites/%s/releases?versionName=%s' % (site, v), json={})
     say('notice', 'published %d files to https://%s.web.app (%s)' % (len(fs), site, v.rsplit('/', 1)[-1]))
 
+    # what the world now sees
+    import requests, time
+    want_sw = gzip.decompress(fs['/sw.js'])
+    for i in range(10):
+        got = [requests.get('https://%s.firebaseapp.com%s' % (site, p), timeout=20) for p in ('/', '/sw.js', '/__/auth/handler')]
+        if got[1].content == want_sw:
+            break
+        time.sleep(3)
+    say('notice', 'live check: / %s (%s), sw.js %s and %s, sign-in handler %s' % (
+        got[0].status_code, 'the app' if 'MiMaMoo' in got[0].text else 'NOT the app', got[1].status_code,
+        'current' if got[1].content == want_sw else 'OLD', got[2].status_code))
+
 
 if __name__ == '__main__':
     main()
