@@ -51,6 +51,9 @@ rep('<title>MiMaMoo</title>\n<meta name="claude:viewport-fit-sides" content="cov
   var h = (location.hash || '').replace(/^#/, '').split('/'), sid = null, deep = '';
   if (/^[A-Za-z0-9]{16,40}$/.test(h[0] || '')) { sid = h[0]; deep = h[1] || ''; }
   var standalone = false; try { standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) {}
+  // every group this device has been in is remembered, so joining another one never hides the first
+  var keep = function (x) { try { var a = JSON.parse(localStorage.getItem('mm:spaces') || '[]'); if (a.indexOf(x) < 0) { a.push(x); localStorage.setItem('mm:spaces', JSON.stringify(a.slice(-12))); } } catch (e) {} };
+  try { var prev = localStorage.getItem('mm:space'); if (sid && prev && prev !== sid) keep(prev); } catch (e) {}
   try { if (sid) localStorage.setItem('mm:space', sid); else sid = localStorage.getItem('mm:space'); } catch (e) {}
   // opened from the home screen with nothing stored yet: on iPhone this storage is separate from Safari's, so offer to rejoin
   window.MM_FRESH = !sid && standalone;
@@ -60,6 +63,7 @@ rep('<title>MiMaMoo</title>\n<meta name="claude:viewport-fit-sides" content="cov
     sid += 'mm' + Date.now().toString(36).slice(-4);
     try { localStorage.setItem('mm:space', sid); } catch (e) {}
   }
+  keep(sid);
   window.MM_SPACE = sid; window.MM_DEEP = deep;
   // the group stays in the address, so a page added to the home screen keeps it
   try { history.replaceState(null, '', location.pathname + location.search + '#' + sid); } catch (e) {}
@@ -221,7 +225,7 @@ function openInvite() {
 }
 async function shareLink() {
   const ev = tripData().ev; if (!ev || !navigator.share) return;
-  try { await navigator.share({title: 'MiMaMoo', text: 'מצטרפים ל״' + ev.name + '״ ב־MiMaMoo', url: spaceLink(S.tripId)}); } catch (e) {}
+  try { await navigator.share({title: 'MiMaMoo', text: 'מצטרפים ל״' + ev.name + '״ ב־MiMaMoo.\nבאייפון עם MiMaMoo במסך הבית: מעתיקים את הקישור, פותחים את האפליקציה ולוחצים "הדבקת קישור ההזמנה".', url: spaceLink(S.tripId)}); } catch (e) {}
 }
 """ + s[j:]
 rep("    case 'invite': return openInvite();", "    case 'invite': return openInvite();\n    case 'share-link': return shareLink();")
