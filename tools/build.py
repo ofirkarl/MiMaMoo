@@ -50,7 +50,10 @@ rep('<title>MiMaMoo</title>\n<meta name="claude:viewport-fit-sides" content="cov
 (function () {
   var h = (location.hash || '').replace(/^#/, '').split('/'), sid = null, deep = '';
   if (/^[A-Za-z0-9]{16,40}$/.test(h[0] || '')) { sid = h[0]; deep = h[1] || ''; }
+  var standalone = false; try { standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) {}
   try { if (sid) localStorage.setItem('mm:space', sid); else sid = localStorage.getItem('mm:space'); } catch (e) {}
+  // opened from the home screen with nothing stored yet: on iPhone this storage is separate from Safari's, so offer to rejoin
+  window.MM_FRESH = !sid && standalone;
   if (!sid) {
     var a = new Uint8Array(15), abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
     crypto.getRandomValues(a); sid = ''; for (var i = 0; i < a.length; i++) sid += abc[a[i] % abc.length];
@@ -58,7 +61,18 @@ rep('<title>MiMaMoo</title>\n<meta name="claude:viewport-fit-sides" content="cov
     try { localStorage.setItem('mm:space', sid); } catch (e) {}
   }
   window.MM_SPACE = sid; window.MM_DEEP = deep;
-  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  // the group stays in the address, so a page added to the home screen keeps it
+  try { history.replaceState(null, '', location.pathname + location.search + '#' + sid); } catch (e) {}
+  // iPhone saves the manifest's start address: give it one that carries the group
+  try {
+    var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (ios && !standalone) {
+      var base = location.origin + location.pathname, ml = document.querySelector('link[rel="manifest"]');
+      var man = {name: 'MiMaMoo', short_name: 'MiMaMoo', lang: 'he', dir: 'rtl', id: base, start_url: base + '#' + sid, scope: base, display: 'standalone', background_color: '#FAF9FC', theme_color: '#FAF9FC',
+        icons: [{src: base + 'icons/icon-192.png', sizes: '192x192', type: 'image/png'}, {src: base + 'icons/icon-512.png', sizes: '512x512', type: 'image/png'}]};
+      if (ml) ml.href = 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(man));
+    }
+  } catch (e) {}
 })();
 </script>
 ''')

@@ -303,13 +303,29 @@ span.item-main{cursor:default}
 .tk-list{display:flex;flex-direction:column;gap:2px;max-height:46vh;overflow:auto;margin-inline:-4px;padding-inline:4px}
 .tk-row{display:flex;align-items:center;gap:8px}
 .tk-row>.tk{flex:1;min-width:0}
+.tk-row{flex-wrap:wrap}
+.tk-dest{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 8px;padding-inline-start:40px}
+.tk-row:has(input[name="tk"]:not(:checked)) .tk-dest{display:none}
+.tk-dest label{position:relative;cursor:pointer}
+.tk-dest input{position:absolute;opacity:0;width:1px;height:1px;min-height:0}
+.tk-dest span{display:inline-flex;align-items:center;gap:5px;min-height:30px;padding:0 10px;border-radius:999px;border:1.5px solid var(--line);font-size:13.5px;font-weight:600;color:var(--muted)}
+.tk-dest svg{width:15px;height:15px}
+.tk-dest input:checked+span{border-color:var(--good-fill);background:var(--good-bg);color:var(--good)}
+.tk-dest label:last-child input:checked+span{border-color:var(--mine-line);background:var(--mine-bg);color:var(--mine-ink)}
+.tk-dest input:focus-visible+span{outline:2.5px solid var(--ring)}
 .tk-q{display:flex;align-items:center;gap:6px;flex:none}
 .tk-q .mstep{min-height:38px}
 .tk-of{font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
 .dish-ings{display:flex;flex-direction:column;gap:4px;max-height:34vh;overflow:auto}
 .ding-row{display:flex;align-items:center;gap:8px;min-height:42px;padding-inline-start:12px;border-radius:var(--r-md);background:var(--sunk)}
 .ding-n{flex:1;min-width:0;font-weight:600;font-size:15.5px;overflow-wrap:anywhere}
-.ding-a{flex:none;width:104px;min-height:34px;padding:0 8px;font-size:15px;text-align:center;background:var(--surface)}
+.ding-a{flex:none;width:104px;min-height:34px;padding:0 8px;font-size:15px;font-weight:700;text-align:center;background:var(--accent-soft);border:1.5px solid var(--accent-line);color:var(--accent-ink)}
+.ding-a::placeholder{color:var(--accent-deep);opacity:.55;font-weight:600}
+.ding-a:focus,#dd-amt:focus{background:var(--surface);border-color:var(--ring)}
+#dd-amt{font-weight:700;text-align:center;background:var(--accent-soft);border:1.5px solid var(--accent-line);color:var(--accent-ink)}
+#dd-amt::placeholder{color:var(--accent-deep);opacity:.55;font-weight:600}
+.tk-q .mstep{background:var(--accent-soft);border-color:var(--accent-line)}
+.tk-q .mstep input{font-weight:700;color:var(--accent-ink)}
 .ding-x{flex:none;width:34px;height:34px;display:grid;place-items:center;border-radius:50%;color:var(--muted)}
 .ding-x .ic,.ding-x svg{width:15px;height:15px}
 .ding-add{display:grid;grid-template-columns:1fr 104px auto;gap:8px}
@@ -467,6 +483,11 @@ body.is-dragging{-webkit-user-select:none;user-select:none;cursor:grabbing}
 .parts{grid-column:2;display:flex;flex-wrap:wrap;gap:6px;padding-top:4px}
 .item.has-parts{grid-template-columns:auto minmax(0,1fr) auto}
 .item.has-parts .parts{grid-column:3;grid-row:1;justify-content:flex-end;align-self:center;padding-top:0;max-width:min(58vw,300px)}
+.item.has-parts .who{min-height:26px;gap:4px;padding-inline:3px 9px;font-size:13.5px}
+.item.has-parts .who .av{width:19px;height:19px;font-size:10.5px}
+.item.has-parts .who.also{padding-inline:9px}
+.item.many-parts{grid-template-columns:auto minmax(0,1fr)}
+.item.many-parts .parts{grid-column:2;grid-row:2;max-width:none;padding-top:5px;gap:5px}
 .who{display:inline-flex;align-items:center;gap:6px;max-width:100%;min-height:30px;padding-block:2px;padding-inline:4px 10px;border-radius:999px;background:var(--sunk);font-size:14px;font-weight:600}
 .who.mine{background:var(--mine-bg);color:var(--mine-ink)}
 .who-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:16ch}
@@ -726,6 +747,8 @@ button.gchip.leaving{opacity:0;transform:scale(.85)}
 .inst-ic svg{width:17px;height:17px}
 .inst-x{position:absolute;top:6px;inset-inline-end:6px;width:30px;height:30px;display:grid;place-items:center;border-radius:50%;color:var(--muted)}
 .inst-x svg{width:14px;height:14px}
+.install.join{flex-direction:column;align-items:stretch}
+.install.join input{background:var(--surface);font-size:15px}
 .also-mine{flex:1 1 100%;display:flex;align-items:center;gap:10px;min-height:36px;font-size:14.5px;font-weight:600;color:var(--muted);cursor:pointer}
 .also-mine input{position:absolute;opacity:0;width:1px;height:1px;min-height:0}
 .also-mine .tk-box{width:24px;height:24px;border-radius:8px}
@@ -1424,7 +1447,13 @@ window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); instal
 window.addEventListener('appinstalled', () => { installEvt = null; lsSet('noInstall', '1'); render(); });
 const isStandalone = () => { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) { return false; } };
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function joinHTML() {
+  return '<form class="install join" data-form="join-space" autocomplete="off"><button type="button" class="inst-x" data-act="join-no" aria-label="להתחיל חדש">' + ICON.x + '</button>'
+    + '<span class="inst-t"><b>יש לך כבר קבוצה?</b>האפליקציה במסך הבית נפתחת נקייה. כדי לראות את האירועים שלך, מדביקים כאן את קישור ההזמנה</span>'
+    + '<div class="one-row"><input id="join-link" dir="ltr" inputmode="url" placeholder="https://…/MiMaMoo/#…" aria-label="קישור הזמנה"><button class="btn primary" type="submit">חיבור</button></div></form>';
+}
 function installHTML() {
+  if (window.MM_FRESH && !lsGet('joinAsked')) return joinHTML();
   if (!window.MM_SPACE || isStandalone() || lsGet('noInstall')) return '';
   const x = '<button type="button" class="inst-x" data-act="install-no" aria-label="לא עכשיו">' + ICON.x + '</button>';
   if (installEvt) return '<div class="install">' + x + '<span class="inst-t"><b>התקנת MiMaMoo</b>כמו כל אפליקציה, על מסך הבית</span><button type="button" class="btn primary sm" data-act="install">התקנה</button></div>';
@@ -1585,7 +1614,8 @@ function lineRow(L, T) {
       + '<span class="who-name">' + esc(g.name) + '</span>' + (extra ? '<span class="who-q">' + extra + '</span>' : '') + (p.packed ? ICON.check : '') + '</button>';
   }).join('');
   const also = L.multi && !L.pool && !L.open && !ro && L.parts.length && !L.parts.some(p => p.owner === S.me) ? '<button class="who also" data-also="' + esc(L.key) + '">+ גם אני</button>' : '';
-  return '<li class="item' + (L.needed ? '' : ' covered') + (chips || also ? ' has-parts' : '') + '">' + box
+  const nParts = L.parts.length + (also ? 1 : 0);
+  return '<li class="item' + (L.needed ? '' : ' covered') + (chips || also ? ' has-parts' : '') + (nParts > 2 ? ' many-parts' : '') + '">' + box
     + '<button class="item-main" data-edit="' + esc(L.ref.id) + '"' + (ro || (!L.open && foreign(L.ref)) ? ' disabled' : '') + '><span class="item-name">' + nm + newDot([L.ref, L.open].concat(L.parts)) + '</span>' + q + flag + '</button>'
     + (chips || also ? '<div class="parts">' + chips + also + '</div>' : '') + '</li>';
 }
@@ -1787,6 +1817,7 @@ const dishItems = d => (Array.isArray(d.items) ? d.items : []).filter(x => x && 
 // An ingredient the dish's bringer doesn't have goes to the shared list (x.sh = that item's id); anyone can take it there.
 const sharedOf = sh => S.items.filter(i => (i.src || i.id) === sh);
 const ownBy = d => dishItems(d).filter(x => !x.sh || x.part);
+const toBuyOf = d => ownBy(d).filter(x => x.buy !== false);
 const wholeAmt = a => /^\d+$/.test(String(a || '').trim()) ? Number(String(a).trim()) : 0;
 function sendToShared(d, x, qty) {
   const id = uid('i'), a = qty ? String(qty) : String(x.a || ''), whole = /^\d+$/.test(a);
@@ -1806,21 +1837,26 @@ function openMarkDish(id) {
     const tot = Number(x.tot) || wholeAmt(x.a), mine = x.part ? wholeAmt(x.a) : tot;
     // a counted ingredient (more than one): how many of them I bring; the rest goes to the shared list
     const q = tot > 1 ? '<div class="tk-q">' + miniStep('tq-' + i, mine || tot) + '<span class="tk-of">מתוך ' + tot + '</span></div>' : '';
-    return '<div class="tk-row' + (q ? ' has-q' : '') + '"><label class="tk"><input type="checkbox" name="tk" value="' + i + '"' + (x.sh && !x.part ? '' : ' checked') + '><span class="tk-box">' + ICON.check + '</span><span class="tk-n">' + esc(x.n) + (x.a && !q ? '<small>' + esc(x.a) + '</small>' : '') + '</span></label>' + q + '</div>';
+    const buy = x.buy !== false;
+    const dest = '<div class="tk-dest" role="radiogroup" aria-label="' + esc(x.n) + '"><label><input type="radio" name="td-' + i + '" value="buy"' + (buy ? ' checked' : '') + '><span>' + ICON.tshop + 'לקנות</span></label><label><input type="radio" name="td-' + i + '" value="have"' + (buy ? '' : ' checked') + '><span>' + ICON.tmine + 'יש לי · לרשימה האישית</span></label></div>';
+    return '<div class="tk-row' + (q ? ' has-q' : '') + '"><label class="tk"><input type="checkbox" name="tk" value="' + i + '"' + (x.sh && !x.part ? '' : ' checked') + '><span class="tk-box">' + ICON.check + '</span><span class="tk-n">' + esc(x.n) + (x.a && !q ? '<small>' + esc(x.a) + '</small>' : '') + '</span></label>' + q + dest + '</div>';
   }).join('');
   openSheet('<form class="stack-form" data-form="mark-dish" data-id="' + esc(id) + '" autocomplete="off"><h2 class="sheet-title">' + esc(d.name) + '</h2>'
-    + '<p class="ask-buy">מה מזה אתה מביא, וכמה? מה שלא תביא יעבור לרשימה המשותפת. מה שתביא יופיע בלשונית "קניות".</p><div class="tk-list">' + rows + '</div>'
+    + '<p class="ask-buy">מה מזה אתה מביא, וכמה? מה שלא תביא יעבור לרשימה המשותפת. מה שצריך לקנות יופיע ב"קניות", ומה שיש לך ייכנס לרשימה האישית.</p><div class="tk-list">' + rows + '</div>'
     + sheetActions('', 'אני מביא') + '</form>');
 }
 function markDish(f) {
   const T = tripData(), d = S.dishes.find(x => x.id === f.dataset.id); if (!d) return;
   const keep = new Set([...f.querySelectorAll('input[name="tk"]:checked')].map(x => Number(x.value)));
   const items = dishItems(d).map(x => Object.assign({}, x));
-  let sent = 0;
+  let sent = 0, toMine = 0;
   items.forEach((x, i) => {
     if (x.sh && sharedOf(x.sh).some(it => it.owner && T.gmap[it.owner])) return;  // already taken from the shared list
     const tot = Number(x.tot) || wholeAmt(x.a), qi = f.querySelector('#tq-' + i), n = qi ? Math.max(1, Math.min(tot, clampQ(qi.value))) : tot;
     const openSh = x.sh && sharedOf(x.sh).find(it => !it.owner);
+    const dst = f.querySelector('input[name="td-' + i + '"]:checked');
+    if (dst) x.buy = dst.value !== 'have';
+    if (keep.has(i) && x.buy === false && soloBase() && !inMine(x.n)) { addSoloItem(x.n, tot ? n : 1, guessCat(x.n)); toMine++; }
     if (keep.has(i) && (!tot || n >= tot)) {  // all of it
       if (x.sh) dropShared(x.sh);
       delete x.sh; delete x.part; delete x.tot; if (tot) x.a = String(tot);
@@ -1836,7 +1872,7 @@ function markDish(f) {
   });
   closeSheet();
   fire(Store.update(dishPath(d.id), {owner: S.me, items}));
-  toast(d.name + ' אצלך' + (sent ? ' · ' + (sent === 1 ? 'מצרך אחד עבר' : sent + ' מצרכים עברו') + ' לרשימה המשותפת' : ''));
+  toast(d.name + ' אצלך' + (sent ? ' · ' + (sent === 1 ? 'מצרך אחד עבר' : sent + ' מצרכים עברו') + ' לרשימה המשותפת' : '') + (toMine ? ' · ' + toMine + ' לרשימה האישית' : ''));
 }
 const mealPeople = T => Math.max(1, T.guests.length || Number(T.ev && T.ev.meatPeople) || 1);
 function tplAmount(spec, people) {
@@ -1871,10 +1907,10 @@ function mealCard(T, di, k, title) {
 const openShared = d => dishItems(d).filter(x => x.sh && !sharedOf(x.sh).some(i => i.owner));
 function dishRow(T, d) {
   const g = d.owner && T.gmap[d.owner], items = dishItems(d), ro = S.readOnly;
-  return '<li class="dish"><button class="dish-main" data-dish="' + esc(d.id) + '"' + (ro ? ' disabled' : '') + '><span class="dish-name">' + esc(d.name) + '</span>'
+  return '<li class="dish' + (ro ? '' : selCls('dishes', d.id)) + '"' + (ro ? '' : selAt('dishes', d.id)) + '>' + (ro ? '' : selBox) + '<button class="dish-main" data-dish="' + esc(d.id) + '"' + (ro ? ' disabled' : '') + '><span class="dish-name">' + esc(d.name) + '</span>'
     + (items.length ? '<span class="dish-items">' + esc(items.map(x => x.n + (x.a ? ' ' + x.a : '')).join(' · ')) + '</span>' : '')
     + (openShared(d).length ? '<span class="dish-miss">ברשימה המשותפת: ' + esc(openShared(d).map(x => x.n).join(', ')) + '</span>' : '') + '</button>'
-    + (g && g.id === S.me && ownBy(d).some(x => !x.got) ? '<button type="button" class="dish-shop" data-tab="shop" aria-label="לקניות: ' + ownBy(d).filter(x => !x.got).length + ' מצרכים">' + ICON.tshop + '<b>' + ownBy(d).filter(x => !x.got).length + '</b></button>' : '')
+    + (g && g.id === S.me && toBuyOf(d).some(x => !x.got) ? '<button type="button" class="dish-shop" data-tab="shop" aria-label="לקניות: ' + toBuyOf(d).filter(x => !x.got).length + ' מצרכים">' + ICON.tshop + '<b>' + toBuyOf(d).filter(x => !x.got).length + '</b></button>' : '')
     + (g ? '<button class="who' + (g.id === S.me ? ' mine' : '') + '" data-dish="' + esc(d.id) + '"' + (ro ? ' disabled' : '') + '>' + av(g, 'xs') + '<span class="who-name">' + esc(g.name) + '</span></button>'
       : (ro ? '' : '<button type="button" class="btn sm" data-dish-mark="' + esc(d.id) + '">אני מביא</button>'))
     + '</li>';
@@ -1977,9 +2013,9 @@ function toggleIngredient(spec) {
 // In the shopping tab: the ingredients of the dishes I bring, one block per dish
 function shopDishesHTML(T, dishes) {
   return dishes.map(d => {
-    const items = dishItems(d), mine = ownBy(d); if (!mine.length) return '';
+    const items = dishItems(d), mine = toBuyOf(d); if (!mine.length) return '';
     return '<div class="cat"><div class="cat-head"><span class="cat-pill dish-pill">' + esc(d.name) + '<small>' + esc(mealName(T.ev, d.day, d.slot)) + '</small></span><span class="cat-count">' + mine.filter(x => x.got).length + '/' + mine.length + '</span></div><ul class="items">'
-      + items.map((x, i) => ({x, i})).filter(o => !o.x.sh || o.x.part).sort((a, b) => (!!a.x.got - !!b.x.got) || a.i - b.i).map(({x, i}) => '<li class="item' + (x.got ? ' packed' : '') + '"><button class="pk' + (x.got ? ' on' : '') + '" data-ding="' + esc(d.id + '|' + i) + '" aria-pressed="' + !!x.got + '" aria-label="נקנה: ' + esc(x.n) + '"' + (S.readOnly ? ' disabled' : '') + '>' + ICON.check + '</button><span class="item-main"><span class="item-name">' + esc(x.n) + '</span>' + (x.a ? '<span class="qty">' + esc(x.a) + '</span>' : '') + '</span></li>').join('')
+      + items.map((x, i) => ({x, i})).filter(o => (!o.x.sh || o.x.part) && o.x.buy !== false).sort((a, b) => (!!a.x.got - !!b.x.got) || a.i - b.i).map(({x, i}) => '<li class="item' + (x.got ? ' packed' : '') + '"><button class="pk' + (x.got ? ' on' : '') + '" data-ding="' + esc(d.id + '|' + i) + '" aria-pressed="' + !!x.got + '" aria-label="נקנה: ' + esc(x.n) + '"' + (S.readOnly ? ' disabled' : '') + '>' + ICON.check + '</button><span class="item-main"><span class="item-name">' + esc(x.n) + '</span>' + (x.a ? '<span class="qty">' + esc(x.a) + '</span>' : '') + '</span></li>').join('')
       + '</ul></div>';
   }).join('');
 }
@@ -1993,7 +2029,7 @@ function laneDishesHTML(T, gid) {
 function shopHTML(list, own) {
   if (!S.itemsLoaded) return '<p class="muted pad">נטען…</p>';
   own = own || [];
-  if (!list.length && !own.length) return S.dishes.some(d => d.owner === S.me && ownBy(d).length) ? '' : '<p class="empty-in">אין מה לקנות</p>';
+  if (!list.length && !own.length) return S.dishes.some(d => d.owner === S.me && toBuyOf(d).length) ? '' : '<p class="empty-in">אין מה לקנות</p>';
   // what I said I'd bring and marked to buy, together with what I added to my own shopping list
   const all = list.map(i => ({i, ev: true, got: !!i.bought})).concat(own.map(i => ({i, ev: false, got: !!i.packed})));
   return buyListHTML(all, x => x.ev ? shopRow(x.i) : ownShopRow(x.i));
@@ -2212,8 +2248,8 @@ function updateTrip() {
   const ess = byId('r-ess'); if (ess) ess.innerHTML = essHTML(T);
   const eg = byId('eg-chips'); if (eg) eg.innerHTML = egChips();
   const toBuy = T.items.filter(i => i.buy && S.me && i.owner === S.me);
-  const myDishes = mealsOn(ev) && S.me ? S.dishes.filter(d => d.owner === S.me && ownBy(d).length).sort((a, b) => (a.day - b.day) || ('bld'.indexOf(a.slot) - 'bld'.indexOf(b.slot))) : [];
-  const ingr = myDishes.reduce((a, d) => a.concat(ownBy(d)), []);
+  const myDishes = mealsOn(ev) && S.me ? S.dishes.filter(d => d.owner === S.me && toBuyOf(d).length).sort((a, b) => (a.day - b.day) || ('bld'.indexOf(a.slot) - 'bld'.indexOf(b.slot))) : [];
+  const ingr = myDishes.reduce((a, d) => a.concat(toBuyOf(d)), []);
   const own = S.shopId ? S.shopItems : [];
   byId('shop-form').hidden = !soloBase();
   byId('r-shprog').innerHTML = S.itemsLoaded ? progHTML(toBuy.filter(i => i.bought).length + own.filter(i => i.packed).length + ingr.filter(x => x.got).length, toBuy.length + own.length + ingr.length, 'נקנו', 'הכול נקנה') : '';
@@ -2330,7 +2366,6 @@ function shellSettings() {
   return '<header class="top"><div class="wrap top-in"><button class="back" data-act="home">' + ICON.back + '<span>חזרה</span></button>'
     + (window.MM_SPACE ? '<button class="icon-btn gear share-btn" data-act="share-app" aria-label="שיתוף האפליקציה" title="שיתוף האפליקציה">' + ICON.share + '</button>' : '') + '</div></header>'
     + '<main class="wrap page"><h1 class="page-h">הגדרות</h1>'
-    + '<section class="set-sec"><div class="col-top"><h2>השם שלי</h2></div><div class="panel"><input id="my-name" maxlength="40" placeholder="שם" aria-label="השם שלי" value="' + esc(lsGet('myName') || '') + '"></div></section>'
     + sec('tpls', 'תבניות', 'new-tpl', '<div id="r-tpls" class="tpl-list" data-fold-body="tpls" hidden></div>')
     + sec('cats', 'קטגוריות', 'new-cat', '<div id="r-cats" class="panel set-list" data-fold-body="cats" hidden></div>')
     + sec('prefs', 'עריכת פריטים', '', '<div id="r-prefs" class="panel set-list" data-fold-body="prefs" hidden></div>')
@@ -3612,6 +3647,7 @@ function act(a) {
     case 'invite': return openInvite();
     case 'install': if (installEvt) { const ev = installEvt; ev.prompt(); ev.userChoice.then(r => { if (r && r.outcome === 'accepted') lsSet('noInstall', '1'); installEvt = null; render(); }, () => {}); } return;
     case 'install-no': lsSet('noInstall', '1'); render(); return;
+    case 'join-no': lsSet('joinAsked', '1'); render(); return;
     case 'share-app':
       if (navigator.share) navigator.share({title: 'MiMaMoo', text: 'MiMaMoo · מי מביא מה', url: appLink()}).catch(() => {});
       else try { navigator.clipboard.writeText(appLink()).then(() => toast('הקישור לאפליקציה הועתק'), () => {}); } catch (e) {}
@@ -3761,6 +3797,10 @@ async function runSelDelete() {
   if (ctx === 'trips' || ctx === 'money') { for (const id of ids) await dropEvent(id); }
   else if (ctx === 'solos') { const b = soloBase(); if (b) for (const id of ids) await dropSolo(b, id); }
   else if (ctx === 'tpls') await runLimited(ids.map(id => () => Store.del('templates/' + id)), 4);
+  else if (ctx === 'dishes') {  // a dish goes with its ingredients still waiting in the shared list
+    S.items.filter(i => i.dish && ids.includes(i.dish) && !i.owner).forEach(i => fire(Store.del(itemPath(i.id))));
+    await runLimited(ids.map(id => () => Store.del(dishPath(id))), 4);
+  }
   else if (ctx === 'group') {
     const T = tripData(), docs = S.items.filter(i => i.scope !== 'p' && ids.includes(i.src || i.id) && (!T.owned(i) || i.owner === S.me));
     await runLimited(docs.map(d => () => Store.del(itemPath(d.id))), 4);
@@ -3999,6 +4039,13 @@ const forms = {
     const first = !lsGet('myName'); lsSet('myName', v); S.helloEdit = false; i.blur(); render();
     toast(first ? 'נעים להכיר, ' + v : 'השם עודכן');
   },
+  'join-space'() {
+    const inp = byId('join-link'), m = (inp.value || '').match(/#([A-Za-z0-9]{16,40})/);
+    if (!m) { toast('זה לא נראה כמו קישור הזמנה', true); inp.focus(); return; }
+    lsSet('joinAsked', '1');
+    try { localStorage.setItem('mm:space', m[1]); } catch (e) {}
+    location.replace(location.pathname + '#' + m[1]); location.reload();
+  },
   'new-trip'(f) { createTrip(f); },
   meals(f) {
     const ev = tripData().ev; if (!ev) return;
@@ -4186,7 +4233,7 @@ const forms = {
 document.addEventListener('submit', e => {
   const f = e.target.closest('form[data-form]'); if (!f) return;
   e.preventDefault();
-  const kind = f.dataset.form, soloForm = ['new-solo', 'edit-solo', 'add-solo', 'add-mine', 'solo-item', 'hello', 'new-shop', 'edit-shop', 'shop-add', 'shop-item'].includes(kind) || (kind === 'quick-add' && f.dataset.ctx === 's');
+  const kind = f.dataset.form, soloForm = ['new-solo', 'edit-solo', 'add-solo', 'add-mine', 'solo-item', 'hello', 'new-shop', 'edit-shop', 'shop-add', 'shop-item', 'join-space'].includes(kind) || (kind === 'quick-add' && f.dataset.ctx === 's');
   if (S.readOnly && !soloForm) return;
   // adding from an open fold keeps it open, even once the list is no longer empty
   const fold = f.closest('.addfold'); if (fold && fold.classList.contains('open')) S.af[fold.id.slice(3)] = true;
