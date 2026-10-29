@@ -401,6 +401,10 @@ span.item-main{cursor:default}
 .board.solo-board{max-width:780px;grid-template-columns:minmax(0,1fr)}
 .col{display:flex;flex-direction:column;gap:14px;min-width:0}
 .col-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fold-row{display:flex;align-items:flex-start;gap:8px}
+.fold-row>.addfold{flex:1;min-width:0}
+.fold-row>.srch-wrap{flex:none}
+@media (max-width:959px){#col-mine>.col-panel>.col-head{display:none}}
 .col-head>.label{flex:1 1 100%}
 .col-head>.search{flex:1 1 220px}
 .viewbar{flex:1 1 220px;display:flex;align-items:center;gap:8px;min-width:0}
@@ -1695,9 +1699,9 @@ function shellTrip() {
     + '<div id="r-shprog" class="prog-slot"></div><div id="r-shop"></div></div></section>'
     + '<section class="col" id="col-notes"><div class="panel col-panel"><div id="r-notes"></div></div></section>'
     + '<section class="col" id="col-mine"><div class="panel col-panel">'
-    + '<div class="col-head"><h2 class="label">רשימה אישית</h2>' + searchBtn() + '</div>'
-    + foldOpen('mine') + '<form class="add-row" data-form="add-mine" id="mine-form" autocomplete="off">' + nameInput('am-name-' + e, 'am-qty-' + e, 'הוספת פריט') + miniStep('am-qty-' + e) + '<button class="btn primary" type="submit">הוספה</button></form>'
-    + '<div id="r-ess"></div>' + foldClose + '<div id="r-mprog" class="prog-slot"></div><div id="r-mine"></div></div></section>'
+    + '<div class="col-head"><h2 class="label">רשימה אישית</h2></div>'
+    + '<div class="fold-row">' + foldOpen('mine') + '<form class="add-row" data-form="add-mine" id="mine-form" autocomplete="off">' + nameInput('am-name-' + e, 'am-qty-' + e, 'הוספת פריט') + miniStep('am-qty-' + e) + '<button class="btn primary" type="submit">הוספה</button></form>'
+    + '<div id="r-ess"></div>' + foldClose + searchBtn() + '</div><div id="r-mprog" class="prog-slot"></div><div id="r-mine"></div></div></section>'
     + '</main></div>';
 }
 /* New in the shared list: what someone else added since I last had this event open, or while I'm in it.
@@ -2407,9 +2411,8 @@ function shellSolo() {
   return headOpen() + '<div class="wrap"><div class="trip-nav"><button class="back" data-act="home">' + ICON.back + '<span>חזרה</span></button><div class="nav-actions" id="r-solo-nav"></div></div><div id="r-head"></div></div></header>'
     + '<div id="r-body">'
     + '<main class="wrap board solo-board"><section class="col on"><div class="panel col-panel">'
-    + '<div class="col-head">' + searchBtn() + '</div>'
-    + foldOpen('solo') + '<form class="add-row" data-form="add-solo" autocomplete="off">' + nameInput('as-name', 'as-qty', 'הוספת פריט') + miniStep('as-qty') + '<button class="btn primary" type="submit">הוספה</button></form>'
-    + '<div id="r-ess"></div>' + foldClose
+    + '<div class="fold-row">' + foldOpen('solo') + '<form class="add-row" data-form="add-solo" autocomplete="off">' + nameInput('as-name', 'as-qty', 'הוספת פריט') + miniStep('as-qty') + '<button class="btn primary" type="submit">הוספה</button></form>'
+    + '<div id="r-ess"></div>' + foldClose + searchBtn() + '</div>'
     + '<div id="r-sprog" class="prog-slot"></div><div id="r-solo"></div></div></section></main></div>';
 }
 function soloRow(i) {
