@@ -32,7 +32,15 @@ jobs:
                   k.get("type"), k.get("project_id"), bool(k.get("client_email")),
                   str(k.get("private_key", "")).startswith("-----BEGIN PRIVATE KEY-----"), len(raw))
           except Exception as e:
-              msg = "key: not JSON (%s), %d chars, starts with %r" % (type(e).__name__, len(raw), raw[:1])
+              t = raw.strip()
+              cls = lambda c: "quote" if c == '"' else "newline" if c == "\n" else "space" if c.isspace() else "letter/digit" if c.isalnum() else "U+%04X" % ord(c)
+              pos = getattr(e, "pos", None)
+              msg = ("key: not JSON: %s at line %s col %s (char there: %s), %d chars, %d lines, braces at ends=%s, "
+                     "straight quotes=%d, curly quotes=%d, long dashes=%d, has PRIVATE KEY=%s, has client_email=%s" % (
+                  getattr(e, "msg", type(e).__name__), getattr(e, "lineno", "?"), getattr(e, "colno", "?"),
+                  cls(raw[pos]) if pos is not None and pos < len(raw) else "end", len(raw), raw.count("\n") + 1,
+                  t[:1] == "{" and t[-1:] == "}", raw.count('"'), sum(raw.count(c) for c in "\u201c\u201d\u2018\u2019"),
+                  sum(raw.count(c) for c in "\u2013\u2014"), "PRIVATE KEY" in raw, "client_email" in raw))
           print("::notice::" + msg)
           PY
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
