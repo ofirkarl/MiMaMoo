@@ -1,0 +1,13 @@
+# Opens the live app in a headless browser and reports what a first-time visitor sees (run by hand).
+name: Live check
+on:
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          pip install -q playwright
+          python3 -m playwright install --with-deps chromium > /dev/null
+          python3 tools/live_check.py
