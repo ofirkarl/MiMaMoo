@@ -450,7 +450,12 @@ body.is-dragging{-webkit-user-select:none;user-select:none;cursor:grabbing}
 .addfold.open .af-body{grid-template-rows:1fr}
 .af-in{min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:12px;padding:3px;margin:-3px;visibility:hidden;transition:visibility 0s .3s}
 .addfold.open .af-in{visibility:visible;transition-delay:0s}
-.af-in>:first-child{margin-top:12px}
+.af-in>:first-child{margin-top:0}
+.add-one{flex-wrap:wrap;align-items:center}
+.add-one .grow{flex:1 1 0;min-width:0;background:var(--accent-soft);border:1.5px solid var(--accent-line);font-weight:600}
+.add-one .grow::placeholder{color:var(--accent-deep);opacity:.75;font-weight:600}
+.add-one .grow:focus{background:var(--surface);border-color:var(--ring)}
+.add-one .add-go{flex:none}
 
 /* Item bank and suggestions */
 .bank{display:flex;flex-direction:column;gap:10px;background:var(--bg);border-radius:var(--r-md);padding:10px 12px}
@@ -472,6 +477,8 @@ body.is-dragging{-webkit-user-select:none;user-select:none;cursor:grabbing}
 .cat-count{font-family:var(--f-display);font-weight:500;font-size:13.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .cat-ic{display:inline-grid;place-items:center;flex:none;width:20px;height:20px;font-size:16px;line-height:1}
 .items{list-style:none;margin:0;padding:0}
+.items>.item+.item,.dishes>.dish+.dish{border-top:1px solid #F3F1F7}
+.items>.item.cat-add{border-top:0}
 .item{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:12px;align-items:center;padding-block:7px}
 .item.has-del{grid-template-columns:auto minmax(0,1fr) auto}
 .item-main{grid-column:2;display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;text-align:start;min-height:30px;padding:2px 0}
@@ -487,9 +494,11 @@ body.is-dragging{-webkit-user-select:none;user-select:none;cursor:grabbing}
 .parts{grid-column:2;display:flex;flex-wrap:wrap;gap:6px;padding-top:4px}
 .item.has-parts{grid-template-columns:auto minmax(0,1fr) auto}
 .item.has-parts .parts{grid-column:3;grid-row:1;justify-content:flex-end;align-self:center;padding-top:0;max-width:min(58vw,300px)}
-.item.has-parts .who{min-height:26px;gap:4px;padding-inline:3px 9px;font-size:13.5px}
-.item.has-parts .who .av{width:19px;height:19px;font-size:10.5px}
-.item.has-parts .who.also{padding-inline:9px}
+.item .who,.dish .who{min-height:23px;gap:3px;padding-block:1px;padding-inline:2px 8px;font-size:12.5px}
+.item .who .av,.dish .who .av{width:16px;height:16px;font-size:9.5px}
+.item .who svg{width:12px;height:12px}
+.item .who.also{padding-inline:8px}
+.item .who-name{max-width:12ch}
 .item.many-parts{grid-template-columns:auto minmax(0,1fr)}
 .item.many-parts .parts{grid-column:2;grid-row:2;max-width:none;padding-top:5px;gap:5px}
 .who{display:inline-flex;align-items:center;gap:6px;max-width:100%;min-height:30px;padding-block:2px;padding-inline:4px 10px;border-radius:999px;background:var(--sunk);font-size:14px;font-weight:600}
@@ -985,7 +994,7 @@ function fmtMoney(ag) {
 function listNames(a) { return a.length < 2 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' ו' + a[a.length - 1]; }
 function parseName(s) {
   s = String(s || '').trim().replace(/\s+/g, ' ');
-  const m = s.match(/^(.*\S)\s*[x×]\s*(\d{1,3})$/i);
+  const m = s.match(/^(.*\S)\s*[x×]\s*(\d{1,3})$/i) || s.match(/^(.*\S)\s+(\d{1,3})$/);
   return m ? {name: m[1].trim(), qty: clampQ(m[2])} : {name: s, qty: 1};
 }
 
@@ -1025,7 +1034,7 @@ function av(g, size) {
 }
 const catOptions = sel => CATS.map(c => '<option value="' + esc(c.id) + '"' + (c.id === sel ? ' selected' : '') + '>' + esc((c.icon ? c.icon + ' ' : '') + c.label) + '</option>').join('');
 const miniStep = (id, val) => '<div class="mstep"><button type="button" data-ms="-1" data-for="' + id + '" aria-label="פחות">−</button><input id="' + id + '" type="number" inputmode="numeric" enterkeyhint="done" min="1" max="999" value="' + (val || 1) + '" aria-label="כמות"><button type="button" data-ms="1" data-for="' + id + '" aria-label="יותר">+</button></div>';
-const nameInput = (id, nextId, ph) => '<input class="grow" id="' + id + '" data-next="' + nextId + '" enterkeyhint="enter" placeholder="' + ph + '" maxlength="80" aria-label="שם הפריט">';
+const nameInput = (id, nextId, ph) => '<input class="grow" id="' + id + '" data-next="' + nextId + '" enterkeyhint="enter" placeholder="+ ' + ph + '" maxlength="80" aria-label="שם הפריט">';
 const unitSelect = (id, unit) => '<select id="' + id + '" aria-label="יחידה" style="flex:1 1 120px;width:auto"><option value=""' + (unit === SIX ? '' : ' selected') + '>יחידות</option><option value="' + SIX + '"' + (unit === SIX ? ' selected' : '') + '>' + SIX + '</option></select>';
 const catAdd = (ctx, cat) => '<li class="item cat-add"><button class="add-more" data-catadd="' + ctx + '|' + cat + '">+ הוספה</button></li>';
 function setPrefs(d) {
@@ -1542,7 +1551,7 @@ function shellTrip() {
     + '<main class="wrap board">'
     + '<section class="col" id="col-group"><div class="panel col-panel">'
     + '<div class="col-head"><h2 class="label">רשימה משותפת</h2><div class="viewbar"><span class="view-lbl">תצוגה:</span><div class="seg" id="r-filter"></div></div>' + searchBtn() + '</div>'
-    + (ro ? '<div id="r-bank"></div>' : foldOpen('group') + '<form class="add-row" data-form="add-group" autocomplete="off">' + nameInput('ag-name-' + e, 'ag-qty-' + e, 'הוספת פריט') + miniStep('ag-qty-' + e) + '<button class="btn primary" type="submit">הוספה</button>'
+    + (ro ? '<div id="r-bank"></div>' : foldOpen('group') + '<form class="add-row add-one" data-form="add-group" autocomplete="off">' + nameInput('ag-name-' + e, 'ag-qty-' + e, 'הוספת פריט') + '<button class="btn primary add-go" type="submit">הוספה</button>'
       + '<label class="also-mine" id="ag-mine-row"><input type="checkbox" id="ag-mine"><span class="tk-box">' + ICON.check + '</span><span>הוספה גם לרשימה האישית</span></label></form><div id="r-bank"></div>' + foldClose)
     + '<div id="r-gprog" class="prog-slot"></div><div id="r-group"></div>'
     + '</div></section>'
@@ -1555,12 +1564,12 @@ function shellTrip() {
     + '<div id="r-meals"></div></div></section>'
     + '<section class="col" id="col-shop"><div class="panel col-panel">'
     + '<div class="col-head"><h2 class="label">קניות</h2></div>'
-    + '<form class="add-row shop-add" data-form="shop-add" id="shop-form" autocomplete="off">' + nameInput('sh-name-' + e, 'sh-qty-' + e, 'הוספת פריט לקניות') + miniStep('sh-qty-' + e) + '<button class="btn primary" type="submit">הוספה</button></form>'
+    + '<form class="add-row add-one shop-add" data-form="shop-add" id="shop-form" autocomplete="off">' + nameInput('sh-name-' + e, 'sh-qty-' + e, 'הוספת פריט לקניות') + '<button class="btn primary add-go" type="submit">הוספה</button></form>'
     + '<div id="r-shprog" class="prog-slot"></div><div id="r-shop"></div></div></section>'
     + '<section class="col" id="col-notes"><div class="panel col-panel"><div id="r-notes"></div></div></section>'
     + '<section class="col" id="col-mine"><div class="panel col-panel">'
     + '<div class="col-head"><h2 class="label">רשימה אישית</h2></div>'
-    + '<div class="fold-row">' + foldOpen('mine') + '<form class="add-row" data-form="add-mine" id="mine-form" autocomplete="off">' + nameInput('am-name-' + e, 'am-qty-' + e, 'הוספת פריט') + miniStep('am-qty-' + e) + '<button class="btn primary" type="submit">הוספה</button></form>'
+    + '<div class="fold-row">' + foldOpen('mine') + '<form class="add-row add-one" data-form="add-mine" id="mine-form" autocomplete="off">' + nameInput('am-name-' + e, 'am-qty-' + e, 'הוספת פריט') + '<button class="btn primary add-go" type="submit">הוספה</button></form>'
     + '<div id="r-ess"></div>' + foldClose + searchBtn() + '</div><div id="r-mprog" class="prog-slot"></div><div id="r-mine"></div></div></section>'
     + '</main></div>';
 }
@@ -2088,7 +2097,7 @@ function essHTML(T) {
       : '<button class="bchip" data-pb="' + esc(x.name) + '">+ ' + esc(x.name) + '</button>'});
   });
   if (!chips.length) return '';
-  const D = soloData(), open = S.pbOpen != null ? S.pbOpen : D.items.length < 3;
+  const open = S.pbOpen === true;  // suggestions start closed, like the shared list's
   return '<div class="bank"><div class="bank-top"><button class="bank-toggle" data-act="pb-toggle" aria-expanded="' + open + '">' + ICON.down + '<span>הצעות (' + chips.length + ')</span></button>' + (open ? '<button type="button" class="btn sm" data-act="pb-all">הוספת הכול</button>' : '') + '</div>'
     + (open ? CATS.map(c => { const ls = chips.filter(x => x.cat === c.id); if (!ls.length) return ''; return '<div class="bank-cat">' + catMark(c) + '<div class="chip-list">' + ls.map(x => x.html).join('') + '</div></div>'; }).join('') : '')
     + '</div>';
@@ -2175,13 +2184,10 @@ function crewHTML(T) {
     + gs.map(g => '<li' + (g.id === S.me ? ' class="me"' : '') + '><span>' + esc(g.name) + '</span>' + joinMark(g) + '</li>').join('') + '</ul></div></div>';
 }
 // Add form + suggestions folded into one row; open by default only while the list is empty.
-const foldOpen = key => '<div class="addfold" id="af-' + key + '"><button type="button" class="af-head" data-act="addfold" data-af="' + key + '" aria-expanded="false"><span class="af-plus" aria-hidden="true">+</span><span>הוספת פריטים</span>' + ICON.down + '</button><div class="af-body"><div class="af-in">';
+// The add row is always open: just the (yellow) writing line, with the suggestions under it
+const foldOpen = key => '<div class="addfold open" id="af-' + key + '"><div class="af-body"><div class="af-in">';
 const foldClose = '</div></div></div>';
-function syncFold(key, empty) {
-  const f = byId('af-' + key); if (!f) return;
-  const open = S.af[key] != null ? S.af[key] : empty;
-  f.classList.toggle('open', open); f.querySelector('.af-head').setAttribute('aria-expanded', open);
-}
+function syncFold() {}
 // "X/Y" progress, shown as a slim line right above a list.
 function progHTML(n, total, label, doneLabel) {
   if (!total) return '';
@@ -2271,7 +2277,7 @@ function shellSolo() {
   return headOpen() + '<div class="wrap"><div class="trip-nav"><button class="back" data-act="home">' + ICON.back + '<span>חזרה</span></button><div class="nav-actions" id="r-solo-nav"></div></div><div id="r-head"></div></div></header>'
     + '<div id="r-body">'
     + '<main class="wrap board solo-board"><section class="col on"><div class="panel col-panel">'
-    + '<div class="fold-row">' + foldOpen('solo') + '<form class="add-row" data-form="add-solo" autocomplete="off">' + nameInput('as-name', 'as-qty', 'הוספת פריט') + miniStep('as-qty') + '<button class="btn primary" type="submit">הוספה</button></form>'
+    + '<div class="fold-row">' + foldOpen('solo') + '<form class="add-row add-one" data-form="add-solo" autocomplete="off">' + nameInput('as-name', 'as-qty', 'הוספת פריט') + '<button class="btn primary add-go" type="submit">הוספה</button></form>'
     + '<div id="r-ess"></div>' + foldClose + searchBtn() + '</div>'
     + '<div id="r-sprog" class="prog-slot"></div><div id="r-solo"></div></div></section></main></div>';
 }
@@ -2505,7 +2511,7 @@ function shellTemplate() {
     + '<main class="wrap page">'
     + (ro ? '<h1 class="display trip-title" id="tpl-title"></h1>' : '<input id="tpl-name" class="title-input" maxlength="60" aria-label="שם התבנית" value="' + esc(t ? t.name : '') + '">')
     + '<section class="panel col-panel">'
-    + (ro ? '' : '<form class="add-row" data-form="tpl-add" autocomplete="off">' + nameInput('tpl-add-name', 'tpl-add-qty', 'הוספת פריט') + miniStep('tpl-add-qty') + '<button class="btn primary" type="submit">הוספה</button>' + searchBtn() + '</form>')
+    + (ro ? '' : '<form class="add-row add-one" data-form="tpl-add" autocomplete="off">' + nameInput('tpl-add-name', 'tpl-add-qty', 'הוספת פריט') + '<button class="btn primary add-go" type="submit">הוספה</button>' + searchBtn() + '</form>')
     + (ro ? '<div class="col-head">' + searchBtn() + '</div>' : '') + '<div id="r-tpl-items"></div></section>'
     + '</main>';
 }
@@ -3637,7 +3643,7 @@ function act(a) {
     case 'templates': case 'settings': stopView(); S.view = 'settings'; S.tripId = null; S.soloId = null; S.q = ''; render(); window.scrollTo(0, 0); return;
     case 'new-cat': return openCatSheet(null);
     case 'sel-cancel': return exitSel();
-    case 'pb-toggle': { const open = S.pbOpen != null ? S.pbOpen : soloData().items.length < 3; S.pbOpen = !open; render(); return; }
+    case 'pb-toggle': { S.pbOpen = S.pbOpen !== true; render(); return; }
     case 'eg-add': return egAdd();
     case 'q-clear': S.q = ''; document.querySelectorAll('.search-in').forEach(x => { x.value = ''; }); document.querySelectorAll('.search-x').forEach(b => { b.hidden = true; }); render(); if (!byId('spop').hidden) byId('q-pop').focus(); return;
     case 'search': return openSearch();
