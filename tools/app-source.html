@@ -683,6 +683,9 @@ button.set-row{width:100%;padding-inline:8px;text-align:start;gap:12px}
 .money-sum{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .money-sum>div{background:var(--accent-soft);border-radius:var(--r-md);padding:12px 14px;display:flex;flex-direction:column;gap:2px}
 .money-sum>div+div{background:var(--sunk)}
+.money-sum.one{grid-template-columns:1fr}
+.money-sec+.money-sum,.money-sum+.money-sec,.money-sec+.money-sec{margin-top:18px}
+.money-out{padding:12px 2px 2px;border-top:1px solid var(--line);font-size:14px;color:var(--muted);line-height:1.5}
 .money-sum .big{font-family:var(--f-display);font-weight:600;font-size:25px;line-height:1.1;font-variant-numeric:tabular-nums}
 .money-sum small{color:var(--muted);font-size:13.5px;font-weight:600}
 .money-sec{display:flex;flex-direction:column}
@@ -2309,15 +2312,23 @@ function moneyHTML(T) {
       return open(x) + '<span class="row-main"><b>החזר: ' + esc(f ? f.name : '?') + ' ← ' + esc(to ? to.name : '?') + '</b></span><span class="amt">' + fmtMoney(amt) + '</span></button>';
     }
     const p = T.gmap[x.payer]; const among = (x.among || []).filter(id => T.gmap[id]);
-    const amongTxt = (!among.length || among.length === T.guests.length) ? 'כולם' : among.length + ' משתתפים';
+    const names = among.map(id => T.gmap[id].name);
+    const amongTxt = (!among.length || among.length === T.guests.length) ? 'כולם' : among.length <= 2 ? 'בשביל ' + names.join(' ו') : among.length + ' משתתפים';
     return open(x) + '<span class="row-main"><b>' + esc(x.title || 'הוצאה') + '</b><small>' + esc(p ? p.name : '?') + ' · ' + amongTxt + '</small></span><span class="amt">' + fmtMoney(amt) + '</span></button>';
   }).join('') + '</div>';
-  h += '<div class="money-sum"><div><span class="big">' + fmtMoney(B.total) + '</span><small>סה״כ</small></div><div><span class="big">' + fmtMoney(Math.round(B.total / T.guests.length)) + '</span><small>לאדם</small></div></div>';
-  h += '<div class="money-sec"><h3>מאזן</h3>' + T.guests.map(g => {
+  // "per person" is true only when every expense is split among everyone; otherwise each one's share differs, and the total stands alone
+  const amongOf = x => { const a = (x.among || []).filter(id => T.gmap[id]); return a.length ? a : T.guests.map(g => g.id); };
+  const evenly = real.every(x => amongOf(x).length === T.guests.length);
+  h += '<div class="money-sum' + (evenly ? '' : ' one') + '"><div><span class="big">' + fmtMoney(B.total) + '</span><small>סה״כ</small></div>'
+    + (evenly ? '<div><span class="big">' + fmtMoney(Math.round(B.total / T.guests.length)) + '</span><small>לאדם</small></div>' : '') + '</div>';
+  // the balance lists who is in some expense; the rest share one quiet line
+  const inv = new Set(); S.expenses.forEach(x => { if (T.gmap[x.payer]) inv.add(x.payer); if (x.kind === 'settle') { if (T.gmap[x.to]) inv.add(x.to); } else amongOf(x).forEach(id => inv.add(id)); });
+  const out = T.guests.filter(g => !inv.has(g.id));
+  h += '<div class="money-sec"><h3>מאזן</h3>' + T.guests.filter(g => inv.has(g.id)).map(g => {
     const n = B.net[g.id] || 0;
     const pill = Math.abs(n) < 1 ? '<span class="pill zero">מאוזן</span>' : (n > 0 ? '<span class="pill plus">זכות ' + fmtMoney(n) + '</span>' : '<span class="pill minus">חוב ' + fmtMoney(-n) + '</span>');
     return '<div class="row">' + av(g, 'sm') + '<span class="row-main"><b>' + esc(g.name) + (g.id === S.me ? ' (אני)' : '') + '</b><small>שולם: ' + fmtMoney(B.paid[g.id] || 0) + '</small></span>' + pill + '</div>';
-  }).join('') + '</div>';
+  }).join('') + (out.length ? '<p class="money-out">לא בהוצאות: ' + esc(out.map(g => g.name).join(', ')) + '</p>' : '') + '</div>';
   h += '<div class="money-sec"><h3>העברות</h3>' + (B.tr.length ? B.tr.map(t => {
     const f = T.gmap[t.from], to = T.gmap[t.to];
     return '<div class="row"><span class="tr-who">' + av(f, 'xs') + esc(f.name) + ' ← ' + av(to, 'xs') + esc(to.name) + '</span><span class="amt">' + fmtMoney(t.amt) + '</span>' + (ro ? '' : '<button class="btn sm" data-settle="' + esc(t.from + '|' + t.to + '|' + t.amt) + '">שולם</button>') + '</div>';
