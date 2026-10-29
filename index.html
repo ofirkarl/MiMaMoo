@@ -310,7 +310,7 @@ span.chip{cursor:default}
 .meal-t{margin:0;font-size:15.5px;font-weight:700}
 .meal-h .btn.sm{min-height:32px;padding:0 12px;font-size:14px}
 .dishes{list-style:none;margin:6px 0 0;padding:0}
-.dish{display:flex;align-items:center;gap:10px;padding-block:8px;border-top:1px solid var(--line)}
+.dish{display:flex;align-items:center;gap:10px;padding-block:8px}
 .dish-main{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:start}
 .dish-name{font-weight:700;font-size:16px}
 .dish-items{font-size:13px;color:var(--muted);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -333,7 +333,22 @@ button.gchip small{font-size:12.5px;font-weight:600;opacity:.65;margin-inline-st
 span.item-main{cursor:default}
 .dish-miss{font-size:12.5px;font-weight:600;color:var(--accent-deep);line-height:1.35}
 .tk-list{display:flex;flex-direction:column;gap:2px;max-height:46vh;overflow:auto;margin-inline:-4px;padding-inline:4px}
-.tk{display:flex;align-items:center;gap:12px;min-height:46px;padding:4px 2px;border-bottom:1px solid var(--line);cursor:pointer}
+.tk-row{display:flex;align-items:center;gap:8px}
+.tk-row>.tk{flex:1;min-width:0}
+.tk-q{display:flex;align-items:center;gap:6px;flex:none}
+.tk-q .mstep{min-height:38px}
+.tk-of{font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
+.dish-ings{display:flex;flex-direction:column;gap:4px;max-height:34vh;overflow:auto}
+.ding-row{display:flex;align-items:center;gap:8px;min-height:42px;padding-inline-start:12px;border-radius:var(--r-md);background:var(--sunk)}
+.ding-n{flex:1;min-width:0;font-weight:600;font-size:15.5px;overflow-wrap:anywhere}
+.ding-a{flex:none;width:104px;min-height:34px;padding:0 8px;font-size:15px;text-align:center;background:var(--surface)}
+.ding-x{flex:none;width:34px;height:34px;display:grid;place-items:center;border-radius:50%;color:var(--muted)}
+.ding-x .ic,.ding-x svg{width:15px;height:15px}
+.ding-add{display:grid;grid-template-columns:1fr 104px auto;gap:8px}
+.ding-add input{min-width:0}
+.dish-shop{flex:none;display:inline-flex;align-items:center;gap:4px;min-height:32px;padding:0 10px;border-radius:999px;background:var(--good-bg);color:var(--good);font-size:14px}
+.dish-shop svg{width:17px;height:17px}
+.tk{display:flex;align-items:center;gap:12px;min-height:46px;padding:4px 2px;cursor:pointer}
 .tk input{position:absolute;opacity:0;width:1px;height:1px;min-height:0}
 .tk-box{flex:none;width:28px;height:28px;border-radius:9px;border:1.5px solid var(--line-2);display:grid;place-items:center;color:transparent;background:var(--surface)}
 .tk input:checked+.tk-box{background:var(--good-bg);border-color:var(--good-fill);color:var(--good)}
@@ -469,7 +484,7 @@ body.is-dragging{-webkit-user-select:none;user-select:none;cursor:grabbing}
 .cat-count{font-family:var(--f-display);font-weight:500;font-size:13.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .cat-ic{display:inline-grid;place-items:center;flex:none;width:20px;height:20px;font-size:16px;line-height:1}
 .items{list-style:none;margin:0;padding:0}
-.item{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:12px;align-items:center;padding-block:9px;border-top:1px solid var(--line)}
+.item{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:12px;align-items:center;padding-block:7px}
 .item.has-del{grid-template-columns:auto minmax(0,1fr) auto}
 .item-main{grid-column:2;display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;text-align:start;min-height:30px;padding:2px 0}
 .item-name{font-family:var(--f-body);font-weight:500;font-size:17px;overflow-wrap:anywhere}
@@ -482,6 +497,8 @@ body.is-dragging{-webkit-user-select:none;user-select:none;cursor:grabbing}
 .add-more{display:inline-flex;align-items:center;min-height:32px;padding-inline:2px;color:var(--muted);font-weight:600;font-size:14.5px}
 .add-more:hover{color:var(--link)}
 .parts{grid-column:2;display:flex;flex-wrap:wrap;gap:6px;padding-top:4px}
+.item.has-parts{grid-template-columns:auto minmax(0,1fr) auto}
+.item.has-parts .parts{grid-column:3;grid-row:1;justify-content:flex-end;align-self:center;padding-top:0;max-width:min(58vw,300px)}
 .who{display:inline-flex;align-items:center;gap:6px;max-width:100%;min-height:30px;padding-block:2px;padding-inline:4px 10px;border-radius:999px;background:var(--sunk);font-size:14px;font-weight:600}
 .who.mine{background:var(--mine-bg);color:var(--mine-ink)}
 .who-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:16ch}
@@ -570,6 +587,11 @@ button.set-row{width:100%;padding-inline:8px;text-align:start;gap:12px}
 .lane.is-me{box-shadow:0 0 0 2px var(--mine-line),var(--shadow-sm)}
 .lane-head{display:flex;align-items:center;gap:12px}
 .lane-title{flex:1;min-width:0}
+.lane-head[data-lane-fold]{cursor:pointer;border-radius:12px;outline-offset:4px}
+.lane-chev{flex:none;display:grid;place-items:center;width:28px;height:28px;color:var(--muted);transition:transform .2s}
+.lane-chev svg{width:18px;height:18px}
+
+.lane.folded .lane-body{display:none}
 .lane-title h3{font-family:var(--f-display);font-weight:600;font-size:19px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;overflow-wrap:anywhere}
 .lane-title p{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
 .you{font-family:var(--f-body);font-size:12.5px;font-weight:700;background:var(--mine-bg);color:var(--mine-ink);padding:2px 9px;border-radius:999px}
@@ -729,6 +751,19 @@ button.gchip.leaving{opacity:0;transform:scale(.85)}
 .hello-ask{display:flex;flex-direction:column;gap:10px;margin-top:12px;padding:14px 16px;border-radius:var(--r-lg);background:var(--accent-soft);border:1.5px solid var(--accent-line)}
 .hello-ask label{font-family:var(--f-display);font-weight:600;font-size:19px}
 .hello-ask input{background:var(--surface)}
+.install{position:relative;display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 14px;padding-inline-end:40px;border-radius:var(--r-lg);background:rgba(255,255,255,.75);box-shadow:var(--shadow-sm)}
+.inst-t{flex:1;display:flex;flex-direction:column;gap:1px;font-size:14px;color:var(--muted);line-height:1.4}
+.inst-t b{font-size:15.5px;color:var(--ink)}
+.inst-ic{display:inline-grid;place-items:center;vertical-align:-3px;color:var(--link)}
+.inst-ic svg{width:17px;height:17px}
+.inst-x{position:absolute;top:6px;inset-inline-end:6px;width:30px;height:30px;display:grid;place-items:center;border-radius:50%;color:var(--muted)}
+.inst-x svg{width:14px;height:14px}
+.also-mine{flex:1 1 100%;display:flex;align-items:center;gap:10px;min-height:36px;font-size:14.5px;font-weight:600;color:var(--muted);cursor:pointer}
+.also-mine input{position:absolute;opacity:0;width:1px;height:1px;min-height:0}
+.also-mine .tk-box{width:24px;height:24px;border-radius:8px}
+.also-mine input:checked+.tk-box{background:var(--mine-bg);border-color:var(--mine-line);color:var(--mine-ink)}
+.also-mine input:checked~span:last-child{color:var(--mine-ink)}
+.also-mine input:focus-visible+.tk-box{outline:2.5px solid var(--ring)}
 .hello-why{font-size:14px;color:var(--accent-deep)}
 .toggle{display:flex;align-items:center;gap:10px;font-weight:600;min-height:44px}
 .toggle input{width:22px;height:22px;min-height:0;accent-color:var(--good-fill)}
@@ -826,6 +861,7 @@ const ICON = {
   tmine:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 19.5c1-3.6 3.8-5.4 7-5.4s6 1.8 7 5.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
   tpeople:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="16.6" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 19c.8-3.2 3-4.8 5.5-4.8s4.7 1.6 5.5 4.8M15 14.6c2.6-.3 4.7 1.1 5.4 4.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
   share:'<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></g></svg>',
+  iosShare:'<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></g></svg>',
   trash:'<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M8 6V4.5h4V6M6 6l.7 10h6.6L14 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   pen:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16l.6-3.2L13 4.4a1.6 1.6 0 0 1 2.3 0l.3.3a1.6 1.6 0 0 1 0 2.3L7.2 15.4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>',
   grip:'<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><g fill="currentColor"><circle cx="7.5" cy="5" r="1.6"/><circle cx="12.5" cy="5" r="1.6"/><circle cx="7.5" cy="10" r="1.6"/><circle cx="12.5" cy="10" r="1.6"/><circle cx="7.5" cy="15" r="1.6"/><circle cx="12.5" cy="15" r="1.6"/></g></svg>',
@@ -995,7 +1031,7 @@ function av(g, size) {
 }
 const catOptions = sel => CATS.map(c => '<option value="' + esc(c.id) + '"' + (c.id === sel ? ' selected' : '') + '>' + esc((c.icon ? c.icon + ' ' : '') + c.label) + '</option>').join('');
 const miniStep = (id, val) => '<div class="mstep"><button type="button" data-ms="-1" data-for="' + id + '" aria-label="פחות">−</button><input id="' + id + '" type="number" inputmode="numeric" enterkeyhint="done" min="1" max="999" value="' + (val || 1) + '" aria-label="כמות"><button type="button" data-ms="1" data-for="' + id + '" aria-label="יותר">+</button></div>';
-const nameInput = (id, nextId, ph) => '<input class="grow" id="' + id + '" data-next="' + nextId + '" enterkeyhint="next" placeholder="' + ph + '" maxlength="80" aria-label="שם הפריט">';
+const nameInput = (id, nextId, ph) => '<input class="grow" id="' + id + '" data-next="' + nextId + '" enterkeyhint="enter" placeholder="' + ph + '" maxlength="80" aria-label="שם הפריט">';
 const unitSelect = (id, unit) => '<select id="' + id + '" aria-label="יחידה" style="flex:1 1 120px;width:auto"><option value=""' + (unit === SIX ? '' : ' selected') + '>יחידות</option><option value="' + SIX + '"' + (unit === SIX ? ' selected' : '') + '>' + SIX + '</option></select>';
 const catAdd = (ctx, cat) => '<li class="item cat-add"><button class="add-more" data-catadd="' + ctx + '|' + cat + '">+ הוספה</button></li>';
 function setPrefs(d) {
@@ -1010,7 +1046,7 @@ function setPrefs(d) {
 setPrefs(null);
 
 /* ---------- State ---------- */
-const S = {af: {}, 
+const S = {af: {}, laneFold: {}, 
   mode: 'connecting', readOnly: false, canWrite: null, uid: null,
   view: 'home', events: [], templates: [], solos: [], shops: [], shopId: null, shopItems: [], eventsLoaded: false, templatesLoaded: false, solosLoaded: false,
   tripId: null, guests: [], items: [], expenses: [], guestsLoaded: false, itemsLoaded: false, expensesLoaded: false,
@@ -1479,7 +1515,7 @@ function catsHTML(list, rowFn, countFn, addCtx) {
 /* Home */
 function shellHome() {
   const ro = S.readOnly;
-  return '<header class="top"><div class="wrap top-in"><span class="logo" role="img" aria-label="MiMaMoo"><svg class="logo-ic" viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" rx="30" fill="#F0ECFF"/><path d="M54 44V14" stroke="#5A4410" stroke-width="5" stroke-linecap="round"/><path d="M54 44L94 95H14Z" fill="#FFE08F" stroke="#FFE08F" stroke-width="6" stroke-linejoin="round"/><path d="M54 44L94 95H54Z" fill="#F7CF62" stroke="#F7CF62" stroke-width="6" stroke-linejoin="round"/><path d="M54 60L72 97H36Z" fill="#2B2833" stroke="#2B2833" stroke-width="3" stroke-linejoin="round"/><rect x="58" y="9" width="40" height="34" rx="9" fill="#9EDDBF"/><path d="M67 26L74 33L88 18" fill="none" stroke="#2B2833" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-text" aria-hidden="true"><span class="logo-word">MiMaMoo</span><span class="logo-tag" dir="rtl">מי · מביא · מה</span></span></span><button class="icon-btn gear" data-act="settings" aria-label="הגדרות">' + ICON.gear + '</button></div><div class="wrap" id="r-hello"></div></header>'
+  return '<header class="top"><div class="wrap top-in"><span class="logo" role="img" aria-label="MiMaMoo"><svg class="logo-ic" viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" rx="30" fill="#F0ECFF"/><path d="M54 44V14" stroke="#5A4410" stroke-width="5" stroke-linecap="round"/><path d="M54 44L94 95H14Z" fill="#FFE08F" stroke="#FFE08F" stroke-width="6" stroke-linejoin="round"/><path d="M54 44L94 95H54Z" fill="#F7CF62" stroke="#F7CF62" stroke-width="6" stroke-linejoin="round"/><path d="M54 60L72 97H36Z" fill="#2B2833" stroke="#2B2833" stroke-width="3" stroke-linejoin="round"/><rect x="58" y="9" width="40" height="34" rx="9" fill="#9EDDBF"/><path d="M67 26L74 33L88 18" fill="none" stroke="#2B2833" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-text" aria-hidden="true"><span class="logo-word">MiMaMoo</span><span class="logo-tag" dir="rtl">מי · מביא · מה</span></span></span><button class="icon-btn gear" data-act="settings" aria-label="הגדרות">' + ICON.gear + '</button></div><div class="wrap" id="r-hello"></div><div class="wrap" id="r-install"></div></header>'
     + '<main class="wrap home"><div class="tabs four" role="tablist" id="r-htabs"></div>'
     + '<div class="home-cols" id="h-lists">'
     + '<section class="home-col"><div class="col-top"><h2>רשימות משותפות</h2>' + (ro ? '' : '<button class="btn primary sm" data-act="new-trip">+ הוספה</button>') + '</div><div id="r-trips" class="trips"></div></section>'
@@ -1509,6 +1545,18 @@ function dateCard(e, attrs, cls, sel) {
 }
 const byDate = list => { const ev = [...list].sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999')); return ev.filter(e => !isPast(e)).concat(ev.filter(isPast).reverse()); };
 // The name this device goes by: asked right at the top until it is known, then a hello
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; render(); });
+window.addEventListener('appinstalled', () => { installEvt = null; lsSet('noInstall', '1'); render(); });
+const isStandalone = () => { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) { return false; } };
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function installHTML() {
+  if (!window.MM_SPACE || isStandalone() || lsGet('noInstall')) return '';
+  const x = '<button type="button" class="inst-x" data-act="install-no" aria-label="לא עכשיו">' + ICON.x + '</button>';
+  if (installEvt) return '<div class="install">' + x + '<span class="inst-t"><b>התקנת MiMaMoo</b>כמו כל אפליקציה, על מסך הבית</span><button type="button" class="btn primary sm" data-act="install">התקנה</button></div>';
+  if (isIOS()) return '<div class="install">' + x + '<span class="inst-t"><b>התקנת MiMaMoo</b><span>ב-Safari: כפתור השיתוף <span class="inst-ic">' + ICON.iosShare + '</span> ← "הוספה למסך הבית"</span></span></div>';
+  return '';
+}
 function helloHTML() {
   const nm = lsGet('myName') || S.profileName || '';
   if (nm && !S.helloEdit) return '<p class="hello">שלום, <b>' + esc(nm) + '</b><button type="button" class="hello-edit" data-act="hello-edit" aria-label="שינוי השם">' + ICON.pen + '</button></p>';
@@ -1521,6 +1569,7 @@ function updateHome() {
   const r = byId('r-trips'), rs = byId('r-solos'); if (!r) return;
   const ro = S.readOnly;
   const hs = byId('r-hello'); if (hs && !(document.activeElement && document.activeElement.id === 'hello-in')) hs.innerHTML = helloHTML();
+  const ri = byId('r-install'); if (ri) ri.innerHTML = installHTML();
   const htab = (k, label) => '<button role="tab" aria-selected="' + (S.homeTab === k) + '" data-htab="' + k + '">' + label + '</button>';
   byId('r-htabs').innerHTML = htab('lists', 'רשימות') + htab('shop', 'קניות') + htab('money', 'הוצאות') + htab('notes', 'הערות');
   byId('h-shop').hidden = S.homeTab !== 'shop';
@@ -1586,7 +1635,8 @@ function shellTrip() {
     + '<main class="wrap board">'
     + '<section class="col" id="col-group"><div class="panel col-panel">'
     + '<div class="col-head"><h2 class="label">רשימה משותפת</h2><div class="viewbar"><span class="view-lbl">תצוגה:</span><div class="seg" id="r-filter"></div></div>' + searchBtn() + '</div>'
-    + (ro ? '<div id="r-bank"></div>' : foldOpen('group') + '<form class="add-row" data-form="add-group" autocomplete="off">' + nameInput('ag-name-' + e, 'ag-qty-' + e, 'הוספת פריט') + miniStep('ag-qty-' + e) + '<button class="btn primary" type="submit">הוספה</button></form><div id="r-bank"></div>' + foldClose)
+    + (ro ? '<div id="r-bank"></div>' : foldOpen('group') + '<form class="add-row" data-form="add-group" autocomplete="off">' + nameInput('ag-name-' + e, 'ag-qty-' + e, 'הוספת פריט') + miniStep('ag-qty-' + e) + '<button class="btn primary" type="submit">הוספה</button>'
+      + '<label class="also-mine" id="ag-mine-row"><input type="checkbox" id="ag-mine"><span class="tk-box">' + ICON.check + '</span><span>הוספה גם לרשימה האישית</span></label></form><div id="r-bank"></div>' + foldClose)
     + '<div id="r-gprog" class="prog-slot"></div><div id="r-group"></div>'
     + '</div></section>'
     + '<section class="col" id="col-people"><div class="panel col-panel">'
@@ -1661,7 +1711,7 @@ function lineRow(L, T) {
       + '<span class="who-name">' + esc(g.name) + '</span>' + (extra ? '<span class="who-q">' + extra + '</span>' : '') + (p.packed ? ICON.check : '') + '</button>';
   }).join('');
   const also = L.multi && !L.pool && !L.open && !ro && L.parts.length && !L.parts.some(p => p.owner === S.me) ? '<button class="who also" data-also="' + esc(L.key) + '">+ גם אני</button>' : '';
-  return '<li class="item' + (L.needed ? '' : ' covered') + '">' + box
+  return '<li class="item' + (L.needed ? '' : ' covered') + (chips || also ? ' has-parts' : '') + '">' + box
     + '<button class="item-main" data-edit="' + esc(L.ref.id) + '"' + (ro || (!L.open && foreign(L.ref)) ? ' disabled' : '') + '><span class="item-name">' + nm + newDot([L.ref, L.open].concat(L.parts)) + '</span>' + q + flag + '</button>'
     + (chips || also ? '<div class="parts">' + chips + also + '</div>' : '') + '</li>';
 }
@@ -1862,9 +1912,10 @@ const dishPath = id => 'events/' + S.tripId + '/dishes/' + id;
 const dishItems = d => (Array.isArray(d.items) ? d.items : []).filter(x => x && typeof x.n === 'string' && x.n.trim());
 // An ingredient the dish's bringer doesn't have goes to the shared list (x.sh = that item's id); anyone can take it there.
 const sharedOf = sh => S.items.filter(i => (i.src || i.id) === sh);
-const ownBy = d => dishItems(d).filter(x => !x.sh);
-function sendToShared(d, x) {
-  const id = uid('i'), a = String(x.a || ''), whole = /^\d+$/.test(a);
+const ownBy = d => dishItems(d).filter(x => !x.sh || x.part);
+const wholeAmt = a => /^\d+$/.test(String(a || '').trim()) ? Number(String(a).trim()) : 0;
+function sendToShared(d, x, qty) {
+  const id = uid('i'), a = qty ? String(qty) : String(x.a || ''), whole = /^\d+$/.test(a);
   const doc = Object.assign(itemDoc({name: x.n, cat: guessCat(x.n), qty: whole ? Number(a) : 1, unit: '', scope: 'g', owner: null}, id), {dish: d.id, dishName: d.name});
   if (a && !whole) doc.amt = a;
   return {id, p: Store.set(itemPath(id), doc)};
@@ -1877,11 +1928,14 @@ function openMarkDish(id) {
   const items = dishItems(d); if (!items.length) return takeDish(id);
   const rows = items.map((x, i) => {
     const took = x.sh && sharedOf(x.sh).find(it => it.owner && T.gmap[it.owner]);
-    if (took) return '<div class="tk taken"><span class="tk-n">' + esc(x.n) + '</span><small>אצל ' + esc(T.gmap[took.owner].name) + '</small></div>';
-    return '<label class="tk"><input type="checkbox" name="tk" value="' + i + '"' + (x.sh ? '' : ' checked') + '><span class="tk-box">' + ICON.check + '</span><span class="tk-n">' + esc(x.n) + (x.a ? '<small>' + esc(x.a) + '</small>' : '') + '</span></label>';
+    if (took) return '<div class="tk-row"><div class="tk taken"><span class="tk-n">' + esc(x.n) + '</span><small>' + (x.part ? 'השאר ' : '') + 'אצל ' + esc(T.gmap[took.owner].name) + '</small></div></div>';
+    const tot = Number(x.tot) || wholeAmt(x.a), mine = x.part ? wholeAmt(x.a) : tot;
+    // a counted ingredient (more than one): how many of them I bring; the rest goes to the shared list
+    const q = tot > 1 ? '<div class="tk-q">' + miniStep('tq-' + i, mine || tot) + '<span class="tk-of">מתוך ' + tot + '</span></div>' : '';
+    return '<div class="tk-row' + (q ? ' has-q' : '') + '"><label class="tk"><input type="checkbox" name="tk" value="' + i + '"' + (x.sh && !x.part ? '' : ' checked') + '><span class="tk-box">' + ICON.check + '</span><span class="tk-n">' + esc(x.n) + (x.a && !q ? '<small>' + esc(x.a) + '</small>' : '') + '</span></label>' + q + '</div>';
   }).join('');
   openSheet('<form class="stack-form" data-form="mark-dish" data-id="' + esc(id) + '" autocomplete="off"><h2 class="sheet-title">' + esc(d.name) + '</h2>'
-    + '<p class="ask-buy">מה מזה אתה מביא? מה שלא תסמן יעבור לרשימה המשותפת</p><div class="tk-list">' + rows + '</div>'
+    + '<p class="ask-buy">מה מזה אתה מביא, וכמה? מה שלא תביא יעבור לרשימה המשותפת. מה שתביא יופיע בלשונית "קניות".</p><div class="tk-list">' + rows + '</div>'
     + sheetActions('', 'אני מביא') + '</form>');
 }
 function markDish(f) {
@@ -1891,8 +1945,20 @@ function markDish(f) {
   let sent = 0;
   items.forEach((x, i) => {
     if (x.sh && sharedOf(x.sh).some(it => it.owner && T.gmap[it.owner])) return;  // already taken from the shared list
-    if (keep.has(i)) { if (x.sh) { dropShared(x.sh); delete x.sh; } }
-    else if (!x.sh) { const r = sendToShared(d, x); fire(r.p); x.sh = r.id; x.got = false; sent++; }
+    const tot = Number(x.tot) || wholeAmt(x.a), qi = f.querySelector('#tq-' + i), n = qi ? Math.max(1, Math.min(tot, clampQ(qi.value))) : tot;
+    const openSh = x.sh && sharedOf(x.sh).find(it => !it.owner);
+    if (keep.has(i) && (!tot || n >= tot)) {  // all of it
+      if (x.sh) dropShared(x.sh);
+      delete x.sh; delete x.part; delete x.tot; if (tot) x.a = String(tot);
+    } else if (keep.has(i)) {  // some of it: mine here, the rest in the shared list
+      if (openSh) fire(Store.update(itemPath(openSh.id), {qty: tot - n}));
+      else { const r = sendToShared(d, x, tot - n); fire(r.p); x.sh = r.id; sent++; }
+      x.a = String(n); x.part = true; x.tot = tot;
+    } else {  // none of it
+      if (openSh && x.part) fire(Store.update(itemPath(openSh.id), {qty: tot}));
+      else if (!x.sh) { const r = sendToShared(d, x, tot || 0); fire(r.p); x.sh = r.id; sent++; }
+      delete x.part; delete x.tot; if (tot) x.a = String(tot); x.got = false;
+    }
   });
   closeSheet();
   fire(Store.update(dishPath(d.id), {owner: S.me, items}));
@@ -1934,6 +2000,7 @@ function dishRow(T, d) {
   return '<li class="dish"><button class="dish-main" data-dish="' + esc(d.id) + '"' + (ro ? ' disabled' : '') + '><span class="dish-name">' + esc(d.name) + '</span>'
     + (items.length ? '<span class="dish-items">' + esc(items.map(x => x.n + (x.a ? ' ' + x.a : '')).join(' · ')) + '</span>' : '')
     + (openShared(d).length ? '<span class="dish-miss">ברשימה המשותפת: ' + esc(openShared(d).map(x => x.n).join(', ')) + '</span>' : '') + '</button>'
+    + (g && g.id === S.me && ownBy(d).some(x => !x.got) ? '<button type="button" class="dish-shop" data-tab="shop" aria-label="לקניות: ' + ownBy(d).filter(x => !x.got).length + ' מצרכים">' + ICON.tshop + '<b>' + ownBy(d).filter(x => !x.got).length + '</b></button>' : '')
     + (g ? '<button class="who' + (g.id === S.me ? ' mine' : '') + '" data-dish="' + esc(d.id) + '"' + (ro ? ' disabled' : '') + '>' + av(g, 'xs') + '<span class="who-name">' + esc(g.name) + '</span></button>'
       : (ro ? '' : '<button type="button" class="btn sm" data-dish-mark="' + esc(d.id) + '">אני מביא</button>'))
     + '</li>';
@@ -1962,7 +2029,7 @@ function openDishSheet(id, day, slot) {
     + ideas
     + '<label class="field"><span>מנה</span><input id="dd-name" maxlength="60" required value="' + esc(d ? d.name : '') + '" placeholder="למשל שקשוקה"></label>'
     + '<label class="field"><span>מי מביא</span><select id="dd-owner"><option value=""' + (owner ? '' : ' selected') + '>עוד לא נקבע</option>' + people.map(g => '<option value="' + esc(g.id) + '"' + (g.id === owner ? ' selected' : '') + '>' + esc(g.name) + (g.id === S.me ? ' (אני)' : '') + '</option>').join('') + '</select></label>'
-    + '<div class="field"><span>מצרכים</span><div class="guest-chips" id="dd-items"></div><div class="add-row"><input class="grow" id="dd-new" maxlength="60" placeholder="הוספת מצרך" aria-label="הוספת מצרך"><button type="button" class="btn" data-act="dd-add">הוספה</button></div></div>'
+    + '<div class="field"><span>מצרכים וכמויות</span><div class="dish-ings" id="dd-items"></div><div class="ding-add"><input id="dd-new" maxlength="60" placeholder="הוספת מצרך" aria-label="הוספת מצרך"><input id="dd-amt" maxlength="20" placeholder="כמות" aria-label="כמות"><button type="button" class="btn" data-act="dd-add">הוספה</button></div></div>'
     + (d && d.owner === S.me && dishItems(d).length ? '<div class="sheet-tools"><button type="button" class="btn sm" data-dish-mark="' + esc(d.id) + '">מה אני מביא</button></div>' : '')
     + sheetActions(d ? '<button type="button" class="btn danger" data-confirm="delete-dish" data-id="' + esc(d.id) + '">מחיקה</button>' : '', d ? 'שמירה' : 'הוספה')
     + '</form>', root => {
@@ -1973,16 +2040,28 @@ function openDishSheet(id, day, slot) {
 }
 function renderDishItems() {
   const box = byId('dd-items'); if (!box || !dishDraft) return;
-  box.innerHTML = dishDraft.items.map((x, i) => '<button type="button" class="gchip" data-di-rm="' + i + '" aria-label="הסרת ' + esc(x.n) + '">' + esc(x.n) + (x.a ? '<small>' + esc(x.a) + '</small>' : '') + '<span class="gx">' + ICON.x + '</span></button>').join('');
+  box.innerHTML = dishDraft.items.map((x, i) => '<div class="ding-row"><span class="ding-n">' + esc(x.n) + '</span>'
+    + '<input class="ding-a" data-di-a="' + i + '" value="' + esc(x.part ? x.tot : x.a || '') + '" maxlength="20" placeholder="כמות" aria-label="כמות ' + esc(x.n) + '"' + (x.part ? ' disabled title="חלק כבר ברשימה המשותפת"' : '') + '>'
+    + '<button type="button" class="ding-x" data-di-rm="' + i + '" aria-label="הסרת ' + esc(x.n) + '">' + ICON.x + '</button></div>').join('');
 }
 function dishAddItem() {
-  const inp = byId('dd-new'); if (!inp || !dishDraft) return;
+  const inp = byId('dd-new'), ai = byId('dd-amt'); if (!inp || !dishDraft) return;
+  const amt = ai ? ai.value.trim().slice(0, 20) : '';
   inp.value.split(',').map(v => v.trim()).filter(Boolean).forEach(v => {
-    const m = v.match(/^(.+?)\s+(\d[\d.,]*(?:\s*\S+)?)$/), n = (m ? m[1] : v).slice(0, 40), a = m ? m[2].slice(0, 20) : '';
+    const m = v.match(/^(.+?)\s+(\d[\d.,]*(?:\s*\S+)?)$/), n = (m ? m[1] : v).slice(0, 40), a = amt || (m ? m[2].slice(0, 20) : '');
     if (!dishDraft.items.some(x => same(x.n, n))) dishDraft.items.push({n, a, got: false});
   });
-  inp.value = ''; inp.focus(); renderDishItems();
+  inp.value = ''; if (ai) ai.value = ''; inp.focus(); renderDishItems();
 }
+document.addEventListener('input', e => {
+  const t = e.target; if (!t.dataset || t.dataset.diA === undefined || !dishDraft) return;
+  const x = dishDraft.items[Number(t.dataset.diA)]; if (x && !x.part) x.a = t.value.trim().slice(0, 20);
+});
+// Enter in the ingredient fields adds it (not the whole dish)
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || e.isComposing || !e.target || !['dd-new', 'dd-amt'].includes(e.target.id)) return;
+  e.preventDefault(); dishAddItem();
+});
 function dishPick(name) {
   const nm = byId('dd-name'); if (!nm || !dishDraft) return;
   nm.value = name;
@@ -1995,7 +2074,7 @@ function saveDish(f) {
   const name = f.querySelector('#dd-name').value.trim(); if (!name) return;
   if (byId('dd-new') && byId('dd-new').value.trim()) dishAddItem();
   const owner = f.querySelector('#dd-owner').value || null, d = dishDraft.id ? S.dishes.find(x => x.id === dishDraft.id) : null;
-  const items = dishDraft.items.map(x => Object.assign({n: x.n, a: x.a || '', got: !!(x.got && d && d.owner === owner)}, x.sh ? {sh: x.sh} : {}));
+  const items = dishDraft.items.map(x => Object.assign({n: x.n, a: x.a || '', got: !!(x.got && d && d.owner === owner)}, x.sh ? {sh: x.sh} : {}, x.sh && x.part ? {part: true, tot: x.tot} : {}));
   const doc = {name: name.slice(0, 60), owner, items};
   closeSheet();
   if (d) {
@@ -2024,9 +2103,9 @@ function toggleIngredient(spec) {
 // In the shopping tab: the ingredients of the dishes I bring, one block per dish
 function shopDishesHTML(T, dishes) {
   return dishes.map(d => {
-    const items = dishItems(d), mine = items.filter(x => !x.sh); if (!mine.length) return '';
+    const items = dishItems(d), mine = ownBy(d); if (!mine.length) return '';
     return '<div class="cat"><div class="cat-head"><span class="cat-pill dish-pill">' + esc(d.name) + '<small>' + esc(mealName(T.ev, d.day, d.slot)) + '</small></span><span class="cat-count">' + mine.filter(x => x.got).length + '/' + mine.length + '</span></div><ul class="items">'
-      + items.map((x, i) => ({x, i})).filter(o => !o.x.sh).sort((a, b) => (!!a.x.got - !!b.x.got) || a.i - b.i).map(({x, i}) => '<li class="item' + (x.got ? ' packed' : '') + '"><button class="pk' + (x.got ? ' on' : '') + '" data-ding="' + esc(d.id + '|' + i) + '" aria-pressed="' + !!x.got + '" aria-label="נקנה: ' + esc(x.n) + '"' + (S.readOnly ? ' disabled' : '') + '>' + ICON.check + '</button><span class="item-main"><span class="item-name">' + esc(x.n) + '</span>' + (x.a ? '<span class="qty">' + esc(x.a) + '</span>' : '') + '</span></li>').join('')
+      + items.map((x, i) => ({x, i})).filter(o => !o.x.sh || o.x.part).sort((a, b) => (!!a.x.got - !!b.x.got) || a.i - b.i).map(({x, i}) => '<li class="item' + (x.got ? ' packed' : '') + '"><button class="pk' + (x.got ? ' on' : '') + '" data-ding="' + esc(d.id + '|' + i) + '" aria-pressed="' + !!x.got + '" aria-label="נקנה: ' + esc(x.n) + '"' + (S.readOnly ? ' disabled' : '') + '>' + ICON.check + '</button><span class="item-main"><span class="item-name">' + esc(x.n) + '</span>' + (x.a ? '<span class="qty">' + esc(x.a) + '</span>' : '') + '</span></li>').join('')
       + '</ul></div>';
   }).join('');
 }
@@ -2119,10 +2198,10 @@ function lane(g, T) {
   const pk = mine.filter(i => i.packed).length, isMe = g.id === S.me;
   const solo = isMe && S.solos.find(l => l.tripId === S.tripId);
   const ro = S.readOnly;
-  return '<article class="lane' + (isMe ? ' is-me' : '') + (ro ? '' : selCls('people', g.id)) + '" data-gid="' + esc(g.id) + '" style="--gc:' + GCOL[(Number(g.color) || 0) % GCOL.length] + '"' + (ro ? '' : selAt('people', g.id)) + '>' + (ro ? '' : selBox) + '<header class="lane-head">' + av(g, 'lg')
+  return '<article class="lane' + (isMe ? ' is-me' : '') + (S.laneFold[g.id] ? ' folded' : '') + (ro ? '' : selCls('people', g.id)) + '" data-gid="' + esc(g.id) + '" style="--gc:' + GCOL[(Number(g.color) || 0) % GCOL.length] + '"' + (ro ? '' : selAt('people', g.id)) + '>' + (ro ? '' : selBox) + '<header class="lane-head" data-lane-fold="' + esc(g.id) + '" role="button" tabindex="0" aria-expanded="' + !S.laneFold[g.id] + '" aria-label="' + esc(g.name) + ': ' + (S.laneFold[g.id] ? 'פתיחת הרשימה' : 'קיפול הרשימה') + '">' + av(g, 'lg')
     + '<div class="lane-title"><h3>' + esc(g.name) + joinMark(g) + (isMe ? '<span class="you">אני</span>' : '') + '</h3>' + (mine.length ? '<p>' + pk + '/' + mine.length + ' ארוזים</p>' : '') + '</div>'
     + (solo ? '<button class="btn sm" data-tab="mine">הרשימה שלי</button>' : '')
-    + '</header><div class="lane-body">'
+    + '<span class="lane-chev" aria-hidden="true">' + (S.laneFold[g.id] ? ICON.chev : ICON.down) + '</span></header><div class="lane-body">'
     + (mine.length ? '<div class="bar thin"><i style="width:' + Math.round(pk / mine.length * 100) + '%"></i></div>' : '')
     + (shown.length ? '<ul class="items lane-items">' + [...shown].sort((a, b) => posOf(a) - posOf(b)).map(i => laneRow(i, T)).join('') + '</ul>' : '')
     + laneDishesHTML(T, g.id)
@@ -2249,6 +2328,7 @@ function updateTrip() {
   const mItems = S.soloId ? S.soloItems : [];
   byId('r-pfilter').innerHTML = '<button aria-pressed="' + (S.pfilter !== 'open') + '" data-pfilter="all">הכול</button><button aria-pressed="' + (S.pfilter === 'open') + '" data-pfilter="open">מה חסר</button>';
   byId('af-mine').hidden = !soloBase();
+  const amr = byId('ag-mine-row'); if (amr) amr.hidden = !soloBase();
   syncFold('group', !T.lines.length); syncFold('mine', !(S.soloId && MD.items.length));
   byId('r-mine').innerHTML = mineHTML();
   byId('r-filter').innerHTML = '<button aria-pressed="' + (S.filter === 'all') + '" data-filter="all">הכול</button><button aria-pressed="' + (S.filter === 'need') + '" data-filter="need">מה חסר</button>'
@@ -2869,6 +2949,9 @@ function openMeatPeopleSheet() {
 
 /* Item editing */
 const multiField = (id, on) => '<label class="multi-row"><input type="checkbox" id="' + id + '"' + (on ? ' checked' : '') + '><span class="multi-sw" aria-hidden="true"></span><span>אפשר שכמה יביאו</span></label>';
+// "Also in my personal list": a copy of a shared item in my private list for this event (once)
+const inMine = name => S.soloItems.some(i => same(i.name, name));
+const toMineBtn = it => soloBase() && it.scope !== 'p' ? '<button type="button" class="btn sm" data-to-mine="' + esc(it.id) + '"' + (inMine(dispName(it)) ? ' disabled' : '') + '>' + (inMine(dispName(it)) ? ICON.check + 'ברשימה האישית' : '+ גם לרשימה האישית') + '</button>' : '';
 function openItemSheet(id) {
   if (S.readOnly) return;
   const T = tripData(), it = S.items.find(i => i.id === id); if (!it) return;
@@ -2890,8 +2973,9 @@ function openItemSheet(id) {
     + listField
     + (it.scope !== 'p' && multiKind(k) ? multiField('it-multi', isMulti(it)) : '')
     + (mineG ? '<div class="field"><span>קנייה</span><div class="buy-row"><div class="seg-radio" role="radiogroup" aria-label="קנייה"><label><input type="radio" name="it-buy" value="0"' + (it.buy ? '' : ' checked') + '><span>יש לי</span></label><label><input type="radio" name="it-buy" value="1"' + (it.buy ? ' checked' : '') + '><span>צריך לקנות</span></label></div>'
-      + '<button type="button" class="btn sm" data-exp-item="' + esc(id) + '">+ הוספה להוצאות</button></div></div>' : '')
-    + (owned && !mineG ? '<div class="sheet-tools"><button type="button" class="btn sm" data-exp-item="' + esc(id) + '">+ הוספה להוצאות</button></div>' : '')
+      + '<button type="button" class="btn sm" data-exp-item="' + esc(id) + '">+ הוספה להוצאות</button>' + toMineBtn(it) + '</div></div>' : '')
+    + (owned && !mineG ? '<div class="sheet-tools"><button type="button" class="btn sm" data-exp-item="' + esc(id) + '">+ הוספה להוצאות</button>' + toMineBtn(it) + '</div>' : '')
+    + (!owned && it.scope !== 'p' && toMineBtn(it) ? '<div class="sheet-tools">' + toMineBtn(it) + '</div>' : '')
     + sheetActions('<button type="button" class="btn danger" data-confirm="delete-item" data-id="' + esc(id) + '">מחיקה</button>')
     + '</form>', root => { const s = root.querySelector('#it-list'); if (s) s.value = s.dataset.val; });
 }
@@ -3662,6 +3746,8 @@ function act(a) {
     case 'edit-solo': return soloData().list && soloData().list.kind === 'shop' ? openShopSheet(true) : openSoloSheet(true);
     case 'invite': return openInvite();
     case 'share-link': return shareLink();
+    case 'install': if (installEvt) { const ev = installEvt; ev.prompt(); ev.userChoice.then(r => { if (r && r.outcome === 'accepted') lsSet('noInstall', '1'); installEvt = null; render(); }, () => {}); } return;
+    case 'install-no': lsSet('noInstall', '1'); render(); return;
     case 'share-app':
       if (navigator.share) navigator.share({title: 'MiMaMoo', text: 'MiMaMoo · מי מביא מה', url: appLink()}).catch(() => {});
       else try { navigator.clipboard.writeText(appLink()).then(() => toast('הקישור לאפליקציה הועתק'), () => {}); } catch (e) {}
@@ -3904,6 +3990,14 @@ document.addEventListener('touchcancel', endSwipe, {passive: true});
 
 /* ---------- Event wiring ---------- */
 document.addEventListener('click', e => {
+  const lf = e.target.closest('[data-lane-fold]');
+  if (lf && !SEL.ctx && !e.target.closest('button')) { const id = lf.dataset.laneFold; S.laneFold[id] = !S.laneFold[id]; render(); return; }
+});
+document.addEventListener('keydown', e => {
+  const lf = e.target.closest && e.target.closest('[data-lane-fold]');
+  if (lf && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); const id = lf.dataset.laneFold; S.laneFold[id] = !S.laneFold[id]; render(); }
+});
+document.addEventListener('click', e => {
   const t = e.target.closest('button,[data-close]');
   if (!t || t.disabled) return;
   const d = t.dataset;
@@ -3923,6 +4017,7 @@ document.addEventListener('click', e => {
   if (d.htab) return setHomeTab(HOME_TABS.includes(d.htab) ? d.htab : 'lists');
   if (d.claim) return startClaim(d.claim);
   if (d.meat) return startMeat(d.meat);
+  if (d.toMine) { const it = S.items.find(i => i.id === d.toMine); if (it && soloBase() && addSoloItem(dispName(it), Q(it), catOf(it))) { t.disabled = true; t.innerHTML = ICON.check + 'ברשימה האישית'; toast('נוסף גם לרשימה האישית'); } return; }
   if (d.covered) return coveredTap(d.covered);
   if (d.also) return joinLine(d.also, false);
   if (d.alsoExtra) return joinLine(d.alsoExtra, true);
@@ -3989,18 +4084,20 @@ function readAdd(nameId, qtyId) {
   if (qty === 1 && qi) qty = clampQ(qi.value);
   return {ni, qi, name, qty};
 }
-// After an item is added: on a phone the keyboard closes; with a physical keyboard focus stays for the next item.
+// After an item is added the field empties and keeps the focus (and the keyboard), ready for the next item,
+// unless a question about the item opened on top of it
 const touchUI = () => { try { return matchMedia('(pointer: coarse)').matches; } catch (e) { return false; } };
 function resetAdd(ni, qi) {
   ni.value = ''; if (qi) qi.value = '1';
-  if (touchUI()) { const a = document.activeElement; if (a && a.blur) a.blur(); }
-  else if (ni.isConnected) ni.focus();
+  if (byId('sheet-root').classList.contains('open')) return;
+  if (ni.isConnected) ni.focus();
 }
 const forms = {
   'add-group'() {
     const {ni, qi, name, qty} = readAdd('ag-name-' + S.tripId, 'ag-qty-' + S.tripId);
     if (!name) { ni.focus(); return; }
-    if (addGroupFlow(name, qty, guessCat(name))) resetAdd(ni, qi); else ni.focus();
+    const cat = guessCat(name), alsoMine = byId('ag-mine') && byId('ag-mine').checked && soloBase();
+    if (addGroupFlow(name, qty, cat)) { if (alsoMine && !inMine(name)) addSoloItem(name, qty, cat); resetAdd(ni, qi); } else ni.focus();
   },
   'add-personal'() {
     const {ni, qi, name, qty} = readAdd('ap-name-' + S.tripId, 'ap-qty-' + S.tripId);
@@ -4247,12 +4344,12 @@ document.addEventListener('keydown', e => {
   if (t.id === 'tf-guest') { e.preventDefault(); ntAdd(); return; }
   if (t.id === 'eg-new') { e.preventDefault(); egAdd(); return; }
   if (t.id === 'dd-new') { e.preventDefault(); dishAddItem(); return; }
-  // First Enter in an item name jumps to its quantity; Enter in the quantity submits the add form.
+  // Enter in an item name adds it right away (a count can be typed with it: "עגבניות 6"); the field stays ready for the next
   const nx = t.dataset && t.dataset.next;
   if (nx) {
     e.preventDefault();
     if (!t.value.trim()) return;
-    const n = byId(nx); if (n) { n.focus(); try { n.select(); } catch (_) {} }
+    const f = t.form; if (f && f.requestSubmit) f.requestSubmit(); else if (f) f.dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
   }
 });
 // "have it / need to buy" takes effect the moment it is tapped
