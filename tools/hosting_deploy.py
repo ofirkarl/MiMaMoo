@@ -79,6 +79,14 @@ def main():
         got[0].status_code, 'the app' if 'MiMaMoo' in got[0].text else 'NOT the app', got[1].status_code,
         'current' if got[1].content == want_sw else 'OLD', got[2].status_code))
 
+    # is Google sign-in switched on, and for which addresses
+    IDT = 'https://identitytoolkit.googleapis.com/admin/v2/projects/%s/' % project
+    g, c = s.get(IDT + 'defaultSupportedIdpConfigs/google.com'), s.get(IDT + 'config')
+    say('notice', 'sign-in: Google %s; anonymous %s; allowed addresses: %s' % (
+        ('on' if g.json().get('enabled') else 'off') if g.ok else 'not set up (%s)' % g.status_code,
+        ('on' if c.json().get('signIn', {}).get('anonymous', {}).get('enabled') else 'off') if c.ok else '?',
+        ', '.join(c.json().get('authorizedDomains', [])) if c.ok else c.status_code))
+
 
 if __name__ == '__main__':
     main()
