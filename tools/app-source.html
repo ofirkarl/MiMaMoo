@@ -906,10 +906,6 @@ const GCOL = ['#4F79C9','#D06A55','#3F9470','#7A62C9','#C98E2E','#3496A0','#C062
 const DOW = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
 const MON = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 const MON_S = ['ינו׳','פבר׳','מרץ','אפר׳','מאי','יוני','יולי','אוג׳','ספט׳','אוק׳','נוב׳','דצמ׳'];
-let MEAT_MAX = 450;
-// 0 means the per-person meat note is turned off.
-const meatOver = pp => MEAT_MAX > 0 && pp > MEAT_MAX;
-const meatWarn = () => 'שים לב, כמות בשר עולה על ' + MEAT_MAX + ' גרם לראש';
 const DEF_MEAT = ['קבב','סטייק','פרגיות','לבבות','כבד','המבורגר','כנפיים','נקניקיות מרגז','נקניקיות צ׳וריסו','נקניקיות אחרות'];
 const DEF_SALAD = ['ירקות','טאבולה','כרוב','חצילים','מטבוחה','תפוחי אדמה','פסטה','קינואה'];
 const DEF_SOFT = ['קולה','קולה זירו','ספרייט','פאנטה','ענבים','תפוזים','לימונדה','תה קר','סודה','מים בטעמים'];
@@ -1116,8 +1112,6 @@ const unitSelect = (id, unit) => '<select id="' + id + '" aria-label="יחידה
 const catAdd = (ctx, cat) => '<li class="item cat-add"><button class="add-more" data-catadd="' + ctx + '|' + cat + '">+ הוספה</button></li>';
 function setPrefs(d) {
   d = d || {};
-  const mm = Math.round(Number(d.meatMax));
-  MEAT_MAX = mm === 0 ? 0 : (mm >= 100 && mm <= 3000 ? mm : 450);
   const lst = (a, def) => Array.isArray(a) && a.some(x => typeof x === 'string' && x.trim()) ? [...new Set(a.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim().slice(0, 30)))].slice(0, 40) : def.slice();
   MEAT_CHOICES = lst(d.meat, DEF_MEAT); SALAD_IDEAS = lst(d.salads, DEF_SALAD); SOFT_IDEAS = lst(d.soft, DEF_SOFT);
   SHARED_BANK = Array.isArray(d.sharedbank) ? [...new Set(d.sharedbank.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim().slice(0, 40)))].slice(0, 80) : DEF_SHARED_BANK.slice();
@@ -1261,11 +1255,13 @@ function openSearch() {
   inp.value = S.q; pop.hidden = false; pop.classList.remove('out');
   const x = pop.querySelector('.search-x'); if (x) x.hidden = !S.q;
   inp.focus(); try { inp.select(); } catch (_) {}
+  syncBack();
 }
 function closeSearch() {
   const pop = byId('spop'); if (!pop || pop.hidden) return;
   byId('q-pop').blur(); pop.classList.add('out');
   setTimeout(() => { if (pop.classList.contains('out')) { pop.hidden = true; pop.classList.remove('out'); } }, 180);
+  syncBack();
 }
 const searchBox = id => '<div class="search"><span class="search-ic">' + ICON.search + '</span><input type="search" class="search-in" id="' + id + '" placeholder="חיפוש" enterkeyhint="search" autocomplete="off" aria-label="חיפוש" value="' + esc(S.q) + '"><button type="button" class="search-x" data-act="q-clear" aria-label="ניקוי החיפוש"' + (S.q ? '' : ' hidden') + '>' + ICON.x + '</button></div>';
 const noHits = '<p class="empty-in">אין תוצאות</p>';
@@ -1279,7 +1275,36 @@ try { S.arch = cleanArch(JSON.parse(lsGet('arch') || '{}')); } catch (e) {}
 const isSoloDoc = e => e.kind === 'list' || e.kind === 'shop';
 const archMark = e => isSoloDoc(e) ? (e.arch === 'a' || e.arch === 'k' ? e.arch : '') : (S.arch[e.id] || '');
 const isArch = e => { const m = archMark(e); return m === 'a' || (m !== 'k' && isPast(e)); };  // off the lists: by hand, or it has ended
-const moneyArch = e => archMark(e) === 'a';  // expenses stay until archived by hand, so no debt gets lost when the event ends
+/* Expenses leave on their own only once nobody owes anything: an ended event with every debt paid (or no expenses at all),
+   a stand-alone split once it is all paid up. The event remembers its state ('money': none | open | settled), updated by
+   whoever's screen has its expenses open; events from before this get it filled in once, from the home screen. */
+const moneyAuto = e => e.kind === 'split' ? e.money === 'settled' : isPast(e) && (e.money === 'settled' || e.money === 'none');
+const moneyArch = e => { const m = archMark(e); return m === 'a' || (m !== 'k' && moneyAuto(e)); };
+const moneyState = b => !b.total ? 'none' : b.tr.length ? 'open' : 'settled';
+let moneyW = '';
+function syncMoneyState() {  // an event open on my screen: its expenses and participants are loaded
+  if (S.readOnly || !S.tripId || !S.expensesLoaded || !S.guestsLoaded) return;
+  const T = tripData(), ev = T.ev; if (!ev) return;
+  const st = moneyState(balances(T)), key = ev.id + '|' + st;
+  if (ev.money === st) { moneyW = ''; return; }
+  if (moneyW === key) return; moneyW = key;
+  const leaves = ev.money === 'open' && st === 'settled' && archMark(ev) !== 'k' && moneyAuto(Object.assign({}, ev, {money: st}));
+  fire(Store.update('events/' + ev.id, {money: st}));
+  if (leaves) setTimeout(() => toast('הכול שולם. החלוקה עוברת לארכיון'), 900);
+}
+const moneyFilled = new Set();
+function fillMoneyStates() {  // once per event that has no state yet
+  if (S.readOnly || S.mode === 'connecting' || !S.eventsLoaded) return;
+  const todo = S.events.filter(e => !e.money && !moneyFilled.has(e.id)); if (!todo.length) return;
+  todo.forEach(e => moneyFilled.add(e.id));
+  runLimited(todo.map(e => async () => {
+    try {
+      const [guests, exps] = await Promise.all([Store.list('events/' + e.id + '/guests'), Store.list('events/' + e.id + '/expenses')]);
+      const cur = S.events.find(x => x.id === e.id); if (!cur || cur.money) return;
+      await Store.update('events/' + e.id, {money: moneyState(balances({guests}, exps))});
+    } catch (err) {}
+  }), 3);
+}
 const looseShop = l => !l.tripId || !S.events.some(e => e.id === l.tripId);
 function setArch(ids, on, solo) {
   ids = ids.filter(Boolean); if (!ids.length) return;
@@ -1292,7 +1317,7 @@ function setArch(ids, on, solo) {
     });
   } else {
     const m = Object.assign({}, S.arch);
-    ids.forEach(id => { const e = S.events.find(x => x.id === id); if (on) m[id] = 'a'; else if (e && isPast(e)) m[id] = 'k'; else delete m[id]; });
+    ids.forEach(id => { const e = S.events.find(x => x.id === id); if (on) m[id] = 'a'; else if (e && (isPast(e) || moneyAuto(e))) m[id] = 'k'; else delete m[id]; });
     S.arch = m; lsSet('arch', JSON.stringify(m));
     const p = archDoc(); if (p) fire(Store.set(p, {kind: 'archive', ev: m, updated: Date.now()}));
   }
@@ -1452,10 +1477,10 @@ function soloData() {
   const items = [...S.soloItems].sort((a, b) => (a.created || 0) - (b.created || 0));
   return {list, items, packed: items.filter(i => i.packed).length};
 }
-function balances(T) {
+function balances(T, exps) {
   const net = {}, paid = {}; T.guests.forEach(g => { net[g.id] = 0; paid[g.id] = 0; });
   let total = 0;
-  S.expenses.forEach(x => {
+  (exps || S.expenses).forEach(x => {
     const amt = Math.round((Number(x.amount) || 0) * 100); if (amt <= 0) return;
     if (x.kind === 'settle') { if (net[x.payer] != null) net[x.payer] += amt; if (net[x.to] != null) net[x.to] -= amt; return; }
     total += amt;
@@ -1496,6 +1521,7 @@ function render() {
   const key = [S.view, S.tripId || '', S.view === 'trip' ? '' : (S.soloId || ''), S.tplId || '', S.readOnly ? 1 : 0, S.mode].join('|');
   if (key !== shellKey) { shellKey = key; exitSel(); closeSearch(); byId('app').innerHTML = banner() + shell(); document.body.classList.toggle('on-home', S.view === 'home'); }
   try { update(); } catch (e) { console.error(e); }
+  syncBack();
 }
 function banner() {
   if (S.mode === 'local') return '<div class="banner"><div class="wrap">אין חיבור. שום דבר כאן לא נשמר.</div></div>';
@@ -1520,6 +1546,8 @@ function update() {
   else if (S.view === 'template') updateTemplate();
   else if (S.view === 'archive') updateArchive();
   else updateHome();
+  if (S.view === 'trip' || S.view === 'money') syncMoneyState();
+  else if (S.view === 'home' || S.view === 'archive') fillMoneyStates();
 }
 const sortedTpls = () => [...S.templates].sort((a, b) => (a.order || 0) - (b.order || 0));
 const tplShared = t => (t.items || []).filter(i => i.scope !== 'p');
@@ -1666,7 +1694,7 @@ function updateHome() {
 /* Archive */
 function shellArchive() {
   return '<header class="top"><div class="wrap top-in"><button class="back" data-act="home">' + ICON.back + '<span>חזרה</span></button></div></header>'
-    + '<main class="wrap page arch"><h1 class="page-h">ארכיון</h1><p class="set-hint">אירועים שהסתיימו מגיעים לכאן לבד. לחיצה ארוכה על כרטיס מחזירה אותו</p><div id="r-arch" class="home-cols"></div></main>';
+    + '<main class="wrap page arch"><h1 class="page-h">ארכיון</h1><p class="set-hint">אירועים שהסתיימו וחלוקות הוצאות ששולמו מגיעים לכאן לבד. לחיצה ארוכה על כרטיס מחזירה אותו</p><div id="r-arch" class="home-cols"></div></main>';
 }
 function updateArchive() {
   const r = byId('r-arch'); if (!r) return;
@@ -1770,7 +1798,6 @@ function newDot(items) {
 }
 function lineRow(L, T, inDish) {
   const ro = S.readOnly, nm = esc(L.name), u = L.unit && L.unit !== SIX ? ' ' + esc(L.unit) : (L.unit === SIX ? ' ' + SIX : '');
-  const over = meatOver(T.meatPP);
   let box, q = '', flag = '';
   if (L.pool) {
     box = '<button class="cbox' + (L.parts.length ? ' on' : '') + '" data-meat="' + esc(L.key) + '" aria-label="אני אביא: ' + nm + '"' + (ro ? ' disabled' : '') + '>' + (L.parts.length ? ICON.check : '') + '</button>';
@@ -1785,7 +1812,6 @@ function lineRow(L, T, inDish) {
     if (T.lineDbl(L) || (!L.multi && L.parts.some(p => p.extra))) flag = '<span class="flag">כפילות</span>';
     if (L.ref.dish) { if (L.ref.amt && !(L.open && L.parts.length)) q = '<span class="qty">' + esc(L.ref.amt) + '</span>'; if (L.ref.dishName && !inDish) flag = '<span class="tag">ל' + esc(L.ref.dishName) + '</span>'; }
   }
-  if (L.kind === 'meat' && over) flag = '<span class="flag">מעל ' + MEAT_MAX + ' גרם לראש</span>';
   const chips = L.parts.map(p => {
     const g = T.gmap[p.owner];
     let extra = '';
@@ -1796,7 +1822,8 @@ function lineRow(L, T, inDish) {
   }).join('');
   const also = L.multi && !L.pool && !L.open && !ro && L.parts.length && !L.parts.some(p => p.owner === S.me) ? '<button class="who also" data-also="' + esc(L.key) + '">+ גם אני</button>' : '';
   const nParts = L.parts.length + (also ? 1 : 0);
-  return '<li class="item' + (L.needed ? '' : ' covered') + (chips || also ? ' has-parts' : '') + (nParts > 2 ? ' many-parts' : '') + '">' + box
+  const canDel = !ro && (!!L.open || L.parts.some(p => p.owner === S.me));  // what others already took stays with them
+  return '<li class="item' + (L.needed ? '' : ' covered') + (chips || also ? ' has-parts' : '') + (nParts > 2 ? ' many-parts' : '') + '"' + (canDel ? ' data-lp="gitem|' + esc(L.key) + '"' : '') + '>' + box
     + '<button class="item-main" data-edit="' + esc(L.ref.id) + '"' + (ro || (!L.open && foreign(L.ref)) ? ' disabled' : '') + '><span class="item-name">' + nm + newDot([L.ref, L.open].concat(L.parts)) + '</span>' + q + flag + '</button>'
     + (chips || also ? '<div class="parts">' + chips + also + '</div>' : '') + '</li>';
 }
@@ -2628,7 +2655,7 @@ function updateSettings() {
   rc.innerHTML = CATS.map((c, i) => '<div class="set-row"><button class="set-main" data-cat-edit="' + esc(c.id) + '"' + (ro ? ' disabled' : '') + '><span class="set-mark" style="--c:' + c.color + '">' + catMark(c) + '</span><span class="set-label">' + esc(c.label) + '</span></button>'
     + (ro ? '' : '<button class="icon-btn" data-cat-move="' + esc(c.id) + '|-1" aria-label="למעלה"' + (i < 2 ? ' disabled' : '') + '>' + ICON.up + '</button><button class="icon-btn" data-cat-move="' + esc(c.id) + '|1" aria-label="למטה"' + (i === 0 || i === n - 1 ? ' disabled' : '') + '>' + ICON.down + '</button>')
     + '</div>').join('');
-  byId('r-prefs').innerHTML = (soloBase() ? [['mybank', 'ההצעות שלי לרשימה האישית', String(myBankList().length)]] : []).concat([['sharedbank', 'הצעות לאירוע בלי תבנית', String(SHARED_BANK.length)], ['meatmax', 'כמות בשר לאדם', MEAT_MAX ? 'עד ' + MEAT_MAX + ' גרם' : 'בלי התראה']])
+  byId('r-prefs').innerHTML = (soloBase() ? [['mybank', 'ההצעות שלי לרשימה האישית', String(myBankList().length)]] : []).concat([['sharedbank', 'הצעות לאירוע בלי תבנית', String(SHARED_BANK.length)]])
     .map(([k, l, v]) => '<button class="set-row" data-pref="' + k + '"' + (ro && k !== 'mybank' ? ' disabled' : '') + '><span class="set-label">' + l + '</span><span class="set-val">' + esc(v) + '</span><span class="chev">' + ICON.chev + '</span></button>').join('');
   const mn = byId('my-name'); if (mn && document.activeElement !== mn) mn.value = lsGet('myName') || '';
 }
@@ -2639,7 +2666,7 @@ function saveCats(mut) {
   fire(Store.set('settings/cats', {list, updated: Date.now()}));
 }
 function savePrefs(patch) {
-  const cur = Object.assign({meatMax: MEAT_MAX, meat: MEAT_CHOICES.slice(), salads: SALAD_IDEAS.slice(), soft: SOFT_IDEAS.slice(), sharedbank: SHARED_BANK.slice()}, patch);
+  const cur = Object.assign({meat: MEAT_CHOICES.slice(), salads: SALAD_IDEAS.slice(), soft: SOFT_IDEAS.slice(), sharedbank: SHARED_BANK.slice()}, patch);
   setPrefs(cur); render();
   fire(Store.set('settings/prefs', Object.assign(cur, {updated: Date.now()})));
 }
@@ -2690,22 +2717,6 @@ function openCatSheet(id) {
       sync();
       if (!c) setTimeout(() => root.querySelector('#cat-name').focus(), 60);
     });
-}
-function openMeatMaxSheet() {
-  if (S.readOnly) return;
-  const on = MEAT_MAX > 0;
-  let v = MEAT_MAX || 450;
-  openSheet('<h2 class="sheet-title">כמות בשר לאדם</h2>'
-    + '<div class="stepper"><button type="button" data-step="-50" aria-label="פחות">−</button><output class="g-out" id="mm-out"></output><button type="button" data-step="50" aria-label="יותר">+</button></div>'
-    + '<p class="calc" id="mm-txt"></p>'
-    + '<div class="sheet-actions">' + (on ? '<button type="button" class="btn danger" id="mm-off">ביטול ההתראה</button><span class="grow"></span>' : '')
-    + '<button type="button" class="btn" data-close>סגירה</button><button type="button" class="btn primary" id="mm-go">' + (on ? 'שמירה' : 'הפעלה') + '</button></div>', root => {
-    const sync = () => { root.querySelector('#mm-out').textContent = fmtG(v); root.querySelector('#mm-txt').textContent = 'התראה כשיש יותר מ־' + v + ' גרם לאדם'; };
-    root.addEventListener('click', e => { const s = e.target.closest('[data-step]'); if (s) { v = Math.min(3000, Math.max(100, v + Number(s.dataset.step))); sync(); } });
-    root.querySelector('#mm-go').addEventListener('click', () => { closeSheet(); savePrefs({meatMax: v}); });
-    const off = root.querySelector('#mm-off'); if (off) off.addEventListener('click', () => { closeSheet(); savePrefs({meatMax: 0}); toast('ההתראה בוטלה'); });
-    sync();
-  });
 }
 function saveMyBank(arr) {
   const b = soloBase(); if (!b) return;
@@ -2846,6 +2857,7 @@ function openSheet(html, mount) {
   root.innerHTML = '<div class="sheet-back' + (fresh ? ' in' : '') + '" data-close></div><div class="sheet' + (fresh ? ' in' : '') + '" role="dialog" aria-modal="true"><div class="sheet-grip" aria-hidden="true"><i></i></div>' + html + '</div>';
   root.classList.add('open'); document.body.classList.add('noscroll');
   if (mount) mount(root.querySelector('.sheet'));
+  syncBack();
 }
 function closeSheet() {
   const root = byId('sheet-root');
@@ -2859,6 +2871,7 @@ function closeSheet() {
     setTimeout(() => ghost.remove(), 300);
   }
   root.innerHTML = ''; root.classList.remove('open'); document.body.classList.remove('noscroll'); afterPick = null;
+  syncBack();
 }
 function releaseDrag(g) {
   g.sh.style.transition = '';
@@ -2929,6 +2942,11 @@ function needMe(cb) { const T = tripData(); if (S.me && T.gmap[S.me]) return tru
 function openLongPress(spec) {
   const [type, id] = spec.split('|');
   if (type === 'ess') return openEssSheet(Number(id));
+  if (type === 'gitem') {  // an item in the shared list
+    const L = tripData().lines.find(l => l.key === id); if (!L) return;
+    return openSheet('<h2 class="sheet-title">' + esc(dispName(L.ref)) + '</h2>'
+      + '<div class="sheet-actions"><button type="button" class="btn danger solid" data-lpdel="' + esc(spec) + '">' + ICON.trash + 'מחיקה</button><span class="grow"></span><button type="button" class="btn" data-close>ביטול</button></div>');
+  }
   const name = type === 'trip' ? (S.events.find(e => e.id === id) || {}).name : type === 'solo' ? (S.solos.find(l => l.id === id) || {}).name : (S.templates.find(t => t.id === id) || {}).name;
   if (name == null) return;
   openSheet('<h2 class="sheet-title">' + esc(name || 'ללא שם') + '</h2>'
@@ -2944,6 +2962,11 @@ async function deleteDeep(docPath, subs) {
 }
 async function lpDelete(spec) {
   const [type, id] = spec.split('|'); closeSheet();
+  if (type === 'gitem') {
+    const T = tripData(), docs = S.items.filter(i => i.scope !== 'p' && (i.src || i.id) === id && (!T.owned(i) || i.owner === S.me));
+    if (!docs.length || S.readOnly) return;
+    sfx('delete'); await runLimited(docs.map(d => () => Store.del(itemPath(d.id))), 4); toast('נמחק'); return;
+  }
   if (type === 'trip') { if (await dropEvent(id)) toast('נמחק'); }
   else if (type === 'solo') { const b = soloBase(); if (b && await dropSolo(b, id)) toast('נמחק'); }
   else if (type === 'tpl') { try { await Store.del('templates/' + id); toast('נמחק'); } catch (e) {} }
@@ -3064,8 +3087,7 @@ function openMeatSheet(o) {
       root.querySelectorAll('[data-gset]').forEach(b => b.classList.toggle('on', +b.dataset.gset === g));
       if (askPeople) {
         const tot = others + addedG + g, pp = tot / people;
-        if (meatOver(pp)) { calc.className = 'warnbox'; calc.textContent = meatWarn(); }
-        else { calc.className = 'calc'; calc.textContent = 'סה״כ ' + fmtG(tot) + ' · ' + fmtG(Math.round(pp)) + ' לראש'; }
+        calc.className = 'calc'; calc.textContent = 'סה״כ ' + fmtG(tot) + ' · ' + fmtG(Math.round(pp)) + ' לראש';
       }
       go.textContent = (o.cta || 'הוספה') + ' · ' + fmtG(g) + ' ' + (type || generic);
       addedEl.hidden = !added.length;
@@ -3085,10 +3107,7 @@ function openMeatSheet(o) {
       added.push((type || generic) + ' ' + fmtG(g)); addedG += g;
       type = ''; other.value = ''; g = g0; sync();
     });
-    root.querySelector('#g-done').addEventListener('click', () => {
-      closeSheet();
-      if (added.length && askPeople && meatOver((others + addedG) / people)) toast(meatWarn(), true);
-    });
+    root.querySelector('#g-done').addEventListener('click', () => closeSheet());
     if (type && !MEAT_CHOICES.includes(type)) other.value = type;
     sync();
   });
@@ -3096,7 +3115,7 @@ function openMeatSheet(o) {
 function openMeatPeopleSheet() {
   const T = tripData(); if (!T.ev || S.readOnly) return;
   openSheet('<form class="stack-form" data-form="meat-people" autocomplete="off"><h2 class="sheet-title">לכמה אנשים הבשר?</h2>' + miniStep('mpp-n', T.meatPeople)
-    + '<p class="' + (meatOver(T.meatPP) ? 'warnbox' : 'calc') + '">' + (meatOver(T.meatPP) ? meatWarn() : 'סה״כ ' + fmtG(T.meatTotal) + ' · ' + fmtG(Math.round(T.meatPP)) + ' לראש') + '</p>'
+    + '<p class="calc">סה״כ ' + fmtG(T.meatTotal) + ' · ' + fmtG(Math.round(T.meatPP)) + ' לראש</p>'
     + sheetActions('') + '</form>');
 }
 
@@ -3430,10 +3449,6 @@ function openTplItemSheet(iid) {
 
 /* ---------- Trip actions ---------- */
 function saveMeatPeople(n) { const ev = tripData().ev; if (ev && Number(ev.meatPeople) !== n) fire(Store.update('events/' + ev.id, {meatPeople: n})); }
-function meatToast(extra, people) {
-  const T = tripData(), pp = (T.meatTotal + extra) / Math.max(1, people || T.meatPeople);
-  if (meatOver(pp)) toast(meatWarn(), true);
-}
 function startClaim(itemId) {
   if (S.readOnly) return;
   const it = S.items.find(i => i.id === itemId); if (!it) return;
@@ -4007,6 +4022,36 @@ function dropItem(it, t) {
   if (patch.owner) toast('הועבר לרשימה של ' + T.gmap[t.gid].name);
 }
 
+/* ---------- The phone's back button ----------
+   One step back inside the app: an open sheet, the search, a selection, then the screen before. Only on the home screen,
+   with nothing open, does it leave the app. Every step that can be undone has a history entry of its own, added while the
+   finger that opened it is still on the screen (browsers skip entries added without a tap). */
+let backDepth = 0, backT = 0;
+try { backDepth = Number(history.state && history.state.mmBack) || 0; } catch (e) {}
+const searchOpen = () => { const p = byId('spop'); return !!p && !p.hidden && !p.classList.contains('out'); };
+function wantDepth() {
+  const v = S.view;
+  const page = v === 'home' ? 0 : v === 'template' ? 2 : (v === 'trip' || v === 'solo' || v === 'money') && S.fromArch ? 2 : 1;
+  return page + (byId('sheet-root').classList.contains('open') ? 1 : 0) + (searchOpen() ? 1 : 0) + (SEL.ctx ? 1 : 0);
+}
+function syncBack() {
+  try { while (backDepth < wantDepth()) { backDepth++; history.pushState({mmBack: backDepth}, ''); } } catch (e) {}
+  // closed from inside the app: its entries go too, once things settle (a sheet often closes only to open the next)
+  if (backDepth > wantDepth() && !backT) backT = setTimeout(() => {
+    backT = 0; const w = wantDepth();
+    if (backDepth > w) { const n = w - backDepth; backDepth = w; try { history.go(n); } catch (e) {} }
+  }, 60);
+}
+window.addEventListener('popstate', e => {
+  backDepth = Number(e.state && e.state.mmBack) || 0;
+  if (wantDepth() <= backDepth) return;  // our own step back, or nothing left to undo
+  if (byId('sheet-root').classList.contains('open')) closeSheet();
+  else if (searchOpen()) closeSearch();
+  else if (SEL.ctx) exitSel();
+  else if (S.view !== 'home') { const b = document.querySelector('#app .back'); if (b) b.click(); else goHome(); }
+  setTimeout(syncBack, 250);
+});
+
 /* ---------- Long press (delete on home and templates) ---------- */
 let lp = null, lpFired = false;
 document.addEventListener('pointerdown', e => {
@@ -4035,6 +4080,7 @@ function syncSelBar() {
   const bar = byId('selbar'), on = !!SEL.ctx;
   bar.classList.toggle('show', on); bar.setAttribute('aria-hidden', String(!on));
   if (on) byId('sel-count').textContent = SEL.ids.size === 1 ? 'נבחר 1' : 'נבחרו ' + SEL.ids.size;
+  syncBack();
   const ab = byId('sel-arch'), ak = ARCH_SEL[SEL.ctx];
   ab.hidden = !ak; if (ak) ab.innerHTML = ICON.archive + (ak === 'out' ? 'החזרה' : 'ארכיון');
   const del = bar.querySelector('[data-confirm]');
@@ -4257,7 +4303,7 @@ document.addEventListener('click', e => {
   if (d.fold) { S.setOpen = S.setOpen || {}; S.setOpen[d.fold] = !S.setOpen[d.fold]; render(); return; }
   if (d.catEdit) return openCatSheet(d.catEdit);
   if (d.catMove) { const [cid, dir] = d.catMove.split('|'); saveCats(list => { const i = list.findIndex(c => c.id === cid), j = i + Number(dir); if (i < 1 || j < 1 || j >= list.length) return false; const x = list[i]; list[i] = list[j]; list[j] = x; }); return; }
-  if (d.pref) return d.pref === 'meatmax' ? openMeatMaxSheet() : openListPref(d.pref);
+  if (d.pref) return openListPref(d.pref);
   if (d.tplEdit) return openTplItemSheet(d.tplEdit);
   if (d.tplDel) return saveTpl(S.tplId, x => { x.items = x.items.filter(i => i.id !== d.tplDel); });
   if (d.ntRm !== undefined) { ntGuests.splice(Number(d.ntRm), 1); renderNtChips(); return; }
