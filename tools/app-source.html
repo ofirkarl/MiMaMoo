@@ -765,6 +765,7 @@ button.row{width:100%;text-align:start}
 .sheet-actions .grow{flex:1}
 .sheet-actions .btn{min-height:48px}
 .sheet-actions:has(.primary) .grow{display:none}
+.sheet .stack-form:not([data-form="mark-dish"])>.sheet-actions{position:sticky;bottom:calc(-20px - env(safe-area-inset-bottom,0px));z-index:3;background:var(--surface);margin-bottom:calc(-20px - env(safe-area-inset-bottom,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));padding-top:10px;box-shadow:0 -10px 14px -12px rgba(60,52,90,.18)}
 [data-form="mark-dish"] .sheet-actions{margin-top:22px;position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:3;background:var(--surface);box-shadow:0 0 0 10px var(--surface),0 40px 0 10px var(--surface)}
 [data-form="mark-dish"] .sheet-actions::before{content:"";position:absolute;left:-18px;right:-18px;bottom:calc(100% + 10px);height:22px;background:linear-gradient(rgba(255,255,255,0),var(--surface));pointer-events:none}
 .sheet-actions .btn.primary{flex:1 1 140px;max-width:380px}
@@ -2684,7 +2685,7 @@ function openCatSheet(id) {
   const added = [], removed = [];
   openSheet('<form class="stack-form" data-form="cat" data-id="' + esc(id || '') + '" autocomplete="off">'
     + '<h2 class="sheet-title">' + (c ? esc(c.label) : 'קטגוריה חדשה') + '</h2>'
-    + '<label class="field"><span>שם</span><input id="cat-name" maxlength="24" required value="' + esc(c ? c.label : '') + '"></label>'
+    + '<label class="field"><span>שם</span><input id="cat-name" maxlength="24" required enterkeyhint="done" value="' + esc(c ? c.label : '') + '"></label>'
     + '<div class="field"><span>אימוג׳י</span><button type="button" class="fold" id="emo-fold" aria-expanded="false"><span class="fold-cur" id="emo-cur"></span><span class="fold-lbl">בחירה</span>' + ICON.down + '</button>'
     + '<div class="fold-body" id="emo-body" hidden><div class="emoji-grid" id="cat-icons">' + [''].concat(ICON_CHOICES).map(e => '<button type="button" class="emo" data-emo="' + esc(e) + '" aria-label="' + (e ? esc(e) : 'נקודת צבע') + '">' + (e ? esc(e) : '<span class="blaze lg"></span>') + '</button>').join('') + '</div><input id="cat-icon" maxlength="16" placeholder="אימוג׳י אחר" aria-label="אימוג׳י אחר"></div></div>'
     + '<div class="field"><span>צבע</span><div class="swatches">' + CAT_COLORS.map(x => '<button type="button" class="swb" data-col="' + x + '" style="--c:' + x + '" aria-label="צבע ' + x + '"></button>').join('') + '</div></div>'
@@ -2716,6 +2717,7 @@ function openCatSheet(id) {
         if (e.target.closest('#cat-sugg-add')) addSugg();
       });
       if (sin) sin.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addSugg(); } });
+      root.querySelector('#cat-name').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); f.requestSubmit(); } });
       other.addEventListener('input', () => { const v = other.value.trim(); if (v) { icon = firstGrapheme(v); sync(); } });
       if (icon && !ICON_CHOICES.includes(icon)) other.value = icon;
       sync();
