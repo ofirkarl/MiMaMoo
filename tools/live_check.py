@@ -52,6 +52,22 @@ with sync_playwright() as p:
             w.close()
         except Exception as e:
             say('error', 'sign-in did not open Google: %s' % str(e)[:300])
+    # 4. a category renamed in Settings keeps its new name after a reload (written to the cloud, read back)
+    try:
+        pg.click('[data-act="settings"]'); pg.wait_for_timeout(800)
+        pg.click('[data-fold="cats"]'); pg.wait_for_timeout(500)
+        before = pg.locator('#r-cats .set-label').all_inner_texts()
+        pg.locator('#r-cats [data-cat-edit]').nth(5).click(); pg.wait_for_timeout(800)
+        pg.fill('#cat-name', 'בדיקת שם'); pg.locator('.sheet button[type="submit"]').click(); pg.wait_for_timeout(1500)
+        right_away = pg.locator('#r-cats .set-label').all_inner_texts()
+        toast = pg.inner_text('#toast') if pg.locator('#toast.show').count() else ''
+        pg.wait_for_timeout(4000)
+        pg.reload(); pg.wait_for_timeout(7000)
+        pg.click('[data-act="settings"]'); pg.wait_for_timeout(800); pg.click('[data-fold="cats"]'); pg.wait_for_timeout(500)
+        after = pg.locator('#r-cats .set-label').all_inner_texts()
+        say('notice' if 'בדיקת שם' in after else 'error', 'category rename: before %s | right away %s | toast %r | after reload %s' % (before, right_away, toast, after))
+    except Exception as e:
+        say('error', 'category rename check failed to run: %s' % str(e)[:300])
     pg.wait_for_timeout(1500)
     if errs:
         say('warning', 'page errors: ' + ' || '.join(errs[:8]))
