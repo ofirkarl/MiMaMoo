@@ -3748,7 +3748,6 @@ function openTplItemSheet(iid) {
     + (k === 'meat' ? '' : '<div class="field"><span>כמות</span><div class="add-row">' + miniStep('ti-qty', Q(it)) + (k === 'six' ? unitSelect('ti-unit', it.unit) : '') + '</div></div>')
     + '<label class="field"><span>קטגוריה</span><select id="ti-cat">' + catOptions(catOf(it)) + '</select></label>'
     + '<label class="field"><span>רשימה</span><select id="ti-scope"><option value="g"' + (it.scope !== 'p' ? ' selected' : '') + '>משותף</option><option value="p"' + (it.scope === 'p' ? ' selected' : '') + '>רשימה אישית</option></select></label>'
-    + (multiKind(k) ? multiField('ti-multi', isMulti(it)) : '')
     + sheetActions('')
     + '</form>');
 }
@@ -4860,7 +4859,6 @@ const forms = {
     if (t && tplSide(t, patch.scope).some(i => i.id !== iid && same(i.name, name))) { dupToast(name); return; }
     if (qi) patch.qty = clampQ(qi.value);
     if (ui) patch.unit = ui.value;
-    const tm = f.querySelector('#ti-multi'); if (tm && patch.scope === 'g') patch.multi = tm.checked;
     const k = kindOfName(name); if (k === 'meat' || k === 'salad') patch.cat = 'food';
     if (k === 'ice') patch.unit = BAG;
     const oldT = t && (t.items || []).find(i => i.id === iid); if (oldT && catOf(oldT) !== patch.cat) learnCat(name, patch.cat);
