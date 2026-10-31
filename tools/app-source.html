@@ -2720,6 +2720,15 @@ function openCatSheet(id) {
       if (icon && !ICON_CHOICES.includes(icon)) other.value = icon;
       sync();
       if (!c) setTimeout(() => root.querySelector('#cat-name').focus(), 60);
+      // Closed by a tap outside, a swipe down or the phone's back button (easy to do by mistake while closing the keyboard):
+      // the changes are kept. Only "ביטול" drops them.
+      const was = JSON.stringify([c ? c.label : '', f.dataset.icon, f.dataset.color]);
+      root.addEventListener('click', e => { if (e.target.closest('.sheet-actions [data-close]')) f._done = true; });
+      sheetOnClose = () => {
+        if (f._done) return;
+        const nm = root.querySelector('#cat-name').value.trim();
+        if (nm && (JSON.stringify([nm, f.dataset.icon, f.dataset.color]) !== was || added.length || removed.length)) { forms.cat(f); toast('נשמר'); }
+      };
     });
 }
 function saveMyBank(arr) {
@@ -2858,7 +2867,9 @@ function goHome() { stopView(); S.q = ''; const back = S.fromArch && S.view !== 
 function tryDeep() { const ev = S.deep && S.view === 'home' && S.events.find(e => e.id === S.deep); if (ev) { S.deep = ''; if (ev.kind === 'split') openMoney(ev.id); else openTrip(ev.id); } }
 
 /* ---------- Sheets ---------- */
+let sheetOnClose = null;  // a sheet that keeps its changes however it is closed (only "ביטול" drops them)
 function openSheet(html, mount) {
+  sheetOnClose = null;
   const root = byId('sheet-root');
   const fresh = !root.classList.contains('open');
   root.innerHTML = '<div class="sheet-back' + (fresh ? ' in' : '') + '" data-close></div><div class="sheet' + (fresh ? ' in' : '') + '" role="dialog" aria-modal="true"><div class="sheet-grip" aria-hidden="true"><i></i></div>' + html + '</div>';
@@ -2867,6 +2878,8 @@ function openSheet(html, mount) {
   syncBack();
 }
 function closeSheet() {
+  const h = sheetOnClose; sheetOnClose = null;
+  if (h) { try { h(); } catch (e) { console.error(e); } }
   const root = byId('sheet-root');
   const sh = root.querySelector('.sheet'), back = root.querySelector('.sheet-back');
   if (sh && root.classList.contains('open')) {
@@ -4520,7 +4533,7 @@ const forms = {
     const id = f.dataset.id, icon = (f.dataset.icon || '').slice(0, 16), color = /^#[0-9A-Fa-f]{6}$/.test(f.dataset.color || '') ? f.dataset.color : '#C4BFCF';
     if (CATS.some(c => c.id !== id && same(c.label, name))) { dupToast(name); return; }
     const sg = f._sugg || {added: [], removed: []}, cid = id || uid('c');
-    closeSheet();
+    f._done = true; closeSheet();
     saveCats(list => { if (id) { const c = list.find(x => x.id === id); if (!c) return false; Object.assign(c, {label: name, icon, color}); } else list.push({id: cid, label: name, icon, color}); });
     if (soloBase() && (sg.added.length || sg.removed.length)) {
       let bank = myBankList().filter(n => !sg.removed.some(r => same(r, n)));
