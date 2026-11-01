@@ -31,7 +31,7 @@ rep('<title>MiMaMoo</title>\n<meta name="claude:viewport-fit-sides" content="cov
 <html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>MiMaMoo</title>
 <meta name="description" content="מי מביא מה: רשימות משותפות לטיולים ולאירועים">
 <meta name="theme-color" content="#FAF9FC">
