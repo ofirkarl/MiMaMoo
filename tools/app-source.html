@@ -915,6 +915,10 @@ const GCOL = ['#4F79C9','#D06A55','#3F9470','#7A62C9','#C98E2E','#3496A0','#C062
 const DOW = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
 const MON = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 const MON_S = ['ינו׳','פבר׳','מרץ','אפר׳','מאי','יוני','יולי','אוג׳','ספט׳','אוק׳','נוב׳','דצמ׳'];
+// More than 450 grams of meat a head is flagged (a fixed amount; it is no longer a setting)
+const MEAT_MAX = 450;
+const meatOver = pp => pp > MEAT_MAX;
+const meatWarn = () => 'שים לב, כמות בשר עולה על ' + MEAT_MAX + ' גרם לראש';
 const DEF_MEAT = ['קבב','סטייק','פרגיות','לבבות','כבד','המבורגר','כנפיים','נקניקיות מרגז','נקניקיות צ׳וריסו','נקניקיות אחרות'];
 const DEF_SALAD = ['ירקות','טאבולה','כרוב','חצילים','מטבוחה','תפוחי אדמה','פסטה','קינואה'];
 const DEF_SOFT = ['קולה','קולה זירו','ספרייט','פאנטה','ענבים','תפוזים','לימונדה','תה קר','סודה','מים בטעמים'];
@@ -1809,6 +1813,7 @@ function newDot(items) {
 }
 function lineRow(L, T, inDish) {
   const ro = S.readOnly, nm = esc(L.name), u = L.unit && L.unit !== SIX ? ' ' + esc(L.unit) : (L.unit === SIX ? ' ' + SIX : '');
+  const over = meatOver(T.meatPP);
   let box, q = '', flag = '';
   if (L.pool) {
     box = '<button class="cbox' + (L.parts.length ? ' on' : '') + '" data-meat="' + esc(L.key) + '" aria-label="אני אביא: ' + nm + '"' + (ro ? ' disabled' : '') + '>' + (L.parts.length ? ICON.check : '') + '</button>';
@@ -1823,6 +1828,7 @@ function lineRow(L, T, inDish) {
     if (T.lineDbl(L) || (!L.multi && L.parts.some(p => p.extra))) flag = '<span class="flag">כפילות</span>';
     if (L.ref.dish) { if (L.ref.amt && !(L.open && L.parts.length)) q = '<span class="qty">' + esc(L.ref.amt) + '</span>'; if (L.ref.dishName && !inDish) flag = '<span class="tag">ל' + esc(L.ref.dishName) + '</span>'; }
   }
+  if (L.kind === 'meat' && over) flag = '<span class="flag">מעל ' + MEAT_MAX + ' גרם לראש</span>';
   const chips = L.parts.map(p => {
     const g = T.gmap[p.owner];
     let extra = '';
@@ -3115,7 +3121,8 @@ function openMeatSheet(o) {
       root.querySelectorAll('[data-gset]').forEach(b => b.classList.toggle('on', +b.dataset.gset === g));
       if (askPeople) {
         const tot = others + addedG + g, pp = tot / people;
-        calc.className = 'calc'; calc.textContent = 'סה״כ ' + fmtG(tot) + ' · ' + fmtG(Math.round(pp)) + ' לראש';
+        if (meatOver(pp)) { calc.className = 'warnbox'; calc.textContent = meatWarn(); }
+        else { calc.className = 'calc'; calc.textContent = 'סה״כ ' + fmtG(tot) + ' · ' + fmtG(Math.round(pp)) + ' לראש'; }
       }
       go.textContent = (o.cta || 'הוספה') + ' · ' + fmtG(g) + ' ' + (type || generic);
       addedEl.hidden = !added.length;
@@ -3135,7 +3142,10 @@ function openMeatSheet(o) {
       added.push((type || generic) + ' ' + fmtG(g)); addedG += g;
       type = ''; other.value = ''; g = g0; sync();
     });
-    root.querySelector('#g-done').addEventListener('click', () => closeSheet());
+    root.querySelector('#g-done').addEventListener('click', () => {
+      closeSheet();
+      if (added.length && askPeople && meatOver((others + addedG) / people)) toast(meatWarn(), true);
+    });
     if (type && !MEAT_CHOICES.includes(type)) other.value = type;
     sync();
   });
@@ -3143,7 +3153,7 @@ function openMeatSheet(o) {
 function openMeatPeopleSheet() {
   const T = tripData(); if (!T.ev || S.readOnly) return;
   openSheet('<form class="stack-form" data-form="meat-people" autocomplete="off"><h2 class="sheet-title">לכמה אנשים הבשר?</h2>' + miniStep('mpp-n', T.meatPeople)
-    + '<p class="calc">סה״כ ' + fmtG(T.meatTotal) + ' · ' + fmtG(Math.round(T.meatPP)) + ' לראש</p>'
+    + '<p class="' + (meatOver(T.meatPP) ? 'warnbox' : 'calc') + '">' + (meatOver(T.meatPP) ? meatWarn() : 'סה״כ ' + fmtG(T.meatTotal) + ' · ' + fmtG(Math.round(T.meatPP)) + ' לראש') + '</p>'
     + sheetActions('') + '</form>');
 }
 
