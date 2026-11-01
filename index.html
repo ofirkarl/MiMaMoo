@@ -909,7 +909,12 @@ button.gchip.leaving{opacity:0;transform:scale(.85)}
 .also-mine input:focus-visible+.tk-box{outline:2.5px solid var(--ring)}
 .also-bring:has(input:checked){background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent-line);color:var(--accent-ink)}
 .also-bring input:checked+.tk-box{background:var(--accent-ink);border-color:var(--accent-ink);color:#FFFFFF}
-.add-one:not(:has(#ag-bring:checked)) #ag-mine-row{display:none}
+/* "גם לרשימה האישית" slides out from behind "אני אביא" when it is turned on, and folds back when it is off */
+#ag-mine-row{max-width:240px;white-space:nowrap;overflow:hidden;transition:max-width .34s cubic-bezier(.2,.8,.2,1),padding .34s cubic-bezier(.2,.8,.2,1),opacity .24s,transform .38s cubic-bezier(.3,.7,.4,1.5),background .15s,color .15s,box-shadow .15s,visibility 0s}
+.add-one:not(:has(#ag-bring:checked)) #ag-mine-row{max-width:0;padding-inline:0;opacity:0;transform:translateX(16px) scale(.8);box-shadow:none;visibility:hidden;pointer-events:none;transition:max-width .28s cubic-bezier(.4,0,.6,1),padding .28s cubic-bezier(.4,0,.6,1),opacity .16s,transform .28s,visibility 0s .28s}
+/* a check that lands with a small bounce */
+.also-mine input:checked+.tk-box svg{animation:tick-pop .36s cubic-bezier(.3,.7,.4,1.6)}
+@keyframes tick-pop{0%{transform:scale(.2);opacity:0}100%{transform:none;opacity:1}}
 .hello-why{font-size:14px;color:var(--accent-deep)}
 .toggle{display:flex;align-items:center;gap:10px;font-weight:600;min-height:44px}
 .toggle input{width:22px;height:22px;min-height:0;accent-color:var(--good-fill)}
