@@ -381,6 +381,8 @@ button.gchip small{font-size:12.5px;font-weight:600;opacity:.65;margin-inline-st
 .dish-pill svg{width:15px;height:15px;flex:none}
 .cat-pill.dish-pill small{font-weight:500;opacity:.7;font-size:12.5px}
 span.item-main{cursor:default}
+.meat-sum{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;margin:0 0 6px;min-height:32px;padding:4px 12px;border-radius:999px;background:var(--sunk);color:var(--ink);font-size:14px;font-weight:600;text-align:start}
+.meat-sum svg{width:13px;height:13px;flex:none;color:var(--muted)}
 .dish-miss{font-size:12.5px;font-weight:600;color:var(--accent-deep);line-height:1.35}
 /* "אני מביא": one plain list, like the ingredients page — the sheet scrolls, not a box inside it.
    A row: the check and the name; at its end how many (when counted) and where it goes — to buy, or I have it. */
@@ -748,6 +750,9 @@ button.set-row{width:100%;padding-inline:8px;text-align:start;gap:12px}
 .ch-row:last-child{border-bottom:0}
 .ch-name{flex:1;min-width:0;font-weight:700;overflow-wrap:anywhere}
 .ch-row select{width:auto;min-height:40px;flex:0 0 auto}
+.ch-u{flex:none;display:inline-flex;gap:2px;padding:2px;border-radius:999px;background:var(--sunk)}
+.ch-u button{min-height:30px;padding:0 10px;border-radius:999px;font-size:13.5px;font-weight:600;color:var(--muted);transition:background .15s,color .15s}
+.ch-u button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 
 /* Money */
 .money-sum{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -981,10 +986,6 @@ const GCOL = ['#4F79C9','#D06A55','#3F9470','#7A62C9','#C98E2E','#3496A0','#C062
 const DOW = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
 const MON = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 const MON_S = ['ינו׳','פבר׳','מרץ','אפר׳','מאי','יוני','יולי','אוג׳','ספט׳','אוק׳','נוב׳','דצמ׳'];
-// More than 450 grams of meat a head is flagged (a fixed amount; it is no longer a setting)
-const MEAT_MAX = 450;
-const meatOver = pp => pp > MEAT_MAX;
-const meatWarn = () => 'שים לב, כמות בשר עולה על ' + MEAT_MAX + ' גרם לראש';
 const DEF_MEAT = ['קבב','סטייק','פרגיות','לבבות','כבד','המבורגר','כנפיים','נקניקיות מרגז','נקניקיות צ׳וריסו','נקניקיות אחרות'];
 const DEF_SALAD = ['ירקות','טאבולה','כרוב','חצילים','מטבוחה','תפוחי אדמה','פסטה','קינואה'];
 const DEF_SOFT = ['קולה','קולה זירו','ספרייט','פאנטה','ענבים','תפוזים','לימונדה','תה קר','סודה','מים בטעמים'];
@@ -1107,6 +1108,8 @@ function kindOfName(name) {
   kindCache.set(name, k); return k;
 }
 const kindOf = i => (i && i.dish ? '' : kindOfName(i && i.name));
+// drinks come in units or six-packs (not ice, which comes in bags, nor the "soft drinks" placeholder, which is split into types)
+const sixable = i => { const k = kindOfName(i && i.name); return k === 'six' || (!!i && i.cat === 'drinks' && k !== 'ice' && k !== 'soft'); };
 const isPool = i => kindOf(i) === 'meat' && !Number(i.grams) && !i.detail;
 function applyDefaults(d) {
   const k = kindOfName(d.name);
@@ -1769,7 +1772,7 @@ function tripData() {
   const covered = lines.filter(L => !L.needed).length;
   const ownedAll = items.filter(owned);
   const meatTotal = items.filter(i => kindOf(i) === 'meat' && (i.scope !== 'p' || owned(i))).reduce((s, i) => s + (Number(i.grams) || 0), 0);
-  const meatPeople = Math.max(1, guests.length || Number(ev && ev.meatPeople) || 1);
+  const meatPeople = Math.max(1, Number(ev && ev.meatFor) || guests.length || Number(ev && ev.meatPeople) || 1);
   const lineBy = new Map(lines.map(L => [L.key, L]));
   return {ev, guests, gmap, owned, items, group, personal, lines, lineBy, lineDbl, itemDbl, dblCount, covered,
           needed: lines.length - covered, ownedCount: ownedAll.length, packed: ownedAll.filter(i => i.packed).length,
@@ -2103,7 +2106,6 @@ function newDot(items) {
 }
 function lineRow(L, T, inDish) {
   const ro = S.readOnly, nm = esc(L.name), u = L.unit && L.unit !== SIX ? ' ' + esc(L.unit) : (L.unit === SIX ? ' ' + SIX : '');
-  const over = meatOver(T.meatPP);
   let box, q = '', flag = '';
   if (L.pool) {
     box = '<button class="cbox' + (L.parts.length ? ' on' : '') + '" data-meat="' + esc(L.key) + '" aria-label="אני אביא: ' + nm + '"' + (ro ? ' disabled' : '') + '>' + (L.parts.length ? ICON.check : '') + '</button>';
@@ -2118,7 +2120,6 @@ function lineRow(L, T, inDish) {
     if (T.lineDbl(L) || (!L.multi && L.parts.some(p => p.extra))) flag = '<span class="flag">כפילות</span>';
     if (L.ref.dish) { if (L.ref.amt && !(L.open && L.parts.length)) q = '<span class="qty">' + esc(L.ref.amt) + '</span>'; if (L.ref.dishName && !inDish) flag = '<span class="tag">ל' + esc(L.ref.dishName) + '</span>'; }
   }
-  if (L.kind === 'meat' && over) flag = '<span class="flag">מעל ' + MEAT_MAX + ' גרם לראש</span>';
   const chips = L.parts.map(p => {
     const g = T.gmap[p.owner];
     let extra = '';
@@ -2609,11 +2610,18 @@ function groupHTML(T) {
   const plainAll = T.lines.filter(L => !dishOf(L)), plainLs = lines.filter(L => !dishOf(L));
   const dishes = [...new Set(lines.filter(dishOf).map(L => L.ref.dish))].map(id => S.dishes.find(d => d.id === id))
     .sort((a, b) => (a.day - b.day) || ('bld'.indexOf(a.slot) - 'bld'.indexOf(b.slot)) || (posOf(a) - posOf(b)));
+  let meatShown = false;
+  const meatLine = ls => {
+    if (meatShown || !T.meatTotal || !ls.some(L => L.kind === 'meat')) return '';
+    meatShown = true;
+    const txt = '🥩 ' + fmtG(T.meatTotal) + ' בשר ל-' + T.meatPeople + ' אנשים · ' + fmtG(Math.round(T.meatPP)) + ' לאדם';
+    return S.readOnly ? '<p class="meat-sum">' + txt + '</p>' : '<button type="button" class="meat-sum" data-act="meat-people" aria-label="' + txt + ' · שינוי מספר האנשים">' + txt + ICON.pen + '</button>';
+  };
   return CATS.map(c => {
     const all = plainAll.filter(L => L.cat === c.id), ls = plainLs.filter(L => L.cat === c.id), ex = extra.filter(i => catOf(i) === c.id);
     if (!ls.length && !ex.length) return '';
     const need = all.filter(L => L.needed).length;
-    return '<div class="cat"><div class="cat-head">' + catPill(c) + '<span class="cat-count">' + (all.length - need) + '/' + all.length + '</span></div>'
+    return '<div class="cat"><div class="cat-head">' + catPill(c) + '<span class="cat-count">' + (all.length - need) + '/' + all.length + '</span></div>' + meatLine(ls)
       + '<ul class="items">' + ls.map(L => lineRow(L, T)).join('') + ex.map(i => personalDblRow(i, T)).join('') + '</ul></div>';
   }).join('') + dishes.map(d => {
     const all = T.lines.filter(L => L.ref.dish === d.id), ls = lines.filter(L => L.ref.dish === d.id), need = all.filter(L => L.needed).length;
@@ -3371,7 +3379,7 @@ function openChoiceSheet(o) {
     const sync = () => {
       root.querySelectorAll('[data-ch]').forEach(b => b.classList.toggle('on', chosen.has(b.dataset.ch)));
       if (rowsEl) rowsEl.innerHTML = [...chosen].map(([nm, x]) => '<div class="ch-row"><span class="ch-name">' + esc(nm) + '</span>'
-        + (isSixName(nm) ? '<select data-chu="' + esc(nm) + '" aria-label="יחידה"><option value="' + SIX + '"' + (x.unit === SIX ? ' selected' : '') + '>' + SIX + '</option><option value=""' + (x.unit ? '' : ' selected') + '>יחידות</option></select>' : '')
+        + '<span class="ch-u" role="group" aria-label="יחידה"><button type="button" data-chu="' + esc(nm) + '" data-u="" aria-pressed="' + !x.unit + '">יחידות</button><button type="button" data-chu="' + esc(nm) + '" data-u="' + SIX + '" aria-pressed="' + (x.unit === SIX) + '">שישיות</button></span>'
         + '<div class="mstep"><button type="button" data-chq="-1" data-n="' + esc(nm) + '" aria-label="פחות">−</button><output>' + x.qty + '</output><button type="button" data-chq="1" data-n="' + esc(nm) + '" aria-label="יותר">+</button></div></div>').join('');
     };
     const addOther = () => { const v = inp.value.trim(); if (!v || !o.multi) return false; if (!chosen.has(v)) chosen.set(v, entry(v)); inp.value = ''; sync(); return true; };
@@ -3379,9 +3387,9 @@ function openChoiceSheet(o) {
       const c = e.target.closest('[data-ch]');
       if (c) { const v = c.dataset.ch; if (o.multi) { chosen.has(v) ? chosen.delete(v) : chosen.set(v, entry(v)); } else { chosen.clear(); chosen.set(v, entry(v)); inp.value = ''; } sync(); }
       const q = e.target.closest('[data-chq]'); if (q) { const x = chosen.get(q.dataset.n); if (x) { x.qty = Math.min(99, Math.max(1, x.qty + Number(q.dataset.chq))); sync(); } }
+      const u = e.target.closest('button[data-chu]'); if (u) { const x = chosen.get(u.dataset.chu); if (x) { x.unit = u.dataset.u; sync(); } }
       const s = e.target.closest('[data-step]'); if (s && out) { n = Math.min(max, Math.max(1, n + Number(s.dataset.step))); out.textContent = n; }
     });
-    root.addEventListener('change', e => { const u = e.target.closest('[data-chu]'); if (u) { const x = chosen.get(u.dataset.chu); if (x) x.unit = u.value; } });
     inp.addEventListener('input', () => { if (!o.multi && inp.value.trim()) { chosen.clear(); sync(); } });
     inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); if (o.qty && addOther()) return; root.querySelector('#ch-go').click(); } });
     root.querySelector('#ch-go').addEventListener('click', () => {
@@ -3411,8 +3419,7 @@ function openMeatSheet(o) {
       root.querySelectorAll('[data-gset]').forEach(b => b.classList.toggle('on', +b.dataset.gset === g));
       if (askPeople) {
         const tot = others + addedG + g, pp = tot / people;
-        if (meatOver(pp)) { calc.className = 'warnbox'; calc.textContent = meatWarn(); }
-        else { calc.className = 'calc'; calc.textContent = 'סה״כ ' + fmtG(tot) + ' · ' + fmtG(Math.round(pp)) + ' לראש'; }
+        calc.className = 'calc'; calc.textContent = 'סה״כ ' + fmtG(tot) + ' בשר ל-' + people + ' אנשים · ' + fmtG(Math.round(pp)) + ' לאדם';
       }
       go.textContent = (o.cta || 'הוספה') + ' · ' + fmtG(g) + ' ' + (type || generic);
       addedEl.hidden = !added.length;
@@ -3432,10 +3439,7 @@ function openMeatSheet(o) {
       added.push((type || generic) + ' ' + fmtG(g)); addedG += g;
       type = ''; other.value = ''; g = g0; sync();
     });
-    root.querySelector('#g-done').addEventListener('click', () => {
-      closeSheet();
-      if (added.length && askPeople && meatOver((others + addedG) / people)) toast(meatWarn(), true);
-    });
+    root.querySelector('#g-done').addEventListener('click', () => closeSheet());
     if (type && !MEAT_CHOICES.includes(type)) other.value = type;
     sync();
   });
@@ -3443,7 +3447,7 @@ function openMeatSheet(o) {
 function openMeatPeopleSheet() {
   const T = tripData(); if (!T.ev || S.readOnly) return;
   openSheet('<form class="stack-form" data-form="meat-people" autocomplete="off"><h2 class="sheet-title">לכמה אנשים הבשר?</h2>' + miniStep('mpp-n', T.meatPeople)
-    + '<p class="' + (meatOver(T.meatPP) ? 'warnbox' : 'calc') + '">' + (meatOver(T.meatPP) ? meatWarn() : 'סה״כ ' + fmtG(T.meatTotal) + ' · ' + fmtG(Math.round(T.meatPP)) + ' לראש') + '</p>'
+    + '<p class="calc">סה״כ ' + fmtG(T.meatTotal) + ' בשר · ' + fmtG(Math.round(T.meatPP)) + ' לאדם</p>'
     + sheetActions('') + '</form>');
 }
 
@@ -3464,7 +3468,7 @@ function openItemSheet(id) {
     + (me ? '<optgroup label="רשימה אישית"><option value="p:' + esc(me.id) + '">' + esc(me.name) + ' (אישי)</option></optgroup>' : '') + '</select></label>';
   const amountFields = k === 'meat'
     ? '<div class="two"><label class="field"><span>סוג</span><input id="it-detail" list="dl-meat" value="' + esc(it.detail || '') + '" maxlength="30"></label><label class="field"><span>גרם</span><input id="it-grams" type="number" inputmode="numeric" min="100" step="100" value="' + esc(it.grams || '') + '"></label></div>'
-    : '<div class="field"><span>כמות</span><div class="add-row">' + miniStep('it-qty', Q(it)) + (k === 'six' ? unitSelect('it-unit', it.unit) : '') + '</div></div>'
+    : '<div class="field"><span>כמות</span><div class="add-row">' + miniStep('it-qty', Q(it)) + (sixable(it) ? unitSelect('it-unit', it.unit) : '') + '</div></div>'
       + (it.detail != null && it.detail !== '' ? '<label class="field"><span>סוג</span><input id="it-detail" value="' + esc(it.detail) + '" maxlength="40"></label>' : '');
   openSheet('<form class="stack-form" data-form="item" data-id="' + esc(id) + '" autocomplete="off">'
     + '<label class="field"><span>פריט</span><input id="it-name" value="' + esc(it.name) + '" maxlength="80" required></label>'
@@ -3776,7 +3780,7 @@ function openTplItemSheet(iid) {
   const k = kindOf(it);
   openSheet('<form class="stack-form" data-form="tpl-item" data-id="' + esc(iid) + '" autocomplete="off">'
     + '<label class="field"><span>פריט</span><input id="ti-name" value="' + esc(it.name) + '" maxlength="80" required></label>'
-    + (k === 'meat' ? '' : '<div class="field"><span>כמות</span><div class="add-row">' + miniStep('ti-qty', Q(it)) + (k === 'six' ? unitSelect('ti-unit', it.unit) : '') + '</div></div>')
+    + (k === 'meat' ? '' : '<div class="field"><span>כמות</span><div class="add-row">' + miniStep('ti-qty', Q(it)) + (sixable(it) ? unitSelect('ti-unit', it.unit) : '') + '</div></div>')
     + '<label class="field"><span>קטגוריה</span><select id="ti-cat">' + catOptions(catOf(it)) + '</select></label>'
     + '<label class="field"><span>רשימה</span><select id="ti-scope"><option value="g"' + (it.scope !== 'p' ? ' selected' : '') + '>משותף</option><option value="p"' + (it.scope === 'p' ? ' selected' : '') + '>רשימה אישית</option></select></label>'
     + sheetActions('')
@@ -3784,7 +3788,7 @@ function openTplItemSheet(iid) {
 }
 
 /* ---------- Trip actions ---------- */
-function saveMeatPeople(n) { const ev = tripData().ev; if (ev && Number(ev.meatPeople) !== n) fire(Store.update('events/' + ev.id, {meatPeople: n})); }
+function saveMeatPeople(n) { const T = tripData(), ev = T.ev; if (ev && T.meatPeople !== n) fire(Store.update('events/' + ev.id, {meatFor: n})); }
 function startClaim(itemId) {
   if (S.readOnly) return;
   const it = S.items.find(i => i.id === itemId); if (!it) return;
