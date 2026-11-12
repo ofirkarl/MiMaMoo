@@ -98,7 +98,7 @@ body.on-home .empty{background:rgba(255,255,255,.6)}
 .btn.sm{min-height:36px;padding:0 14px;font-size:14.5px}
 .btn.danger{color:var(--danger);background:var(--danger-bg)}
 .btn.danger.solid{background:var(--danger-bg);color:var(--danger)}
-.btn.danger.armed{background:var(--danger);color:#FFFFFF}
+.btn.danger.armed{background:var(--danger);color:#FFFFFF;padding-inline:4px;overflow:hidden}
 .link{color:var(--link);font-weight:700;text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:3px}
 .back,.round{position:relative;display:inline-grid;place-items:center;flex:none;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.84);color:var(--ink);box-shadow:var(--shadow-sm);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:transform .14s cubic-bezier(.3,.7,.4,1.6),background .15s}
 .back:active,.round:active{transform:scale(.9)}
@@ -770,7 +770,10 @@ button.row{width:100%;text-align:start}
 @media (min-width:700px){.sheet{left:50%;right:auto;bottom:auto;top:50%;transform:translate(-50%,-50%);width:min(560px,92vw);max-height:90vh;border-radius:24px;padding:26px}.sheet-grip{display:none}.sheet.in{animation:fade-in .2s ease}.sheet-ghost .sheet.out{transform:translate(-50%,-50%);opacity:0;transition:opacity .2s}}
 .sheet-title{font-family:var(--f-display);font-weight:600;font-size:25px;line-height:1.15;text-wrap:balance;overflow-wrap:anywhere}
 .stack-form{display:flex;flex-direction:column;gap:16px}
-.sheet-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;align-items:center;margin-top:6px}
+.sheet-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:nowrap;align-items:center;margin-top:6px}
+/* the footer never wraps: buttons keep their places whatever their labels say; a long main label is cut, not moved */
+.sheet-actions>.btn{flex-shrink:0}
+.sheet-actions>.btn.primary{flex-shrink:1;min-width:0;overflow:hidden;text-overflow:ellipsis;display:block;line-height:48px;text-align:center}
 .sheet-actions .grow{flex:1}
 .sheet-actions .btn{min-height:48px}
 .sheet-actions:has(.primary) .grow{display:none}
@@ -3933,7 +3936,7 @@ async function deleteTemplate() {
 
 /* ---------- Misc ---------- */
 function copyText(text, btn) {
-  const done = () => { btn.textContent = 'הועתק'; setTimeout(() => { if (btn.isConnected) btn.textContent = 'העתקה'; }, 1800); };
+  const done = () => { btn.style.width = btn.getBoundingClientRect().width + 'px'; btn.textContent = 'הועתק'; setTimeout(() => { if (btn.isConnected) { btn.textContent = 'העתקה'; btn.style.width = ''; } }, 1800); };
   const fallback = () => { const el = byId('trip-code'); if (!el) return; const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
   try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
 }
@@ -3958,9 +3961,13 @@ function confirmBtn(t) {
     else if (k === 'tpl-delete') deleteTemplate();
     return;
   }
-  t.dataset.armed = '1'; t.dataset.label = t.innerHTML; t.textContent = 'לחצו שוב לאישור'; t.classList.add('armed');
-  setTimeout(() => { if (t.isConnected && t.dataset.armed) { delete t.dataset.armed; t.innerHTML = t.dataset.label; t.classList.remove('armed'); } }, 3500);
+  const r = t.getBoundingClientRect();
+  t.style.width = r.width + 'px'; t.style.height = r.height + 'px';
+  t.dataset.armed = '1'; t.dataset.label = t.innerHTML; t.textContent = /הסרה/.test(t.textContent) ? 'להסיר?' : 'למחוק?'; t.classList.add('armed');
+  t.setAttribute('aria-label', 'לחיצה נוספת מאשרת');
+  setTimeout(() => { if (t.isConnected && t.dataset.armed) disarm(t); }, 3500);
 }
+function disarm(t) { delete t.dataset.armed; t.innerHTML = t.dataset.label || 'מחיקה'; t.classList.remove('armed'); t.style.width = ''; t.style.height = ''; t.removeAttribute('aria-label'); }
 function act(a) {
   switch (a) {
     case 'home': return goHome();
@@ -4154,7 +4161,7 @@ function syncSelBar() {
   const ab = byId('sel-arch'), ak = ARCH_SEL[SEL.ctx];
   ab.hidden = !ak; if (ak) ab.innerHTML = ICON.archive + (ak === 'out' ? 'החזרה' : 'ארכיון');
   const del = bar.querySelector('[data-confirm]');
-  if (del && del.dataset.armed) { delete del.dataset.armed; del.innerHTML = del.dataset.label || 'מחיקה'; del.classList.remove('armed'); }
+  if (del && del.dataset.armed) disarm(del);
 }
 function enterSel(spec) {
   const i = spec.indexOf('|'), ctx = spec.slice(0, i), id = spec.slice(i + 1);
