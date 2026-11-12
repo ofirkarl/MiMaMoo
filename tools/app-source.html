@@ -135,6 +135,7 @@ fieldset.field>legend{margin-bottom:8px}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);box-shadow:var(--shadow-sm)}
 .seg-radio label{position:relative}
 .tpl-seg{align-self:stretch;display:flex}
+.tpl-empty-act{display:flex;justify-content:flex-start;margin-top:-4px}
 .tpl-seg button{flex:1}
 .seg-radio input{position:absolute;opacity:0;width:1px;height:1px;min-height:0}
 .seg-radio span{display:inline-flex;align-items:center;min-height:38px;padding:0 16px;border-radius:999px;font-weight:600;font-size:15px;color:var(--muted);cursor:pointer}
@@ -200,6 +201,8 @@ fieldset.field>legend{margin-bottom:8px}
 .trip-head.has-cover .crew-line{color:#FFFFFF}
 .crew-ic{flex:none;display:grid;place-items:center;height:22px;opacity:.55}
 .crew-ic svg{width:17px;height:17px}
+.crew-ic{grid-auto-flow:column;gap:4px}
+.crew-n{font-size:14.5px;font-weight:800;line-height:22px}
 .crew-box{flex:1;min-width:0;overflow:hidden}
 .crew{list-style:none;margin:0;margin-inline-start:-18px;padding:0;display:flex;flex-wrap:wrap;row-gap:1px}
 .crew li{white-space:nowrap;font-size:14.5px;font-weight:600;line-height:22px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
@@ -685,6 +688,7 @@ button.set-row{width:100%;padding-inline:8px;text-align:start;gap:12px}
 .ch-row:last-child{border-bottom:0}
 .ch-name{flex:1;min-width:0;font-weight:700;overflow-wrap:anywhere}
 .ch-row select{width:auto;min-height:40px;flex:0 0 auto}
+.choice-grid .chip.gen{font-weight:700;border-style:dashed}
 .ch-u{flex:none;display:inline-flex;gap:2px;padding:2px;border-radius:999px;background:var(--sunk)}
 .ch-u button{min-height:30px;padding:0 10px;border-radius:999px;font-size:13.5px;font-weight:600;color:var(--muted);transition:background .15s,color .15s}
 .ch-u button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
@@ -2468,7 +2472,7 @@ function markJoined(T, me) {
 function crewHTML(T) {
   if (!T.guests.length) return '';
   const gs = [...T.guests].sort((a, b) => (b.id === S.me) - (a.id === S.me));
-  return '<div class="crew-line"><span class="crew-ic">' + ICON.tpeople + '</span><div class="crew-box"><ul class="crew" aria-label="משתתפים">'
+  return '<div class="crew-line"><span class="crew-ic" title="' + gs.length + ' משתתפים">' + ICON.tpeople + '<b class="crew-n">' + gs.length + '</b></span><div class="crew-box"><ul class="crew" aria-label="' + gs.length + ' משתתפים">'
     + gs.map(g => '<li' + (g.id === S.me ? ' class="me"' : '') + '><span>' + esc(g.name) + '</span>' + joinMark(g) + '</li>').join('') + '</ul></div></div>';
 }
 // Add form + suggestions folded into one row; open by default only while the list is empty.
@@ -2784,7 +2788,7 @@ function updateTemplates() {
   const ts = sortedTpls(), ro = S.readOnly;
   r.innerHTML = ts.length
     ? ts.map(t => '<button class="tpl-row' + (ro ? '' : selCls('tpls', t.id)) + '" data-tpl="' + esc(t.id) + '"' + (ro ? '' : selAt('tpls', t.id)) + '>' + (ro ? '' : selBox) + '<span class="tpl-row-main"><b>' + esc(t.name || 'ללא שם') + '</b><small>' + tplCount(t) + '</small><span class="blazes">' + tplBlazes(t) + '</span></span><span class="chev">' + ICON.chev + '</span></button>').join('')
-    : '<div class="empty muted">עוד אין תבניות</div>';
+    : '<div class="empty muted">אין תבניות</div><div class="tpl-empty-act">' + tplRestoreBtn() + '</div>';
 }
 function shellTemplate() {
   const t = S.templates.find(x => x.id === S.tplId), ro = S.readOnly;
@@ -3080,7 +3084,8 @@ function openChoiceSheet(o) {
   const chosen = new Map(); let n = 1; const max = Math.max(1, o.max || 1);
   const entry = v => ({qty: 1, unit: isSixName(v) ? SIX : ''});
   openSheet('<h2 class="sheet-title">' + esc(o.title) + '</h2>'
-    + '<div class="choice-grid">' + o.ideas.map(s => '<button type="button" class="chip" data-ch="' + esc(s) + '">' + esc(s) + '</button>').join('') + '</div>'
+    + '<div class="choice-grid">' + (o.general ? '<button type="button" class="chip gen" data-ch="' + esc(o.general) + '">' + esc(o.general) + ' · כללי</button>' : '')
+    + o.ideas.map(s => '<button type="button" class="chip" data-ch="' + esc(s) + '">' + esc(s) + '</button>').join('') + '</div>'
     + '<input id="ch-in" maxlength="40" placeholder="אחר" aria-label="סוג אחר">'
     + (o.qty ? '<div id="ch-rows"></div>' : '')
     + (!o.multi && max > 1 ? '<div class="inline-field"><span>כמה? (חסרים ' + max + ')</span><div class="stepper"><button type="button" data-step="-1" aria-label="פחות">−</button><output id="ch-n">1</output><button type="button" data-step="1" aria-label="יותר">+</button></div></div>' : '')
@@ -3174,7 +3179,7 @@ function openItemSheet(id) {
   const listVal = it.scope === 'p' && owned ? 'p:' + it.owner : (owned ? 'g:' + it.owner : 'g:');
   // anyone in the event can take the item over: me first, then everyone else
   const people = [...T.guests].sort((a, b) => (b.id === S.me) - (a.id === S.me));
-  const listField = '<label class="field"><span>ברשימה של</span><select id="it-list" data-val="' + esc(listVal) + '"><optgroup label="משותף">' + (owned ? '' : '<option value="g:" hidden>בחירת משתתף</option>') + people.map(g => '<option value="g:' + esc(g.id) + '">' + esc(g.name) + (g.id === S.me ? ' (אני)' : '') + '</option>').join('') + '</optgroup>'
+  const listField = '<label class="field"><span>ברשימה של</span><select id="it-list" data-val="' + esc(listVal) + '"><optgroup label="משותף"><option value="g:">אף אחד · עוד מחפשים מי יביא</option>' + people.map(g => '<option value="g:' + esc(g.id) + '">' + esc(g.name) + (g.id === S.me ? ' (אני)' : '') + '</option>').join('') + '</optgroup>'
     + (me ? '<optgroup label="רשימה אישית"><option value="p:' + esc(me.id) + '">' + esc(me.name) + ' (אישי)</option></optgroup>' : '') + '</select></label>';
   const amountFields = k === 'meat'
     ? '<div class="two"><label class="field"><span>סוג</span><input id="it-detail" list="dl-meat" value="' + esc(it.detail || '') + '" maxlength="30"></label><label class="field"><span>גרם</span><input id="it-grams" type="number" inputmode="numeric" min="100" step="100" value="' + esc(it.grams || '') + '"></label></div>'
@@ -3293,9 +3298,10 @@ function openTripSheet(edit) {
   ntDefaults(edit);
   const tpls = sortedTpls(), pre = preTpl && tpls.some(t => t.id === preTpl) ? preTpl : (tpls[0] ? tpls[0].id : '');
   const cur = edit ? ((tplOf(ev) || {}).id || '') : pre;
-  const picker = '<label class="field inl"><span>תבנית</span><select id="tf-tpl">'
+  const picker = '<label class="field inl"><span>תבנית</span><select id="tf-tpl"' + (tpls.length ? '' : ' data-auto="1"') + '>'
     + tpls.map(t => '<option value="' + esc(t.id) + '"' + (t.id === cur ? ' selected' : '') + '>' + esc(t.name || 'ללא שם') + '</option>').join('')
-    + '<option value=""' + (cur ? '' : ' selected') + '>' + (edit && ev.tpl && !cur ? esc(ev.tpl) + ' (כמו שהיא)' : 'בלי תבנית') + '</option></select></label>';
+    + '<option value=""' + (cur ? '' : ' selected') + '>' + (edit && ev.tpl && !cur ? esc(ev.tpl) + ' (כמו שהיא)' : 'בלי תבנית') + '</option></select></label>'
+    + (tpls.length ? '' : '<div class="tpl-empty-act">' + tplRestoreBtn() + '</div>');
   openSheet('<form class="stack-form" data-form="' + (edit ? 'edit-trip' : 'new-trip') + '" autocomplete="off">'
     + (edit ? '' : picker)
     + '<label class="field"><span>שם האירוע</span><input id="tf-name" maxlength="60" required value="' + esc(ev ? ev.name : '') + '"></label>'
@@ -3497,7 +3503,7 @@ function startClaim(itemId) {
   const k = kindOf(it);
   if (k === 'meat' && isPool(it)) return startMeat(it.src || it.id);
   if ((k === 'salad' && saladGeneric(it.name)) || k === 'soft') {
-    return openChoiceSheet({title: k === 'salad' ? 'איזה סלט?' : 'איזו שתייה?', ideas: k === 'salad' ? SALAD_IDEAS : SOFT_IDEAS, max: Q(it), cta: 'אביא', onSave: (rows, n) => claim(itemId, n, S.me, {detail: rows[0].name})});
+    return openChoiceSheet({title: k === 'salad' ? 'איזה סלט?' : 'איזו שתייה?', ideas: k === 'salad' ? SALAD_IDEAS : SOFT_IDEAS, general: k === 'salad' ? '' : 'שתייה קלה', max: Q(it), cta: 'אביא', onSave: (rows, n) => claim(itemId, n, S.me, rows[0].name === 'שתייה קלה' ? {} : {detail: rows[0].name})});
   }
   if (Q(it) > 1) openQtySheet(it); else claim(itemId, 1, S.me);
 }
@@ -3620,7 +3626,7 @@ function addGroupFlow(name, qty, cat, unit, owner) {
   }
   if ((k === 'salad' && saladGeneric(name)) || k === 'soft') {
     const salad = k === 'salad';
-    openChoiceSheet({title: salad ? 'איזה סלט?' : 'איזו שתייה קלה?', ideas: salad ? SALAD_IDEAS : SOFT_IDEAS, multi: true, qty: !salad, onSave: rows => {
+    openChoiceSheet({title: salad ? 'איזה סלט?' : 'איזו שתייה קלה?', ideas: salad ? SALAD_IDEAS : SOFT_IDEAS, general: salad ? '' : 'שתייה קלה', multi: true, qty: !salad, onSave: rows => {
       rows.forEach((r, i) => { const nm = salad ? saladName(r.name) : r.name; if (dupGroup(nm)) { dupToast(nm); return; } addItem(Object.assign(applyDefaults({name: nm, cat: salad ? 'food' : 'drinks', qty: r.qty, unit: r.unit, scope: 'g'}), {created: Date.now() + i})); });
     }});
     return true;
@@ -3711,7 +3717,7 @@ function addPersonalFlow(name, qty, who, cat) {
   }
   if ((k === 'salad' && saladGeneric(name)) || k === 'soft') {
     const salad = k === 'salad';
-    openChoiceSheet({title: salad ? 'איזה סלט?' : 'איזו שתייה קלה?', ideas: salad ? SALAD_IDEAS : SOFT_IDEAS, multi: true, qty: !salad, onSave: rows => rows.forEach(r => { const nm = salad ? saladName(r.name) : r.name; if (!dupPersonal(who, nm)) addPersonal(applyDefaults({name: nm, cat: salad ? 'food' : 'drinks', qty: r.qty, unit: r.unit, scope: 'p', owner: who})); })});
+    openChoiceSheet({title: salad ? 'איזה סלט?' : 'איזו שתייה קלה?', ideas: salad ? SALAD_IDEAS : SOFT_IDEAS, general: salad ? '' : 'שתייה קלה', multi: true, qty: !salad, onSave: rows => rows.forEach(r => { const nm = salad ? saladName(r.name) : r.name; if (!dupPersonal(who, nm)) addPersonal(applyDefaults({name: nm, cat: salad ? 'food' : 'drinks', qty: r.qty, unit: r.unit, scope: 'p', owner: who})); })});
     return true;
   }
   if ((k === 'six' || k === 'ice') && qty === 1) { openSixSheet(name, (n, u) => addPersonal(applyDefaults({name, cat: cat || 'drinks', qty: n, unit: u, scope: 'p', owner: who})), 1, k === 'ice' ? BAG : undefined); return true; }
@@ -3738,7 +3744,7 @@ async function removeGuest(gid, keep) {
   }
   await Store.del('events/' + trip + '/guests/' + gid).catch(() => {});
   if (S.me === gid) { S.me = null; lsSet('me:' + trip, null); render(); }
-  if (!keep) toast((g ? g.name : 'המשתתף') + ' הוסר');
+  if (!keep) toast((g ? g.name : 'המשתתף') + ' הוסר' + (mine.some(i => i.scope !== 'p') ? '. מה שהביא חזר לרשימה' : ''));
 }
 const guestHasMoney = gid => S.expenses.some(x => x.payer === gid || x.to === gid || (x.among || []).includes(gid));
 // One tap on a participant's name removes them.
@@ -3755,8 +3761,9 @@ function egRemove(btn) {
   const gid = btn.dataset.egRm, g = tripData().gmap[gid];
   if (guestHasMoney(gid)) { toast('יש לו הוצאות, אי אפשר להסיר'); return; }
   btn.disabled = true; btn.classList.add('leaving');
+  const had = S.items.some(i => i.owner === gid && i.scope !== 'p');
   fire(removeGuest(gid, true));
-  if (g) toast(g.name + ' הוסר');
+  if (g) toast(g.name + ' הוסר' + (had ? '. מה שהביא חזר לרשימה' : ''));
 }
 async function createTrip(f) {
   const nameEl = f.querySelector('#tf-name'), name = nameEl.value.trim();
@@ -3874,10 +3881,31 @@ function seedStarterTpls() {
   const list = groups => Object.entries(groups).flatMap(([cat, names]) => names.map(n => [cat, n]));
   STARTER_TPLS.forEach((t, k) => {
     if (have.has(t.name)) return;
-    const items = list(t.g).map(([c, n]) => mk(c, n, 'g'));
+    const items = list(t.g).map(([c, n]) => mk(c, n, 'g')).concat(list(t.p || {}).map(([c, n]) => mk(c, n, 'p')));
     fire(Store.set('templates/' + t.id, {name: t.name, order: now + k, items}));
   });
   fire(Store.set('settings/seed', {tpl: 1}));
+}
+// Bring back the starter templates that are missing (by name), under new ids so nothing existing is overwritten
+function restoreStarterTpls() {
+  if (S.readOnly) return;
+  const have = new Set(S.templates.map(t => String(t.name || '').trim())), now = Date.now();
+  const mk = (cat, name, scope) => { const d = applyDefaults({name, cat, qty: 1}); return {id: uid('ti'), name, cat: CAT[d.cat] ? d.cat : 'general', qty: d.qty || 1, unit: d.unit || '', scope}; };
+  const list = groups => Object.entries(groups || {}).flatMap(([cat, names]) => names.map(n => [cat, n]));
+  let n = 0;
+  STARTER_TPLS.forEach((t, k) => {
+    if (have.has(t.name)) return; n++;
+    fire(Store.set('templates/' + uid('tp'), {name: t.name, order: now + k, items: list(t.g).map(([c, x]) => mk(c, x, 'g')).concat(list(t.p).map(([c, x]) => mk(c, x, 'p')))}));
+  });
+  toast(n ? 'תבניות ההתחלה חזרו' : 'כל תבניות ההתחלה כבר כאן');
+}
+const tplRestoreBtn = () => S.readOnly ? '' : '<button type="button" class="btn sm tonal" data-act="tpl-restore">החזרת תבניות ההתחלה</button>';
+// the new-event sheet fills its template menu as soon as templates arrive
+function refreshTplPicker() {
+  const sel = byId('tf-tpl'), f = sel && sel.closest('form[data-form="new-trip"]'); if (!f || !sel.dataset.auto) return;
+  const tpls = sortedTpls(); if (!tpls.length) return;
+  sel.innerHTML = tpls.map((t, i) => '<option value="' + esc(t.id) + '"' + (i ? '' : ' selected') + '>' + esc(t.name || 'ללא שם') + '</option>').join('') + '<option value="">בלי תבנית</option>';
+  const b = f.querySelector('[data-act="tpl-restore"]'); if (b) b.remove();
 }
 function saveTpl(id, mut) {
   const t = S.templates.find(x => x.id === id); if (!t) return;
@@ -3979,6 +4007,7 @@ function act(a) {
     case 'ex-all': document.querySelectorAll('input[name="ex-among"]').forEach(c => { c.checked = true; }); return;
     case 'undo': return runUndo();
     case 'bank-all': return bankAddAll();
+    case 'tpl-restore': return restoreStarterTpls();
     case 'sugg-edit': {
       const ev = tripData().ev, t = tplOf(ev);
       if (!t) return openListPref('sharedbank');
@@ -4516,6 +4545,13 @@ const forms = {
     if (patch.cat !== catOf(it)) learnCat(name, patch.cat);
     const mu = f.querySelector('#it-multi');
     closeSheet();
+    // back to nobody: the share goes back to the list the way unticking it does (joins what is still open of the same item)
+    if (!owner && it.owner && scope === 'g' && it.scope !== 'p') {
+      delete patch.owner;
+      fire(Store.update(itemPath(id), patch).then(() => putBack(id, true)));
+      toast(dispName(it) + ' חזר לרשימה. עוד מחפשים מי יביא');
+      return;
+    }
     fire(Store.update(itemPath(id), patch));
     // the switch belongs to the whole line: every share of this item gets it
     if (mu && mu.checked !== isMulti(it)) { const src = it.src || it.id; S.items.filter(x => (x.src || x.id) === src && x.scope !== 'p').forEach(x => fire(Store.update(itemPath(x.id), {multi: mu.checked}))); }
@@ -4635,6 +4671,7 @@ document.addEventListener('keydown', e => {
   }
 });
 // "have it / need to buy" takes effect the moment it is tapped
+document.addEventListener('change', e => { if (e.target.id === 'tf-tpl') delete e.target.dataset.auto; });  // a menu the person chose from stops filling itself
 document.addEventListener('change', e => {
   const r = e.target; if (r.name !== 'it-buy') return;
   const f = r.closest('form[data-form="item"]'), it = f && S.items.find(i => i.id === f.dataset.id); if (!it || it.owner !== S.me) return;
@@ -4679,7 +4716,7 @@ async function init() {
     S.events = l; S.eventsLoaded = true;
     tryDeep(); render();
   });
-  Store.sub('templates', l => { S.templates = l; S.templatesLoaded = true; seedStarterTpls(); render(); });
+  Store.sub('templates', l => { S.templates = l; S.templatesLoaded = true; seedStarterTpls(); render(); refreshTplPicker(); });
   Store.sub('settings', l => {
     const c = l.find(d => d.id === 'cats'), p = l.find(d => d.id === 'prefs'), lr = l.find(d => d.id === 'learn');
     setCats(c && c.list); setPrefs(p);
