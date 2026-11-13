@@ -11,7 +11,7 @@ import google.auth
 from google.auth.transport.requests import AuthorizedSession
 
 API = 'https://firebasehosting.googleapis.com/v1beta1/'
-SKIP_TOP = {'tools', 'node_modules', 'firebase.json', 'README.md'}
+SKIP_TOP = {'tools', 'functions', 'node_modules', 'firebase.json', 'README.md'}
 
 
 def say(kind, msg):

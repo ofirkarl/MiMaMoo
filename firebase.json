@@ -1,9 +1,35 @@
 {
   "hosting": {
     "public": ".",
-    "ignore": ["firebase.json", "README.md", "tools/**", "**/.*", "**/node_modules/**"],
+    "ignore": [
+      "firebase.json",
+      "README.md",
+      "tools/**",
+      "**/.*",
+      "**/node_modules/**",
+      "functions/**"
+    ],
     "headers": [
-      {"source": "**", "headers": [{"key": "Cache-Control", "value": "no-cache"}]}
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      }
     ]
-  }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        "test.js",
+        "*.log"
+      ]
+    }
+  ]
 }

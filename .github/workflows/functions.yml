@@ -1,0 +1,44 @@
+# Deploys the notification functions (functions/) to Cloud Functions in Tel Aviv when they change.
+# Needs the Blaze plan and a key that may deploy functions (see tools/functions_preflight.py).
+name: Notifications (Cloud Functions)
+on:
+  push:
+    branches: [main]
+    paths: ['functions/**', '.github/workflows/functions.yml']
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test
+        run: |
+          npm install --prefix functions --no-audit --no-fund --loglevel=error
+          node functions/test.js
+          node -e "const f = require('./functions/index.js'); console.log('exports: ' + Object.keys(f).join(', '))"
+      - name: Deploy
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+          python3 tools/sa_key.py "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          pip install -q google-auth requests
+          if ! python3 tools/functions_preflight.py mimamoo-b37c7; then
+            echo "::notice::the project is not ready for functions yet (Blaze plan and key rights), nothing deployed"
+            rm -f "$RUNNER_TEMP/sa.json"; exit 0
+          fi
+          set +e
+          # the first deploy of event functions can ask to wait while Google finishes setting up: try again then
+          for i in 1 2 3; do
+            npx --yes firebase-tools deploy --only functions --project mimamoo-b37c7 --non-interactive --force
+            code=$?
+            [ $code -eq 0 ] && break
+            echo "::warning::deploy attempt $i failed, trying again in 90 seconds"
+            sleep 90
+          done
+          rm -f "$RUNNER_TEMP/sa.json"
+          exit $code
