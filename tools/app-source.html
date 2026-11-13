@@ -835,6 +835,12 @@ button.gchip.leaving{opacity:0;transform:scale(.85)}
 .inst-x svg{width:14px;height:14px}
 .install.join{flex-direction:column;align-items:stretch}
 .acct{display:flex;align-items:center;gap:12px;padding:14px 16px}
+.acct-t small.push-why{white-space:normal;line-height:1.4}
+#r-push{padding:0}
+.push-list{padding:4px 16px}
+.push-list .multi-row{min-height:54px;border-top:1px solid var(--line)}
+.push-list .multi-row:first-child{border-top:0}
+.push-foot{display:flex;flex-wrap:wrap;gap:8px;padding:6px 16px 14px}
 .acct-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .acct-t b{font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .acct-t small{font-size:13.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1661,6 +1667,69 @@ function loginCardHTML() {
     + '<span class="inst-t"><b>כניסה עם Google</b>האירועים והרשימות שלך יחכו לך בכל מכשיר, גם בטלפון חדש</span>'
     + '<button type="button" class="btn primary sm" data-act="login">התחברות</button></div>';
 }
+/* Notifications: only in the installed app with the cloud (window.MM_PUSH comes from its build, once there is a Web Push key) */
+let pushLoading = false;
+function loadPush() {
+  if (!window.MM_PUSH || pushLoading) return;
+  pushLoading = true;
+  window.MM_PUSH.status().then(st => { S.pushSt = st; }, () => { S.pushSt = {can: false}; }).then(() => { pushLoading = false; render(); });
+}
+const pushState = () => { if (window.MM_PUSH && !S.pushSt) loadPush(); return window.MM_PUSH ? S.pushSt : null; };
+const pushOnBtn = () => '<button type="button" class="btn primary sm" data-act="push-on"' + (S.pushBusy ? ' disabled aria-busy="true"' : '') + '>הפעלה</button>';
+// on the home page, once: offered where it can work and nothing was decided yet
+function pushCardHTML() {
+  const st = pushState();
+  if (!st || !st.can || st.on || st.perm === 'denied' || lsGet('noPush') || !S.events.length) return '';
+  return '<div class="install push-card"><button type="button" class="inst-x" data-act="push-no" aria-label="לא עכשיו">' + ICON.x + '</button>'
+    + '<span class="inst-t"><b>התראות מהקבוצה</b>לדעת כשמישהו מוסיף פריט, לוקח אותו או מחזיר אותו</span>' + pushOnBtn() + '</div>';
+}
+const pushSw = (k, label, on) => '<label class="multi-row push-sw"><input type="checkbox" data-push-pref="' + k + '"' + (on ? ' checked' : '') + '><span class="multi-sw" aria-hidden="true"></span><span>' + label + '</span></label>';
+function pushInner() {
+  const st = pushState();
+  const card = (sub, btn) => '<div class="acct"><span class="acct-t"><b>התראות לטלפון</b><small class="push-why">' + sub + '</small></span>' + (btn || '') + '</div>';
+  if (!st) return card('נטען…');
+  if (!st.can) return card(st.ios ? (st.standalone ? 'צריך iOS 16.4 ומעלה' : 'באייפון זה עובד מהאפליקציה שבמסך הבית: ב-Safari, שיתוף ← "הוספה למסך הבית", ומפעילים משם') : 'הדפדפן הזה לא שולח התראות');
+  if (st.perm === 'denied') return card('ההתראות חסומות. מתירים אותן ל-MiMaMoo בהגדרות הטלפון או הדפדפן, וחוזרים לכאן');
+  if (!st.on) return card('כשמישהו בקבוצה מוסיף פריט, לוקח אותו או מחזיר אותו', pushOnBtn());
+  return '<div class="set-list push-list">' + pushSw('add', 'פריט חדש ברשימה המשותפת', st.add) + pushSw('claim', 'מי לוקח מה, ומה חזר לרשימה', st.claim) + '</div>'
+    + '<div class="push-foot"><button type="button" class="btn sm" data-act="push-test">שליחת בדיקה</button><button type="button" class="btn sm" data-act="push-off">כיבוי במכשיר הזה</button></div>';
+}
+const pushSecHTML = () => window.MM_PUSH ? '<section class="set-sec"><div class="col-top"><h2>התראות</h2></div><div class="panel" id="r-push"></div></section>' : '';
+// the permission question has to come straight from the tap, before anything else is awaited
+function pushOn() {
+  if (!window.MM_PUSH || S.pushBusy) return;
+  let p; try { p = window.MM_PUSH.enable(); } catch (e) { p = Promise.reject(e); }
+  S.pushBusy = true; document.querySelectorAll('[data-act="push-on"]').forEach(b => { b.disabled = true; b.setAttribute('aria-busy', 'true'); });
+  p.then(r => {
+    if (r === 'on') { lsSet('noPush', '1'); toast('ההתראות פועלות'); }
+    else if (r === 'denied') toast('ההתראות לא הותרו. אפשר להתיר אותן בהגדרות הטלפון', true);
+  }, e => { console.warn(e); toast('ההתראות לא הופעלו. נסו שוב', true); })
+    .then(() => { S.pushBusy = false; S.pushSt = null; loadPush(); });
+}
+function pushOff() {
+  if (!window.MM_PUSH) return;
+  window.MM_PUSH.disable().catch(e => console.warn(e)).then(() => { toast('ההתראות כבויות במכשיר הזה'); S.pushSt = null; loadPush(); });
+}
+function pushTest() {
+  if (!window.MM_PUSH) return;
+  window.MM_PUSH.test().then(() => toast('נשלחה. ההתראה תגיע תוך כמה שניות'), e => { console.warn(e); toast('לא נשלחה. נסו שוב', true); });
+}
+// which phone belongs to which participant, so a notification can say who added something
+const devDone = new Set();
+function markDevice(me) {
+  if (!me || !window.MM_PUSH || !S.uid || S.readOnly) return;
+  const k = S.tripId + '/' + me.id;
+  if (devDone.has(k) || (me.dev && me.dev[S.uid])) return;
+  devDone.add(k);
+  fire(Store.update('events/' + S.tripId + '/guests/' + me.id, {dev: {[S.uid]: Date.now()}}));
+}
+// a tapped notification while the app is open (from the build's service-worker message)
+window.MM_OPEN = eid => {
+  const ev = eid && S.events.find(e => e.id === eid);
+  if (!ev) { if (eid) S.deep = eid; return; }
+  closeSheet();
+  if (ev.kind === 'split') openMoney(ev.id); else openTrip(ev.id);
+};
 function accountHTML() {
   if (!loginOn()) return '';
   const u = window.MM_AUTH.user();
@@ -1681,7 +1750,7 @@ function updateHome() {
   const r = byId('r-trips'), rs = byId('r-solos'); if (!r) return;
   const ro = S.readOnly;
   const hs = byId('r-hello'); if (hs && !(document.activeElement && document.activeElement.id === 'hello-in')) hs.innerHTML = helloHTML();
-  const ri = byId('r-install'); if (ri) ri.innerHTML = installHTML() + loginCardHTML();
+  const ri = byId('r-install'); if (ri) ri.innerHTML = installHTML() + (pushCardHTML() || loginCardHTML());  // at most two cards: notifications come before sign-in
   const htab = (k, label) => '<button role="tab" aria-selected="' + (S.homeTab === k) + '" data-htab="' + k + '">' + label + '</button>';
   byId('r-htabs').innerHTML = htab('lists', 'רשימות') + htab('shop', 'קניות') + htab('money', 'הוצאות') + htab('notes', 'הערות');
   byId('h-shop').hidden = S.homeTab !== 'shop';
@@ -2509,6 +2578,7 @@ function updateTrip() {
   autoMe(T);
   const me = S.me && T.gmap[S.me] ? T.gmap[S.me] : null;
   markJoined(T, me);
+  markDevice(me);
   syncOpenDishes();
   // coming into an event (an invite link, or any first visit) without a name in it: ask which participant I am, once per visit
   if (S.askMe && S.guestsLoaded) {
@@ -2670,7 +2740,7 @@ function shellSettings() {
     + (add && !ro ? '<button class="btn primary sm" data-act="' + add + '" data-fold-add="' + k + '" hidden>+ הוספה</button>' : '') + '</div>' + body + '</section>';
   return '<header class="top"><div class="wrap top-in"><button class="back" data-act="home">' + ICON.back + '<span>חזרה</span></button>'
     + (window.MM_SPACE ? '<button class="icon-btn gear share-btn" data-act="share-app" aria-label="שיתוף האפליקציה" title="שיתוף האפליקציה">' + ICON.share + '</button>' : '') + '</div></header>'
-    + '<main class="wrap page"><h1 class="page-h">הגדרות</h1>' + accountHTML()
+    + '<main class="wrap page"><h1 class="page-h">הגדרות</h1>' + accountHTML() + pushSecHTML()
     + sec('tpls', 'תבניות', 'new-tpl', '<p class="set-hint" data-fold-body="tpls" hidden>בוחרים תבנית כשיוצרים אירוע, ואפשר להחליף אותה בעריכת האירוע.</p><div id="r-tpls" class="tpl-list" data-fold-body="tpls" hidden></div>', 'ההצעות לכל סוג אירוע')
     + sec('cats', 'קטגוריות', 'new-cat', '<div id="r-cats" class="panel set-list" data-fold-body="cats" hidden></div>', 'השמות, הצבעים והסדר ברשימות')
     + sec('prefs', 'הצעות וכמויות', '', '<div id="r-prefs" class="panel set-list" data-fold-body="prefs" hidden></div>', 'הצעות כלליות וכמות בשר לאדם')
@@ -2678,6 +2748,7 @@ function shellSettings() {
 }
 function updateSettings() {
   updateTemplates();
+  const rp = byId('r-push'); if (rp) rp.innerHTML = pushInner();
   const rc = byId('r-cats'); if (!rc) return;
   const open = S.setOpen || {};
   document.querySelectorAll('[data-fold]').forEach(b => b.setAttribute('aria-expanded', String(!!open[b.dataset.fold])));
@@ -3999,6 +4070,10 @@ function act(a) {
     case 'join-no': lsSet('joinAsked', '1'); render(); return;
     case 'join-paste': pasteJoin(); return;
     case 'login-no': lsSet('noLogin', '1'); render(); return;
+    case 'push-no': lsSet('noPush', '1'); render(); return;
+    case 'push-on': return pushOn();
+    case 'push-off': return pushOff();
+    case 'push-test': return pushTest();
     case 'login': if (window.MM_AUTH) window.MM_AUTH.signIn().catch(e => { console.warn(e); toast('ההתחברות לא הצליחה. נסו שוב', true); }); return;
     case 'logout': if (window.MM_AUTH) window.MM_AUTH.signOut(); return;
     case 'share-app':
@@ -4688,6 +4763,12 @@ document.addEventListener('change', e => {
 });
 document.addEventListener('change', e => {
   if (e.target.id === 'cover-file') { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) setCover(f); return; }
+  if (e.target.dataset.pushPref && window.MM_PUSH) {
+    const k = e.target.dataset.pushPref, on = e.target.checked;
+    if (S.pushSt) S.pushSt[k] = on;
+    window.MM_PUSH.setPref(k, on).catch(err => { console.warn(err); toast('לא נשמר. נסו שוב', true); S.pushSt = null; loadPush(); });
+    return;
+  }
   if (e.target.id === 'snd') { lsSet('sound', e.target.checked ? 'on' : 'off'); if (e.target.checked) sfx('check'); return; }
   if (e.target.id === 'my-name') { const v = e.target.value.trim().slice(0, 40); lsSet('myName', v || null); if (v) toast('נשמר'); return; }
   if (e.target.id === 'tpl-name' && !S.readOnly) { const v = e.target.value.trim() || 'תבנית'; saveTpl(S.tplId, x => { x.name = v; }); }

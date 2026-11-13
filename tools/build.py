@@ -99,7 +99,11 @@ rep('</style>\n\n<div id="app"></div>', '</style>\n</head>\n<body>\n<div id="app
 assert s.rstrip().endswith('</script>')
 s = s.rstrip() + '''
 <script>
-if ('serviceWorker' in navigator) window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  // a tapped notification while the app is open: go to its event
+  navigator.serviceWorker.addEventListener('message', function (e) { var d = e.data || {}; if (d.mm === 'open' && window.MM_OPEN) window.MM_OPEN(d.eid || ''); });
+}
 </script>
 </body>
 </html>
@@ -204,6 +208,61 @@ async function connectFire(cfg, home, spaceList) {
   };
   const mine = 'data/users/';
   const spaces = new Set((spaceList || []).filter(Boolean)); spaces.add(home);
+  /* Notifications (Firebase Cloud Messaging), once config.js has the Web Push key. This phone's address for messages
+     stays private under the account (users/<uid>/meta/push, with what kinds of news it wants); each group it belongs to
+     lists the account as wanting news (spaces/<space>/push/<uid>), for the server (functions/) to find. */
+  const vapidKey = (window.MM_CONFIG || {}).vapidKey || '';
+  let pushSub = () => {};
+  if (vapidKey) {
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const can = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+    const pref = F.doc(fs, 'users/' + user.uid + '/meta/push');
+    const lsg = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+    const lss = (k, v) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} };
+    const K = 'mm:push:' + user.uid, KS = 'mm:pushsub:' + user.uid;
+    const tokHash = t => { let h = 5381; for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return 'd' + (h >>> 0).toString(36); };
+    let M = null, msg = null;
+    const messaging = async () => { if (!M) { M = await import(base + 'firebase-messaging.js'); msg = M.getMessaging(app); } return M; };
+    pushSub = async sid => {
+      if (!lsg(K) || !sid) return;
+      let done; try { done = new Set(JSON.parse(lsg(KS) || '[]')); } catch (e) { done = new Set(); }
+      if (done.has(sid)) return;
+      try { await F.setDoc(F.doc(fs, 'spaces/' + sid + '/push/' + user.uid), {at: Date.now()}); done.add(sid); lss(KS, JSON.stringify([...done])); } catch (e) { console.warn(e); }
+    };
+    const register = async () => {
+      const m = await messaging(), reg = await navigator.serviceWorker.ready;
+      const t = await m.getToken(msg, {vapidKey, serviceWorkerRegistration: reg});
+      if (!t) throw new Error('no push token');
+      const h = tokHash(t), old = lsg(K), kind = ios ? 'ios' : /android/i.test(navigator.userAgent) ? 'android' : 'web';
+      await F.setDoc(pref, {tokens: {[h]: {t, at: Date.now(), on: kind}}, updated: Date.now()}, {merge: true});
+      if (old && old !== h) F.updateDoc(pref, new F.FieldPath('tokens', old), F.deleteField()).catch(() => {});
+      lss(K, h); lss(K + ':at', String(Date.now()));
+      await Promise.all([...spaces].map(pushSub));
+    };
+    const standalone = () => { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) { return false; } };
+    window.MM_PUSH = {
+      status: async () => {
+        const perm = can ? Notification.permission : 'unsupported';
+        const st = {can, ios, standalone: standalone(), perm, on: !!lsg(K) && perm === 'granted', add: true, claim: true};
+        if (st.on) { const s = await F.getDoc(pref).catch(() => null), d = s && s.exists() ? s.data() : {}; st.add = d.add !== false; st.claim = d.claim !== false; }
+        return st;
+      },
+      // straight from the tap: the permission question has to come first, before anything is awaited
+      enable: () => Promise.resolve(Notification.requestPermission()).then(p => p === 'granted' ? register().then(() => 'on') : p),
+      disable: async () => {
+        const h = lsg(K); lss(K, null); lss(KS, null);
+        if (h) await F.updateDoc(pref, new F.FieldPath('tokens', h), F.deleteField()).catch(() => {});
+        try { const m = await messaging(); await m.deleteToken(msg); } catch (e) {}
+      },
+      setPref: (k, on) => F.setDoc(pref, {[k]: !!on, updated: Date.now()}, {merge: true}),
+      test: () => F.setDoc(F.doc(fs, 'users/' + user.uid + '/meta/pushtest'), {at: Date.now()})
+    };
+    // the address can change now and then: refresh it once a day; and every group this phone knows hears of it
+    if (lsg(K) && can && Notification.permission === 'granted') {
+      if (Date.now() - Number(lsg(K + ':at') || 0) > 864e5) setTimeout(() => register().catch(e => console.warn(e)), 4000);
+      else setTimeout(() => spaces.forEach(pushSub), 3000);
+    }
+  }
   const evSpace = new Map(), watchers = new Set();
   const remember = sid => {
     if (spaces.has(sid)) return;
@@ -211,6 +270,7 @@ async function connectFire(cfg, home, spaceList) {
     try { localStorage.setItem('mm:spaces', JSON.stringify([...spaces].slice(-80))); } catch (e) {}
     if (profRef) F.setDoc(profRef, {spaces: F.arrayUnion(sid)}, {merge: true}).catch(() => {});
     watchers.forEach(w => w.add(sid));
+    pushSub(sid);
   };
   const spaceOf = eid => evSpace.get(eid) || (eid && eid === window.MM_DEEP && window.MM_DEEP_SPACE) || home;
   window.MM_SPACEOF = spaceOf;
