@@ -715,7 +715,19 @@ button.row{width:100%;text-align:start}
 .pill.plus{background:var(--good-bg);color:var(--good)}
 .pill.minus{background:var(--danger-bg);color:var(--danger)}
 .pill.zero{background:var(--sunk);color:var(--muted)}
-.tr-who{flex:1;min-width:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-weight:600}
+.tr-note{font-size:14.5px;color:var(--muted);line-height:1.5;padding:2px 2px 4px}
+.tr-note b{color:var(--ink);font-weight:700}
+.tr-list{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.tr-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
+.tr-item.mine{background:var(--mine-bg);border-color:var(--mine-line)}
+.tr-path{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px;position:relative}
+.tr-path::before{content:"";position:absolute;inset-inline-start:13px;top:30px;bottom:30px;border-inline-start:2px dashed var(--line-2)}
+.tr-p{display:flex;align-items:center;gap:9px;min-width:0;font-size:15.5px}
+.tr-p>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tr-p b{font-weight:700}
+.tr-me{color:var(--mine-ink)}
+.tr-side{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0}
+.tr-amt{font-family:var(--f-display);font-weight:600;font-size:21px;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap}
 .amt{font-family:var(--f-display);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .undo-row{padding-top:10px;display:flex}
 .undo-btn{gap:6px}
@@ -1521,16 +1533,55 @@ function balances(T, exps) {
     const share = Math.floor(amt / among.length); const rem = amt - share * among.length;
     among.forEach((id, i) => { net[id] -= share + (i < rem ? 1 : 0); });
   });
-  const debt = Object.keys(net).filter(k => net[k] < 0).map(k => ({id: k, v: -net[k]})).sort((a, b) => b.v - a.v);
-  const cred = Object.keys(net).filter(k => net[k] > 0).map(k => ({id: k, v: net[k]})).sort((a, b) => b.v - a.v);
-  const tr = []; let i = 0, j = 0;
-  while (i < debt.length && j < cred.length) {
-    const m = Math.min(debt[i].v, cred[j].v);
-    if (m > 0) tr.push({from: debt[i].id, to: cred[j].id, amt: m});
-    debt[i].v -= m; cred[j].v -= m;
-    if (debt[i].v === 0) i++; if (cred[j].v === 0) j++;
-  }
-  return {net, paid, total, tr};
+  return {net, paid, total, tr: planTransfers(net, Object.keys(net))};
+}
+/* The fewest transfers that settle everyone: people whose balances cancel out exactly settle among themselves,
+   so the group splits into as many such circles as possible; each circle of k people needs k-1 transfers. */
+const planMemo = new Map();
+function planTransfers(net, order) {
+  const P = order.filter(id => net[id]).map(id => ({id, v: net[id]}));
+  const key = P.map(p => p.id + ':' + p.v).join(',');
+  if (planMemo.has(key)) return planMemo.get(key);
+  const n = P.length; let groups = [];
+  if (n && n <= 16) {
+    const N = 1 << n, sum = new Float64Array(N), dp = new Int8Array(N), via = new Int32Array(N);
+    for (let m = 1; m < N; m++) { const b = m & -m; sum[m] = sum[m ^ b] + P[31 - Math.clz32(b)].v; }
+    for (let m = 1; m < N; m++) {
+      let best = -1, arg = 0;
+      for (let r = m; r; r &= r - 1) { const b = r & -r; if (dp[m ^ b] > best) { best = dp[m ^ b]; arg = b; } }
+      dp[m] = best + (sum[m] === 0 ? 1 : 0); via[m] = arg;
+    }
+    // walk back: each stretch between two masks that sum to zero is one circle
+    let m = N - 1, cur = [];
+    while (m) { const b = via[m]; cur.push(P[31 - Math.clz32(b)]); m ^= b; if (sum[m] === 0) { groups.push(cur); cur = []; } }
+  } else if (n) groups = [P];
+  const tr = [];
+  groups.forEach(g => {
+    const d = g.filter(p => p.v < 0).map(p => ({id: p.id, v: -p.v})), c = g.filter(p => p.v > 0).map(p => ({id: p.id, v: p.v}));
+    const big = (a, b) => b.v - a.v;
+    // same amounts first (one transfer settles two people), then largest to largest
+    d.forEach(x => { const y = c.find(y => y.v === x.v); if (y) { tr.push({from: x.id, to: y.id, amt: x.v}); x.v = 0; y.v = 0; } });
+    while (true) {
+      const ds = d.filter(x => x.v > 0).sort(big), cs = c.filter(y => y.v > 0).sort(big);
+      if (!ds.length || !cs.length) break;
+      const x = ds[0], y = cs[0], a = Math.min(x.v, y.v);
+      tr.push({from: x.id, to: y.id, amt: a}); x.v -= a; y.v -= a;
+    }
+  });
+  if (planMemo.size > 50) planMemo.clear();
+  planMemo.set(key, tr);
+  return tr;
+}
+// How many transfers it would take if everyone paid each payer back directly (only debts between the same two cancel)
+function pairCount(T) {
+  const owe = {};
+  S.expenses.forEach(x => {
+    const amt = Math.round((Number(x.amount) || 0) * 100);
+    if (x.kind === 'settle' || amt <= 0 || !T.gmap[x.payer]) return;
+    let among = (x.among || []).filter(id => T.gmap[id]); if (!among.length) among = T.guests.map(g => g.id);
+    among.forEach(id => { if (id === x.payer) return; const k = id < x.payer ? id + '|' + x.payer : x.payer + '|' + id; owe[k] = (owe[k] || 0) + (id < x.payer ? 1 : -1) * amt / among.length; });
+  });
+  return Object.values(owe).filter(v => Math.abs(v) >= 1).length;
 }
 const itemPath = id => 'events/' + S.tripId + '/items/' + id;
 // Each person edits only their own list: items owned by another participant are read-only.
@@ -2522,12 +2573,30 @@ function moneyHTML(T) {
     const pill = Math.abs(n) < 1 ? '<span class="pill zero">מאוזן</span>' : (n > 0 ? '<span class="pill plus">זכות ' + fmtMoney(n) + '</span>' : '<span class="pill minus">חוב ' + fmtMoney(-n) + '</span>');
     return '<div class="row">' + av(g, 'sm') + '<span class="row-main"><b>' + esc(g.name) + (g.id === S.me ? ' (אני)' : '') + '</b><small>שולם: ' + fmtMoney(B.paid[g.id] || 0) + '</small></span>' + pill + '</div>';
   }).join('') + (out.length ? '<p class="money-out">לא בהוצאות: ' + esc(out.map(g => g.name).join(', ')) + '</p>' : '') + '</div>';
-  h += '<div class="money-sec"><h3>העברות</h3>' + (B.tr.length ? B.tr.map(t => {
-    const f = T.gmap[t.from], to = T.gmap[t.to];
-    return '<div class="row"><span class="tr-who">' + av(f, 'xs') + esc(f.name) + ' ← ' + av(to, 'xs') + esc(to.name) + '</span><span class="amt">' + fmtMoney(t.amt) + '</span>' + (ro ? '' : '<button class="btn sm" data-settle="' + esc(t.from + '|' + t.to + '|' + t.amt) + '">שולם</button>') + '</div>';
-  }).join('') : '<p class="empty-in done">כולם מאוזנים</p>') + undo + '</div>';
+  h += '<div class="money-sec"><h3>החזרים</h3>' + trHTML(T, B, ro) + undo + '</div>';
   if (!ro) h += '<div class="money-foot"><button type="button" class="btn sm danger" data-confirm="reset-exp">איפוס הכול</button></div>';
   return h;
+}
+/* Repayments: who sends how much to whom, from one person (top) to the other (below), mine first.
+   The plan is the shortest one (see planTransfers); before anyone has paid, a line says how many transfers that saved. */
+const withPre = (p, name) => p + (/^[\u0590-\u05FF]/.test(name) ? '' : '־');
+function trHTML(T, B, ro) {
+  if (!B.tr.length) return '<p class="empty-in done">כולם מאוזנים</p>';
+  const me = S.me, mine = t => t.from === me || t.to === me;
+  const list = [...B.tr].sort((a, b) => (mine(b) - mine(a)) || (b.amt - a.amt));
+  const n = list.length, cnt = n === 1 ? 'העברה אחת' : n + ' העברות';
+  const paidSome = S.expenses.some(x => x.kind === 'settle'), pairs = paidSome ? 0 : pairCount(T);
+  const note = paidSome ? 'נשארו ' + cnt + '.'
+    : pairs > n ? '<b>חישוב מקוצר:</b> ' + cnt + ' במקום ' + pairs + '. החובות מתקזזים, כך שכל אחד מעביר כמה שפחות.'
+    : cnt + ', וכולם מאוזנים.';
+  const end = (g, p, isMe) => '<span class="tr-p">' + av(g, 'sm') + '<span>' + (isMe ? '<b class="tr-me">' + (p === 'מ' ? 'ממך' : 'אליך') + '</b>' : '<b>' + withPre(p, g.name) + esc(g.name) + '</b>') + '</span></span>';
+  return '<p class="tr-note">' + note + '</p><ul class="tr-list">' + list.map(t => {
+    const f = T.gmap[t.from], to = T.gmap[t.to], m = fmtMoney(t.amt);
+    const say = m + ' ' + withPre('מ', f.name) + f.name + ' ' + withPre('ל', to.name) + to.name;
+    return '<li class="tr-item' + (mine(t) ? ' mine' : '') + '"><div class="tr-path">' + end(f, 'מ', t.from === me) + end(to, 'ל', t.to === me) + '</div>'
+      + '<div class="tr-side"><span class="tr-amt">' + m + '</span>'
+      + (ro ? '' : '<button type="button" class="btn sm' + (t.from === me ? ' primary' : '') + '" data-settle="' + esc(t.from + '|' + t.to + '|' + t.amt) + '" aria-label="' + esc('סימון ששולם: ' + say) + '">סימון ששולם</button>') + '</div></li>';
+  }).join('') + '</ul>';
 }
 // "Me" in a list follows the name set in Settings; the picker only appears when an action needs it.
 function autoMe(T) {
