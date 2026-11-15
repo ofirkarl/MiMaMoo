@@ -178,6 +178,8 @@ fieldset.field>legend{margin-bottom:8px}
 .stub-day{font-family:var(--f-display);font-weight:600;font-size:23px;line-height:1.05;font-variant-numeric:tabular-nums}
 .trip-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px}
 .trip-when{font-weight:700;font-size:13px;color:var(--accent-deep)}
+.trip-when.owe{color:var(--danger)}
+.btn.is-off{opacity:.5}
 .trip-name{font-family:var(--f-display);font-weight:600;font-size:18.5px;line-height:1.2;overflow-wrap:anywhere}
 .trip-meta{color:var(--muted);font-size:14.5px}
 .chev{align-self:center;padding-inline-end:8px;color:var(--line-2);display:flex}
@@ -727,6 +729,8 @@ button.row{width:100%;text-align:start}
 .tr-p b{font-weight:700}
 .tr-me{color:var(--mine-ink)}
 .tr-side{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0}
+.tr-share{display:flex;margin-top:10px}
+a.btn{text-decoration:none}
 .tr-amt{font-family:var(--f-display);font-weight:600;font-size:21px;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap}
 .amt{font-family:var(--f-display);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .undo-row{padding-top:10px;display:flex}
@@ -1317,12 +1321,16 @@ const cleanArch = o => { const m = {}; if (o && typeof o === 'object') Object.ke
 try { S.arch = cleanArch(JSON.parse(lsGet('arch') || '{}')); } catch (e) {}
 const isSoloDoc = e => e.kind === 'list' || e.kind === 'shop';
 const archMark = e => isSoloDoc(e) ? (e.arch === 'a' || e.arch === 'k' ? e.arch : '') : (S.arch[e.id] || '');
-const isArch = e => { const m = archMark(e); return m === 'a' || (m !== 'k' && isPast(e)); };  // off the lists: by hand, or it has ended
+// An event with repayments still open stays on the lists, even after it ended or was archived by hand: only once
+// everything is paid can it go to the archive.
+const owes = e => !isSoloDoc(e) && e.money === 'open';
+const isArch = e => { if (owes(e)) return false; const m = archMark(e); return m === 'a' || (m !== 'k' && isPast(e)); };  // off the lists: by hand, or it has ended
 /* Expenses leave on their own only once nobody owes anything: an ended event with every debt paid (or no expenses at all),
    a stand-alone split once it is all paid up. The event remembers its state ('money': none | open | settled), updated by
    whoever's screen has its expenses open; events from before this get it filled in once, from the home screen. */
 const moneyAuto = e => e.kind === 'split' ? e.money === 'settled' : isPast(e) && (e.money === 'settled' || e.money === 'none');
-const moneyArch = e => { const m = archMark(e); return m === 'a' || (m !== 'k' && moneyAuto(e)); };
+const moneyArch = e => { if (owes(e)) return false; const m = archMark(e); return m === 'a' || (m !== 'k' && moneyAuto(e)); };
+const OWES_MSG = 'יש כאן החזרים פתוחים. אחרי שהכול שולם אפשר להעביר לארכיון';
 const moneyState = b => !b.total ? 'none' : b.tr.length ? 'open' : 'settled';
 let moneyW = '';
 function syncMoneyState() {  // an event open on my screen: its expenses and participants are loaded
@@ -1331,9 +1339,10 @@ function syncMoneyState() {  // an event open on my screen: its expenses and par
   const st = moneyState(balances(T)), key = ev.id + '|' + st;
   if (ev.money === st) { moneyW = ''; return; }
   if (moneyW === key) return; moneyW = key;
-  const leaves = ev.money === 'open' && st === 'settled' && archMark(ev) !== 'k' && moneyAuto(Object.assign({}, ev, {money: st}));
+  const after = Object.assign({}, ev, {money: st});
+  const leaves = ev.money === 'open' && st === 'settled' && (archMark(ev) === 'a' || (archMark(ev) !== 'k' && moneyAuto(after)));
   fire(Store.update('events/' + ev.id, {money: st}));
-  if (leaves) setTimeout(() => toast('הכול שולם. החלוקה עוברת לארכיון'), 900);
+  if (leaves) setTimeout(() => toast('הכול שולם. ' + (ev.kind === 'split' ? 'החלוקה עוברת' : 'האירוע עובר') + ' לארכיון'), 900);
 }
 const moneyFilled = new Set();
 function fillMoneyStates() {  // once per event that has no state yet
@@ -1360,11 +1369,14 @@ function setArch(ids, on, solo) {
     });
   } else {
     const m = Object.assign({}, S.arch);
+    if (on) ids = ids.filter(id => !owes(S.events.find(x => x.id === id) || {}));
+    if (!ids.length) return 0;
     ids.forEach(id => { const e = S.events.find(x => x.id === id); if (on) m[id] = 'a'; else if (e && (isPast(e) || moneyAuto(e))) m[id] = 'k'; else delete m[id]; });
     S.arch = m; lsSet('arch', JSON.stringify(m));
     const p = archDoc(); if (p) fire(Store.set(p, {kind: 'archive', ev: m, updated: Date.now()}));
   }
   render();
+  return ids.length;
 }
 const archToast = (n, on, shared) => toast(on ? (n === 1 ? 'הועבר לארכיון' : 'הועברו ' + n + ' לארכיון') + (shared ? ' (רק אצלך)' : '') : (n === 1 ? 'הוחזר מהארכיון' : 'הוחזרו ' + n + ' מהארכיון'));
 
@@ -1661,7 +1673,7 @@ function shellHome() {
     + '<section class="home-col" id="h-money"><div class="col-top"><h2>חלוקת הוצאות</h2>' + (ro ? '' : '<button class="btn primary sm" data-act="new-split">+ הוספה</button>') + '</div><div id="r-mtrips" class="trips"></div></section>'
     + '</main>';
 }
-const archBtn = on => '<button type="button" class="btn sm" data-act="arch-this">' + ICON.archive + (on ? 'החזרה מהארכיון' : 'העברה לארכיון') + '</button>';
+const archBtn = (on, held) => '<button type="button" class="btn sm' + (held ? ' is-off" aria-disabled="true" title="' + OWES_MSG : '') + '" data-act="arch-this">' + ICON.archive + (on ? 'החזרה מהארכיון' : 'העברה לארכיון') + '</button>';
 const shopTrip = L => L && L.tripId ? S.events.find(e => e.id === L.tripId) : null;
 const shopMeta = L => { const t = shopTrip(L); return t ? 'לאירוע: ' + (t.name || 'ללא שם') : ''; };
 function dateCard(e, attrs, cls, sel) {
@@ -1670,10 +1682,11 @@ function dateCard(e, attrs, cls, sel) {
     ? '<span class="stub"><span class="stub-dow">יום ' + DOW[d.getDay()] + '</span><span class="stub-day">' + d.getDate() + '</span><span class="stub-mon">' + MON_S[d.getMonth()] + '</span></span>'
     : '<span class="stub"><span class="stub-day">–</span></span>';
   const th = THEMES[e.theme];
-  const cd = countdown(e.date, e.end), meta = e.kind === 'shop' ? shopMeta(e) : dateMeta(e);
+  const held = owes(e) && (isPast(e) || archMark(e) === 'a');
+  const cd = held ? '' : countdown(e.date, e.end), meta = e.kind === 'shop' ? shopMeta(e) : dateMeta(e);
   const sc = sel ? selCls(sel, e.id) : '';
   return '<button class="trip-card ' + (cls || '') + (th ? ' themed' : '') + (isPast(e) ? ' past' : '') + sc + '" ' + attrs + (sel ? selAt(sel, e.id) : '') + (th ? ' style="background:' + th.hb + ';color:' + th.ink + '"' : '') + '>' + (sel ? selBox : '') + stub
-    + '<span class="trip-body">' + (cd ? '<span class="trip-when">' + cd + '</span>' : '') + '<span class="trip-name">' + esc(e.name || 'ללא שם') + '</span>'
+    + '<span class="trip-body">' + (held ? '<span class="trip-when owe">מחכה להחזרים</span>' : cd ? '<span class="trip-when">' + cd + '</span>' : '') + '<span class="trip-name">' + esc(e.name || 'ללא שם') + '</span>'
     + (meta ? '<span class="trip-meta">' + esc(meta) + '</span>' : '') + '</span><span class="chev">' + ICON.chev + '</span></button>';
 }
 const byDate = list => { const ev = [...list].sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999')); return ev.filter(e => !isPast(e)).concat(ev.filter(isPast).reverse()); };
@@ -2596,7 +2609,23 @@ function trHTML(T, B, ro) {
     return '<li class="tr-item' + (mine(t) ? ' mine' : '') + '"><div class="tr-path">' + end(f, 'מ', t.from === me) + end(to, 'ל', t.to === me) + '</div>'
       + '<div class="tr-side"><span class="tr-amt">' + m + '</span>'
       + (ro ? '' : '<button type="button" class="btn sm' + (t.from === me ? ' primary' : '') + '" data-settle="' + esc(t.from + '|' + t.to + '|' + t.amt) + '" aria-label="' + esc('סימון ששולם: ' + say) + '">סימון ששולם</button>') + '</div></li>';
-  }).join('') + '</ul>';
+  }).join('') + '</ul>' + waShare(T, B);
+}
+// The repayments as a WhatsApp message: the total (and per person, when everything is split among everyone),
+// then who sends how much to whom, and in the installed app the event's link for marking what was paid
+function waShare(T, B) {
+  const ev = T.ev || {}, real = S.expenses.filter(x => x.kind !== 'settle' && Number(x.amount) > 0);
+  const evenly = T.guests.length && real.every(x => { const a = (x.among || []).filter(id => T.gmap[id]); return !a.length || a.length === T.guests.length; });
+  const lines = [...B.tr].sort((a, b) => b.amt - a.amt).map(t => {
+    const f = T.gmap[t.from].name, to = T.gmap[t.to].name;
+    return '• ' + withPre('מ', f) + f + ' ' + withPre('ל', to) + to + ': ' + fmtMoney(t.amt);
+  });
+  let link = ''; try { if (window.MM_SPACE && typeof spaceLink === 'function') link = spaceLink(S.tripId); } catch (e) {}
+  const text = '*' + (ev.name || 'הוצאות') + ' · החזרים*\n'
+    + 'סה״כ הוצאות: ' + fmtMoney(B.total) + (evenly ? ' (' + fmtMoney(Math.round(B.total / T.guests.length)) + ' לאדם)' : '') + '\n\n'
+    + lines.join('\n') + (link ? '\n\nלפרטים ולסימון ששולם: ' + link : '');
+  return '<div class="tr-share"><a class="btn sm tonal" href="https://wa.me/?text=' + encodeURIComponent(text) + '" target="_blank" rel="noopener" aria-label="שיתוף ההחזרים והסכום הכולל בוואטסאפ">'
+    + ICON.share.replace('<svg ', '<svg class="ic" ') + 'שיתוף בוואטסאפ</a></div>';
 }
 // "Me" in a list follows the name set in Settings; the picker only appears when an action needs it.
 function autoMe(T) {
@@ -3467,7 +3496,7 @@ function openTripSheet(edit) {
     + (edit ? picker + '<p class="field-hint">התבנית קובעת אילו הצעות יופיעו ברשימות</p>' : '')
     + (edit ? themeField(ev.theme) + coverRemove() : '')
     + (edit ? '' : '<div class="field"><span>משתתפים</span><div class="guest-chips" id="tf-chips"></div><div class="add-row"><input class="grow" id="tf-guest" placeholder="הוספת שם" maxlength="200" enterkeyhint="enter" aria-label="הוספת משתתף"></div></div>')
-    + (edit ? '<div class="sheet-tools"><button type="button" class="btn sm" data-act="save-as-tpl">' + ICON.tlist.replace('<svg ', '<svg class="ic" ') + 'שמירה כתבנית</button>' + archBtn(isArch(ev)) + '<button type="button" class="btn sm danger" data-confirm="delete-trip">' + ICON.trash + 'מחיקה</button></div>' : '')
+    + (edit ? '<div class="sheet-tools"><button type="button" class="btn sm" data-act="save-as-tpl">' + ICON.tlist.replace('<svg ', '<svg class="ic" ') + 'שמירה כתבנית</button>' + archBtn(isArch(ev), owes(ev)) + '<button type="button" class="btn sm danger" data-confirm="delete-trip">' + ICON.trash + 'מחיקה</button></div>' : '')
     + sheetActions('', edit ? 'שמירה' : 'יצירה')
     + '</form>', root => {
       renderNtChips(); initCal(root);
@@ -3586,7 +3615,7 @@ function openSplitSheet(edit) {
     + '<label class="field"><span>שם</span><input id="tf-name" maxlength="60" required value="' + esc(ev ? ev.name : '') + '"></label>'
     + (edit ? guestEditField() : '')
     + (edit ? themeField(ev.theme) + coverRemove() : '<div class="field"><span>משתתפים</span><div class="guest-chips" id="tf-chips"></div><div class="add-row"><input class="grow" id="tf-guest" placeholder="הוספת שם" maxlength="200" enterkeyhint="enter" aria-label="הוספת משתתף"></div></div>')
-    + (edit ? '<div class="sheet-tools">' + archBtn(moneyArch(ev)) + '<button type="button" class="btn sm danger" data-confirm="delete-split">' + ICON.trash + 'מחיקה</button></div>' : '')
+    + (edit ? '<div class="sheet-tools">' + archBtn(moneyArch(ev), owes(ev)) + '<button type="button" class="btn sm danger" data-confirm="delete-split">' + ICON.trash + 'מחיקה</button></div>' : '')
     + sheetActions('', edit ? 'שמירה' : 'יצירה')
     + '</form>', root => { renderNtChips(); if (!edit) setTimeout(() => root.querySelector('#tf-name').focus(), 60); });
 }
@@ -4138,10 +4167,12 @@ function act(a) {
     case 'sel-arch': return runSelArch();
     case 'archive': stopView(); Object.assign(S, {view: 'archive', fromArch: true, tripId: null, soloId: null, q: ''}); render(); window.scrollTo(0, 0); return;
     case 'arch-this': {  // from the edit sheet of an event or a list
+      if (S.view !== 'solo' && owes(tripData().ev || {})) { toast(OWES_MSG, true); return; }  // the sheet stays open
       closeSheet();
       if (S.view === 'solo') { const L = soloData().list; if (!L) return; const on = !isArch(L); setArch([L.id], on, true); archToast(1, on, false); if (on) goHome(); return; }
       const ev = tripData().ev; if (!ev) return;
       const on = S.view === 'money' ? !moneyArch(ev) : !isArch(ev);
+      if (on && owes(ev)) { toast(OWES_MSG, true); return; }
       setArch([ev.id], on, false); archToast(1, on, true); if (on) goHome(); return;
     }
     case 'pb-toggle': { S.pbOpen = S.pbOpen !== true; render(); return; }
@@ -4359,7 +4390,10 @@ const ARCH_SEL = {trips: 'in', money: 'in', solos: 'in', atrips: 'out', amoney: 
 function runSelArch() {
   const ctx = SEL.ctx, ids = [...SEL.ids], k = ARCH_SEL[ctx]; exitSel(); if (!k || !ids.length) return;
   const solo = ctx === 'solos' || ctx === 'asolos';
-  setArch(ids, k === 'in', solo); archToast(ids.length, k === 'in', !solo);
+  const done = setArch(ids, k === 'in', solo), kept = ids.length - done;
+  if (!kept) archToast(ids.length, k === 'in', !solo);
+  else if (!done) toast(ids.length === 1 ? OWES_MSG : 'יש בהם החזרים פתוחים. אחרי שהכול שולם אפשר להעביר לארכיון', true);
+  else toast((done === 1 ? 'אחד הועבר' : done + ' הועברו') + ' לארכיון. ' + (kept === 1 ? 'אחד נשאר' : kept + ' נשארו') + ': יש בו החזרים פתוחים', true);
 }
 async function runSelDelete() {
   const ctx = SEL.ctx, ids = [...SEL.ids]; exitSel(); if (!ctx || !ids.length) return;
