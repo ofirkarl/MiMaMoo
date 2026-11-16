@@ -1083,6 +1083,10 @@ body:has(.top #r-hello)::before{background:var(--sage)}
 .trip-head .trip-meta,.trip-head .eyebrow{opacity:.9}
 .trip-title{font-weight:700}
 .page-top h1,.col-top h2,.sheet-title{font-weight:700}
+/* The filter row stays on one line on narrow phones; inputs that live inside another control keep that control's single frame */
+.viewbar,.col-head>.search{flex-basis:170px}
+.spop-card{border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink)}
+.spop-card input.search-in,.spop-card input.search-in:focus,.mstep input,.mstep input:focus{border-color:transparent;box-shadow:none;background:transparent}
 </style>
 </head>
 <body>
