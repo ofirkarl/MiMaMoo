@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>MiMaMoo</title>
 <meta name="description" content="מי מביא מה: רשימות משותפות לטיולים ולאירועים">
-<meta name="theme-color" content="#FAF9FC">
+<meta name="theme-color" content="#EFE6D5">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="MiMaMoo">
@@ -58,7 +58,7 @@
     var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     if (ios && !standalone) {
       var base = location.origin + location.pathname, ml = document.querySelector('link[rel="manifest"]');
-      var man = {name: 'MiMaMoo', short_name: 'MiMaMoo', lang: 'he', dir: 'rtl', id: base, start_url: base + '#' + keepHash, scope: base, display: 'standalone', background_color: '#FAF9FC', theme_color: '#FAF9FC',
+      var man = {name: 'MiMaMoo', short_name: 'MiMaMoo', lang: 'he', dir: 'rtl', id: base, start_url: base + '#' + keepHash, scope: base, display: 'standalone', background_color: '#EFE6D5', theme_color: '#EFE6D5',
         icons: [{src: base + 'icons/icon-192.png', sizes: '192x192', type: 'image/png'}, {src: base + 'icons/icon-512.png', sizes: '512x512', type: 'image/png'}]};
       if (ml) ml.href = 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(man));
     }
@@ -67,40 +67,42 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400..700&family=Assistant:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400..700&family=Rubik:wght@400..800&display=swap">
 <style>
-/* One light look, always: near-white lilac ground, white cards, and five pastels of equal softness —
-   butter (act), mint (done), sky (mine), lavender (selected), peach (careful) — each with a deep partner for text. */
+/* One light look: handmade paper ground, cream paper cards with an ink outline and a hard pasted shadow,
+   and five matte colours — terracotta (act, mine), ochre (chosen), sage (done), clay (soft), forest (ink). */
 :root{
   color-scheme:light;
-  --bg:#FAF9FC; --surface:#FFFFFF; --sunk:#F3F1F8; --line:#ECE9F3; --line-2:#DCD7E6;
-  --ink:#2B2833; --muted:#6A6580;
-  /* Palette — neutrals for surfaces and text; butter = anything you press or have chosen;
-     lavender = personal ("me", private) and multi-select; mint = done; coral = delete or debt. */
-  --accent:#FFE08F; --accent-ink:#5A4410; --accent-soft:#FFF5D6; --accent-line:#F2D27A; --accent-deep:#9A6A08;
-  --good:#276B4E; --good-bg:#E3F6EC; --good-fill:#A6DEC3;
-  --sel-bg:#F0ECFF; --sel-line:#CFC5F7; --sel-ink:#5A4BB8;
+  --bg:#EFE6D5; --surface:#FAF4E8; --sunk:#E7DCC8; --line:#D6CAB2; --line-2:#B5A98F;
+  --ink:#26352C; --muted:#4A5346;
+  /* Palette: forest ink for text and every outline; terracotta = the main action and "mine"; ochre = chosen;
+     sage = done; clay = soft highlight. */
+  --ter:#A84E30; --on-ter:#FBF3E4; --och:#D9A441; --sage:#8A9A7B; --clay:#E6B8A0;
+  --accent:#D9A441; --accent-ink:#26352C; --accent-soft:#F2E0AE; --accent-line:#26352C; --accent-deep:#8A3D1E;
+  --good:#35523E; --good-bg:#DCE2CF; --good-fill:#8A9A7B;
+  --sel-bg:#F3DDD0; --sel-line:#A84E30; --sel-ink:#8A3D1E;
   --mine-bg:var(--sel-bg); --mine-line:var(--sel-line); --mine-ink:var(--sel-ink);
-  --danger:#A3432D; --danger-bg:#FFEDE6; --danger-line:#EFC0B0;
-  --ring:#A497F2; --link:#5A4BB8;
-  --t-base:linear-gradient(160deg,#FFFFFF 0%,#F4F0FD 100%); --t-base-ink:#2B2833;
-  --t-forest:linear-gradient(150deg,#EEFAF4,#D9F2E6); --t-forest-ink:#24614A;
-  --t-lake:linear-gradient(150deg,#EEF4FF,#DAE7FD); --t-lake-ink:#2E548F;
-  --t-sand:linear-gradient(150deg,#FFF9E6,#FFEDBF); --t-sand-ink:#5E4813;
-  --t-sunset:linear-gradient(150deg,#FFF1EB,#FDE0E3); --t-sunset-ink:#8A3E2E;
-  --t-night:linear-gradient(150deg,#F5F2FF,#E6E0FD); --t-night-ink:#4C3D9E;
-  --t-stone:linear-gradient(150deg,#F7F8FA,#E8ECF0); --t-stone-ink:#3D4752;
-  --scrim:rgba(43,40,51,.22);
-  --shadow-sm:0 1px 2px rgba(60,52,90,.04),0 4px 16px -8px rgba(60,52,90,.14);
-  --shadow:0 2px 4px rgba(60,52,90,.04),0 14px 34px -14px rgba(60,52,90,.22);
-  /* Buttons: every pressable thing has an edge, a small shadow that lifts it off any background, and readable text */
-  --btn-line:#CFC8DE; --btn-edge:#E3BB4E; --ctl-line:#958EAB;
-  --btn-shadow:0 1px 1px rgba(60,52,90,.07),0 3px 8px -3px rgba(60,52,90,.22);
-  --btn-shadow-warm:0 1px 1px rgba(154,106,8,.14),0 4px 10px -4px rgba(154,106,8,.45);
-  --btn-press:0 1px 1px rgba(60,52,90,.1);
-  --r-lg:20px; --r-md:14px; --r-sm:10px;
+  --danger:#9A3A22; --danger-bg:#F5D9CB; --danger-line:#9A3A22;
+  --ring:#A84E30; --link:#8A3D1E;
+  --t-base:#D9A441; --t-base-ink:#26352C;
+  --t-forest:#8A9A7B; --t-forest-ink:#26352C;
+  --t-lake:#A9BDB8; --t-lake-ink:#26352C;
+  --t-sand:#EAD6A6; --t-sand-ink:#26352C;
+  --t-sunset:#A84E30; --t-sunset-ink:#FBF3E4;
+  --t-night:#26352C; --t-night-ink:#F3EBDA;
+  --t-stone:#E6B8A0; --t-stone-ink:#26352C;
+  --scrim:rgba(38,53,44,.38);
+  /* Depth is a hard, short "pasted paper" shadow in ink, never a blur */
+  --shadow-sm:4px 4px 0 #26352C;
+  --shadow:5px 5px 0 #26352C;
+  --btn-line:#26352C; --btn-edge:#26352C; --ctl-line:#26352C;
+  --btn-shadow:3px 3px 0 #26352C;
+  --btn-shadow-warm:3px 3px 0 #26352C;
+  --btn-press:1px 1px 0 #26352C;
+  --r-lg:26px; --r-md:18px; --r-sm:12px;
   --f-display:"Fredoka","Rubik","Arial Hebrew",Arial,sans-serif;
-  --f-body:"Assistant","Arial Hebrew",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-body:"Rubik","Assistant","Arial Hebrew",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --paper:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='360'%3E%3Cfilter id='a' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.02' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .22 0 0 0 0 .16 0 0 0 .1 0'/%3E%3C/filter%3E%3Cfilter id='b' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.6' numOctaves='3' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .22 0 0 0 0 .16 0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='360' height='360' filter='url(%23a)'/%3E%3Crect width='360' height='360' filter='url(%23b)'/%3E%3Ccircle cx='163' cy='202' r='1.0' fill='%23FFFFFF' fill-opacity='0.21'/%3E%3Ccircle cx='308' cy='68' r='0.9' fill='%23FFFFFF' fill-opacity='0.24'/%3E%3Ccircle cx='285' cy='34' r='0.6' fill='%235A4630' fill-opacity='0.23'/%3E%3Ccircle cx='321' cy='228' r='0.8' fill='%23FFFFFF' fill-opacity='0.29'/%3E%3Ccircle cx='235' cy='222' r='0.5' fill='%235A4630' fill-opacity='0.27'/%3E%3Ccircle cx='23' cy='13' r='0.9' fill='%235A4630' fill-opacity='0.26'/%3E%3Ccircle cx='117' cy='213' r='0.5' fill='%235A4630' fill-opacity='0.24'/%3E%3Ccircle cx='180' cy='238' r='0.7' fill='%238A3D1E' fill-opacity='0.21'/%3E%3Ccircle cx='198' cy='335' r='0.4' fill='%238A3D1E' fill-opacity='0.19'/%3E%3Ccircle cx='83' cy='104' r='0.4' fill='%235A4630' fill-opacity='0.20'/%3E%3Ccircle cx='305' cy='139' r='1.0' fill='%235A4630' fill-opacity='0.17'/%3E%3Ccircle cx='334' cy='19' r='0.6' fill='%23FFFFFF' fill-opacity='0.21'/%3E%3Ccircle cx='204' cy='71' r='0.8' fill='%238A3D1E' fill-opacity='0.15'/%3E%3Ccircle cx='120' cy='347' r='0.9' fill='%235A4630' fill-opacity='0.16'/%3E%3Ccircle cx='255' cy='4' r='0.7' fill='%23FFFFFF' fill-opacity='0.17'/%3E%3Ccircle cx='201' cy='161' r='0.5' fill='%235A4630' fill-opacity='0.21'/%3E%3Ccircle cx='138' cy='142' r='1.0' fill='%235A4630' fill-opacity='0.18'/%3E%3Ccircle cx='350' cy='289' r='0.6' fill='%235A4630' fill-opacity='0.17'/%3E%3Ccircle cx='142' cy='308' r='0.8' fill='%235A4630' fill-opacity='0.15'/%3E%3Ccircle cx='53' cy='159' r='0.4' fill='%238A3D1E' fill-opacity='0.27'/%3E%3Ccircle cx='139' cy='27' r='0.5' fill='%235A4630' fill-opacity='0.14'/%3E%3Ccircle cx='133' cy='224' r='0.5' fill='%23FFFFFF' fill-opacity='0.27'/%3E%3Ccircle cx='49' cy='139' r='0.8' fill='%238A3D1E' fill-opacity='0.29'/%3E%3Ccircle cx='294' cy='90' r='0.5' fill='%235A4630' fill-opacity='0.25'/%3E%3Ccircle cx='140' cy='174' r='0.4' fill='%235A4630' fill-opacity='0.16'/%3E%3Ccircle cx='14' cy='347' r='0.5' fill='%23FFFFFF' fill-opacity='0.18'/%3E%3Ccircle cx='297' cy='215' r='0.6' fill='%235A4630' fill-opacity='0.29'/%3E%3Ccircle cx='352' cy='46' r='0.7' fill='%235A4630' fill-opacity='0.18'/%3E%3Ccircle cx='330' cy='73' r='0.4' fill='%238A3D1E' fill-opacity='0.21'/%3E%3Ccircle cx='90' cy='17' r='0.6' fill='%235A4630' fill-opacity='0.15'/%3E%3Ccircle cx='50' cy='162' r='0.6' fill='%235A4630' fill-opacity='0.23'/%3E%3Ccircle cx='332' cy='171' r='0.6' fill='%238A3D1E' fill-opacity='0.29'/%3E%3Ccircle cx='8' cy='229' r='0.7' fill='%238A3D1E' fill-opacity='0.19'/%3E%3Ccircle cx='360' cy='27' r='0.7' fill='%235A4630' fill-opacity='0.28'/%3E%3Ccircle cx='265' cy='253' r='0.9' fill='%238A3D1E' fill-opacity='0.20'/%3E%3Ccircle cx='247' cy='324' r='0.9' fill='%23FFFFFF' fill-opacity='0.29'/%3E%3Ccircle cx='11' cy='180' r='0.4' fill='%23FFFFFF' fill-opacity='0.20'/%3E%3Ccircle cx='4' cy='26' r='0.5' fill='%235A4630' fill-opacity='0.30'/%3E%3Ccircle cx='317' cy='262' r='0.6' fill='%23FFFFFF' fill-opacity='0.21'/%3E%3Ccircle cx='302' cy='30' r='0.9' fill='%235A4630' fill-opacity='0.19'/%3E%3Ccircle cx='32' cy='8' r='1.0' fill='%235A4630' fill-opacity='0.22'/%3E%3Ccircle cx='221' cy='331' r='0.6' fill='%235A4630' fill-opacity='0.20'/%3E%3Ccircle cx='52' cy='220' r='0.7' fill='%238A3D1E' fill-opacity='0.25'/%3E%3Ccircle cx='159' cy='321' r='0.6' fill='%238A3D1E' fill-opacity='0.17'/%3E%3Ccircle cx='155' cy='290' r='0.9' fill='%235A4630' fill-opacity='0.20'/%3E%3Ccircle cx='210' cy='114' r='0.5' fill='%23FFFFFF' fill-opacity='0.20'/%3E%3C/svg%3E");
 }
 
 *,*::before,*::after{box-sizing:border-box}
@@ -982,6 +984,105 @@ button.gchip.leaving{opacity:0;transform:scale(.85)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .toast.warn{background:var(--danger-bg);color:var(--danger);border-color:transparent}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+
+/* ===== Paper skin (v109): outlines, pasted shadows, paper grain, colour heroes. Layout and behaviour are untouched. ===== */
+body{background-color:var(--bg);background-image:var(--paper)}
+.tabs-band,.sheet,.panel,.lane,.trip-card:not(.themed),.tpl-row,.tabs,.selbar{background-image:var(--paper)}
+:focus-visible{outline-color:var(--ring)}
+/* Buttons */
+.btn{border-width:2px;font-family:var(--f-display);font-weight:600;border-radius:23px 25px 23px 26px}
+.btn:active,.back:active,.round:active,.gear:active,.stepper button:active{transform:translate(2px,2px)}
+.btn.primary{background:var(--ter);color:var(--on-ter)}
+.btn.primary:hover{border-color:var(--ink)}
+.btn.tonal{background:var(--accent)}
+.btn.ghost{box-shadow:none}
+.btn.danger,.btn.danger.solid{box-shadow:3px 3px 0 var(--danger)}
+.btn.danger.armed{color:var(--on-ter)}
+.btn:disabled{box-shadow:none}
+.back,.round,.gear,.top .share-btn{background:var(--surface);border-width:2px;border-style:solid;border-color:var(--ink);-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:21px 23px 20px 24px}
+.icon-btn{color:var(--ink)}
+.stepper button{border-width:2px}
+.srch-wrap{border-width:2px}
+.srch-wrap.on{background:var(--accent)}
+.who.also{border-width:2px}
+/* Fields */
+input,select,textarea{background:var(--surface);border:2px solid var(--ink)}
+input:focus,select:focus{border-color:var(--ring);box-shadow:0 0 0 2px var(--ring)}
+.field>span,.field>legend{font-family:var(--f-display);font-weight:600;color:var(--ink)}
+.note-view,.note-ta{background:var(--surface);box-shadow:inset 0 0 0 2px var(--ink)}
+.note-ta:focus{box-shadow:inset 0 0 0 2px var(--ring),0 0 0 2px var(--ring)}
+/* Segments, tabs, chips */
+.seg,.seg-radio{background:var(--bg);border:2px solid var(--ink);padding:2px}
+.seg button,.seg-radio span{color:var(--ink)}
+.seg button[aria-pressed="true"],.seg-radio input:checked+span{box-shadow:inset 0 0 0 2px var(--ink)}
+.tabs{border:2px solid var(--ink)}
+.tabs button{color:var(--ink)}
+.tabs button[aria-selected="true"]{background:var(--accent);box-shadow:inset 0 0 0 2px var(--ink)}
+.chip{border-width:2px}
+.chip.dash{border-color:var(--ink)}
+.chip.warn{border-color:var(--danger)}
+.pill,.flag,.tag,.you{font-family:var(--f-display);font-weight:600}
+.multi-sw{background:var(--surface);box-shadow:inset 0 0 0 2px var(--ink)}
+.multi-sw::after{background:var(--ink);box-shadow:none}
+.multi-row input:checked+.multi-sw{background:var(--accent)}
+/* Cards */
+.trip-card,.tpl-row,.lane,.panel,.tr-item,.whoami,.hello-ask,.install,.note-msg,.money-sum>div,.toast,.spop-card,.drag-ghost{border:2px solid var(--ink)}
+.install{background:var(--surface)}
+.panel .lane{border:0;border-top:2px dashed var(--line-2)}
+.panel .lane:first-child{border-top:0}
+.set-sec>.col-top{border:2px solid var(--ink);background-image:var(--paper)}
+.cal{box-shadow:inset 0 0 0 2px var(--ink)}
+.set-row{border-top-style:dashed;border-top-color:var(--line-2)}
+.lane.is-me{box-shadow:4px 4px 0 var(--ter)}
+.panel .lane.is-me{box-shadow:none}
+.tr-item{box-shadow:3px 3px 0 var(--ink)}
+.tr-item.mine{box-shadow:3px 3px 0 var(--ter);border-color:var(--ink)}
+.trip-card:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.trip-card.selected,.tpl-row.selected{box-shadow:4px 4px 0 var(--ter)}
+.empty{border:2px dashed var(--ink);color:var(--muted)}
+.item,.row{border-top-style:dashed;border-top-color:var(--line-2)}
+.sheet{border-top:2px solid var(--ink);box-shadow:none}
+@media (min-width:700px){.sheet{border:2px solid var(--ink);box-shadow:var(--shadow)}}
+.selbar{border-top:2px solid var(--ink);box-shadow:none}
+.toast{box-shadow:3px 3px 0 var(--ink)}
+.banner{border-bottom:2px solid var(--ink)}
+/* Date stubs take turns: terracotta, ochre, forest */
+.stub{border:2px solid var(--ink);border-radius:17px 19px 17px 20px}
+.trips>.trip-card:nth-child(3n+1) .stub{background:var(--ter);color:var(--on-ter)}
+.trips>.trip-card:nth-child(3n+2) .stub{background:var(--och);color:var(--ink)}
+.trips>.trip-card:nth-child(3n) .stub{background:var(--ink);color:#F3EBDA}
+.trip-card.themed .stub{background:rgba(250,244,232,.7);color:#26352C}
+.solo-card .stub{background:var(--clay);color:var(--ink)}
+.shop-card .stub{background:var(--sage);color:var(--ink)}
+/* Marks */
+.av{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.cbox,.pk{border-width:2px}
+.cbox:not(.on):not(.ghost),.pk{border-style:dashed}
+.cbox.on{background:var(--ter);border-color:var(--ink);border-style:solid;color:var(--on-ter)}
+.bar{box-shadow:inset 0 0 0 1.5px var(--ink);background:var(--surface)}
+.af-head{border:2px solid var(--ink);background:var(--accent-soft)}
+.af-plus{box-shadow:inset 0 0 0 2px var(--ink)}
+.sw span{box-shadow:inset 0 0 0 2px var(--ink)}
+.sw input:checked+span{box-shadow:inset 0 0 0 2px var(--ink),0 0 0 3px var(--surface),0 0 0 5px var(--ring)}
+body.on-home{background-color:var(--bg);background-image:var(--paper);background-repeat:repeat;background-attachment:scroll;background-size:auto}
+.top{background:transparent}
+.new-dot{background:var(--ter);box-shadow:0 0 0 3.5px rgba(168,78,48,.22)}
+/* Home hero: a sage band with cut-paper shapes and a torn-wave edge */
+.top:has(#r-hello){position:relative;background:var(--sage);padding-bottom:38px;overflow:hidden}
+.top:has(#r-hello)::before{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='240' viewBox='0 0 390 240'%3E%3Cpath d='M-60 -70c90-30 190 10 214 96 20 74-24 152-98 172-70 18-144-18-172-84-26-64-8-150 56-184z' fill='%23D9A441'/%3E%3Ccircle cx='40' cy='150' r='34' fill='%23A84E30'/%3E%3Cg transform='translate(112 58) scale(0.62)'%3E%3Cg transform='translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23FAF4E8' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") left top no-repeat;pointer-events:none}
+.top:has(#r-hello)::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:26px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 26' preserveAspectRatio='none'%3E%3Cpath d='M-6 34V12c46-10 94-12 138-4 50 8 86 14 140 12 46-2 86-10 124-14V34z' fill='%23EFE6D5' stroke='%2326352C' stroke-width='2' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") center/100% 100% no-repeat;pointer-events:none}
+.top:has(#r-hello)>.wrap{position:relative;z-index:1}
+.top:has(#r-hello) .logo-tag{color:var(--ink)}
+.hello{font-size:26px;font-weight:600}
+.hello-edit{color:var(--ink)}
+body:has(.top #r-hello)::before{background:var(--sage)}
+/* Event hero: the event's colour, flat, with shapes tucked in the corner */
+.trip-head{border-bottom:2px solid var(--ink);box-shadow:0 4px 0 var(--ink)}
+.trip-head:not(.has-cover)::after{content:"";position:absolute;left:0;top:0;width:330px;height:74px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='330' height='74' viewBox='0 0 330 74'%3E%3Cpath d='M-50 -70c60-26 138-6 164 50 22 50-2 108-54 128-48 18-106 0-130-46-24-48-20-106 20-132z' fill='%23A84E30'/%3E%3Ccircle cx='286' cy='-6' r='34' fill='%2326352C'/%3E%3Cg transform='translate(150 -44) scale(0.7)'%3E%3Cg transform='translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23FAF4E8' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") left top no-repeat;pointer-events:none;z-index:1}
+.trip-head .crew-line,.trip-head[data-theme] .crew-line{color:inherit}
+.trip-head .trip-meta,.trip-head .eyebrow{opacity:.9}
+.trip-title{font-weight:700}
+.page-top h1,.col-top h2,.sheet-title{font-weight:700}
 </style>
 </head>
 <body>
@@ -1022,7 +1123,7 @@ function setCats(list) {
   CAT = Object.fromEntries(CATS.map(c => [c.id, c]));
 }
 const catOf = i => (i && CAT[i.cat]) ? i.cat : 'general';
-const GCOL = ['#4F79C9','#D06A55','#3F9470','#7A62C9','#C98E2E','#3496A0','#C0628F','#7E8F45'];
+const GCOL = ['#4E7A8C','#B4573A','#4F7A5A','#7A5C86','#B98524','#3C8582','#A85B74','#74853F'];
 const DOW = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
 const MON = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 const MON_S = ['ינו׳','פבר׳','מרץ','אפר׳','מאי','יוני','יולי','אוג׳','ספט׳','אוק׳','נוב׳','דצמ׳'];
@@ -1117,12 +1218,12 @@ function meatPreset(name) {
   return e && onlyToks(toks(name), e[1].concat(SAUSAGE)) ? mt : name;
 }
 const THEMES = {
-  forest: {label: 'מנטה', hb: 'var(--t-forest)', ink: 'var(--t-forest-ink)'},
+  forest: {label: 'מרווה', hb: 'var(--t-forest)', ink: 'var(--t-forest-ink)'},
   lake: {label: 'תכלת', hb: 'var(--t-lake)', ink: 'var(--t-lake-ink)'},
-  sand: {label: 'חמאה', hb: 'var(--t-sand)', ink: 'var(--t-sand-ink)'},
-  sunset: {label: 'אפרסק', hb: 'var(--t-sunset)', ink: 'var(--t-sunset-ink)'},
-  night: {label: 'לבנדר', hb: 'var(--t-night)', ink: 'var(--t-night-ink)'},
-  stone: {label: 'ערפל', hb: 'var(--t-stone)', ink: 'var(--t-stone-ink)'}
+  sand: {label: 'חול', hb: 'var(--t-sand)', ink: 'var(--t-sand-ink)'},
+  sunset: {label: 'טרקוטה', hb: 'var(--t-sunset)', ink: 'var(--t-sunset-ink)'},
+  night: {label: 'יער', hb: 'var(--t-night)', ink: 'var(--t-night-ink)'},
+  stone: {label: 'חימר', hb: 'var(--t-stone)', ink: 'var(--t-stone-ink)'}
 };
 const isSaladName = name => hasTok(toks(name), ['סלט','סלטים']);
 const saladGeneric = name => onlyToks(toks(name), ['סלט','סלטים','סלטי','שונים','מגוון','של']);
@@ -1722,7 +1823,7 @@ async function moveHouse(c, to) {
   const url = to + '#import=' + pay;
   const standalone = (() => { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) { return false; } })();
   if (!standalone) { location.replace(url); return; }
-  document.body.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:32px 24px;direction:rtl;font-family:system-ui,sans-serif;background:#FAF9FC;color:#2B2833">'
+  document.body.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:32px 24px;direction:rtl;font-family:system-ui,sans-serif;background:#EFE6D5;color:#2B2833">'
     + '<h1 style="font-size:26px;margin:0">MiMaMoo עברה לבית חדש</h1>'
     + '<p style="font-size:17px;line-height:1.5;margin:0">כל האירועים והרשימות שלך עוברים איתך. לוחצים על הכפתור, ובדפדפן שנפתח: שיתוף ← "הוספה למסך הבית". אחר כך אפשר למחוק את האייקון הישן.</p>'
     + '<a href="' + url + '" target="_blank" rel="noopener" style="align-self:flex-start;padding:14px 22px;border-radius:999px;background:#FFE08F;color:#5A4410;font-weight:700;font-size:17px;text-decoration:none">פתיחה בכתובת החדשה</a></div>';
