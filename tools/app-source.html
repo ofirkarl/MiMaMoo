@@ -90,8 +90,7 @@ button:disabled{cursor:default}
 .logo-tag{font-family:var(--f-display);font-weight:500;font-size:12.5px;line-height:1;letter-spacing:.04em;color:var(--accent-deep);text-align:left}
 /* home: a soft pastel wash behind the lists (butter, mint and lavender, like the logo) */
 body.on-home{background-color:#F8F4FD;background-image:radial-gradient(34rem 24rem at 108% -4rem,#FFE6A3 0%,rgba(255,230,163,0) 70%),radial-gradient(28rem 24rem at -10rem 12rem,#CDEFDC 0%,rgba(205,239,220,0) 68%),radial-gradient(34rem 28rem at 100% 34rem,#E0D5FF 0%,rgba(224,213,255,0) 68%),radial-gradient(30rem 24rem at -6rem 56rem,#FFDCCB 0%,rgba(255,220,203,0) 68%);background-repeat:no-repeat;background-attachment:fixed}
-body.on-home .top{background:transparent}
-body.on-home .empty{background:rgba(255,255,255,.6)}
+body.on-home body.on-home .empty{background:rgba(255,255,255,.6)}
 
 /* Buttons. One filled butter button per place, the main action; the rest are quieter:
    tonal butter (an action that belongs to a row), soft grey (secondary), bare text (cancel), coral (delete).
@@ -1000,17 +999,19 @@ input:focus,select:focus{border-color:var(--ring);box-shadow:0 0 0 2px var(--rin
 .sw span{box-shadow:inset 0 0 0 2px var(--ink)}
 .sw input:checked+span{box-shadow:inset 0 0 0 2px var(--ink),0 0 0 3px var(--surface),0 0 0 5px var(--ring)}
 body.on-home{background-color:var(--bg);background-image:var(--paper);background-repeat:repeat;background-attachment:scroll;background-size:auto}
-.top{background:transparent}
 .new-dot{background:var(--ter);box-shadow:0 0 0 3.5px rgba(168,78,48,.22)}
 /* Home hero: a sage band with cut-paper shapes and a torn-wave edge */
-.top:has(#r-hello){position:relative;background:var(--hero);padding-bottom:38px;overflow:hidden}
-.top:has(#r-hello)::before{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='240' viewBox='0 0 390 240'%3E%3Cpath d='M-60 -70c90-30 190 10 214 96 20 74-24 152-98 172-70 18-144-18-172-84-26-64-8-150 56-184z' fill='%23D9A441'/%3E%3Ccircle cx='40' cy='150' r='34' fill='%23A84E30'/%3E%3Cg transform='translate(112 58) scale(0.62)'%3E%3Cg transform='translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23FAF4E8' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") left top no-repeat;pointer-events:none}
-.top:has(#r-hello)::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:26px;background:var(--wave) center/100% 100% no-repeat;pointer-events:none}
-.top:has(#r-hello)>.wrap{position:relative;z-index:1}
-.top:has(#r-hello) .logo-tag{color:var(--ink)}
+.top{position:relative;background:var(--hero);padding-bottom:38px;overflow:hidden}
+.top::before{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='240' viewBox='0 0 390 240'%3E%3Cpath d='M-60 -70c90-30 190 10 214 96 20 74-24 152-98 172-70 18-144-18-172-84-26-64-8-150 56-184z' fill='%23D9A441'/%3E%3Ccircle cx='40' cy='150' r='34' fill='%23A84E30'/%3E%3Cg transform='translate(112 58) scale(0.62)'%3E%3Cg transform='translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23FAF4E8' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") left top no-repeat;pointer-events:none}
+.top::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:26px;background:var(--wave) center/100% 100% no-repeat;pointer-events:none}
+.top>.wrap{position:relative;z-index:1}
+.top .logo-tag{color:var(--ink)}
 .hello{font-size:26px;font-weight:600}
 .hello-edit{color:var(--ink)}
-body:has(.top #r-hello)::before{background:var(--hero)}
+body:has(.top)::before{background:var(--hero)}
+body:has(.top.t-set)::before{background:var(--hero-set)}
+body:has(.top.t-arch)::before{background:var(--hero-arch)}
+body:has(.top.t-tpl)::before{background:var(--hero-tpl)}
 /* Event hero: the event's colour, flat, with shapes tucked in the corner */
 .trip-head{border-bottom:2px solid var(--ink);box-shadow:0 4px 0 var(--sh)}
 .trip-head:not(.has-cover)::after{content:"";position:absolute;left:0;top:0;width:330px;height:74px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='330' height='74' viewBox='0 0 330 74'%3E%3Cpath d='M-50 -70c60-26 138-6 164 50 22 50-2 108-54 128-48 18-106 0-130-46-24-48-20-106 20-132z' fill='%23A84E30'/%3E%3Ccircle cx='286' cy='-6' r='34' fill='%2326352C'/%3E%3Cg transform='translate(150 -44) scale(0.7)'%3E%3Cg transform='translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23FAF4E8' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") left top no-repeat;pointer-events:none;z-index:1}
@@ -1061,24 +1062,27 @@ body.on-home .empty{background:transparent}
 .seg button[aria-pressed="true"],.seg-radio input:checked+span{color:var(--accent-ink)}
 .multi-row input:checked+.multi-sw::after{background:var(--accent-ink)}
 @media (max-width:359px){.top .gear{width:38px;height:38px}.top-acts{gap:6px}.top .logo-word{font-size:22px}}
-/* ===== Opening splash: one of five paper grounds, shapes thrown at random, the logo on a cream disc ===== */
-#splash{position:fixed;inset:0;z-index:3000;pointer-events:none;display:grid;place-items:center;overflow:hidden;background:#D9A441;color:#26352C;animation:spl-out .35s ease .95s forwards}
-#splash .sp-bg{position:absolute;inset:0;width:100%;height:100%}
-#splash .sp-grain{position:absolute;inset:0;background-image:var(--paper)}
-.sp-mid{position:relative;display:flex;flex-direction:column;align-items:center;margin-top:-5vh;direction:ltr}
-.sp-disc{display:grid;place-items:center;width:204px;height:204px;border-radius:49% 51% 50% 50%/52% 48% 52% 48%;background:#FAF4E8;border:2.5px solid #26352C;box-shadow:6px 6px 0 #26352C;animation:spl-in .45s cubic-bezier(.2,.9,.3,1.2) both}
-.sp-disc svg{width:118px;height:118px;display:block}
-.sp-label{margin-top:22px;display:flex;flex-direction:column;align-items:center;padding:12px 22px 11px;border-radius:24px 26px 24px 27px;background:#FAF4E8;color:#26352C;border:2.5px solid #26352C;box-shadow:4px 4px 0 #26352C}
-.sp-word{font-family:"Fredoka",var(--f-display);font-weight:600;font-size:36px;letter-spacing:-.02em;line-height:1}
-.sp-tag{margin-top:6px;font-family:var(--f-display);font-weight:500;font-size:16px;line-height:1}
-@keyframes spl-out{to{opacity:0;visibility:hidden}}
-@keyframes spl-in{from{transform:scale(.86);opacity:0}to{transform:none;opacity:1}}
-@media (prefers-reduced-motion:reduce){.sp-disc{animation:none}}
+/* Every page opens with a colour hero of its own: settings ochre, archive clay, templates dusty blue */
+:root{--hero-set:#D9A441;--hero-arch:#E6B8A0;--hero-tpl:#A9BDB8}
+:root[data-mode="dark"]{--hero-set:#6E5A26;--hero-arch:#6C4737;--hero-tpl:#45605B}
+.top.t-set{background:var(--hero-set)}
+.top.t-set::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='240' viewBox='0 0 390 240'%3E%3Cpath d='M-60 -70c90-30 190 10 214 96 20 74-24 152-98 172-70 18-144-18-172-84-26-64-8-150 56-184z' fill='%23A84E30'/%3E%3Ccircle cx='44' cy='168' r='36' fill='%2326352C'/%3E%3Cg transform='translate(118 66) scale(0.62) translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23FAF4E8' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/svg%3E")}
+.top.t-arch{background:var(--hero-arch)}
+.top.t-arch::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='240' viewBox='0 0 390 240'%3E%3Cpath d='M-60 -70c90-30 190 10 214 96 20 74-24 152-98 172-70 18-144-18-172-84-26-64-8-150 56-184z' fill='%2326352C'/%3E%3Ccircle cx='44' cy='168' r='36' fill='%23D9A441'/%3E%3Cg transform='translate(124 40) scale(0.62) translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23FAF4E8' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/svg%3E")}
+.top.t-tpl{background:var(--hero-tpl)}
+.top.t-tpl::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='240' viewBox='0 0 390 240'%3E%3Cpath d='M-60 -70c90-30 190 10 214 96 20 74-24 152-98 172-70 18-144-18-172-84-26-64-8-150 56-184z' fill='%23D9A441'/%3E%3Ccircle cx='44' cy='168' r='36' fill='%23A84E30'/%3E%3Cg transform='translate(110 72) scale(0.62) translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23FAF4E8' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/svg%3E")}
+.top .page-h{margin-top:14px;font-weight:700}
+.page{padding-top:6px}
+/* Settings sections take turns in colour */
+.page>.set-sec:nth-of-type(4n+1)>.col-top{background-color:color-mix(in srgb,var(--ter) 30%,var(--surface))}
+.page>.set-sec:nth-of-type(4n+2)>.col-top{background-color:color-mix(in srgb,var(--och) 48%,var(--surface))}
+.page>.set-sec:nth-of-type(4n+3)>.col-top{background-color:color-mix(in srgb,var(--sage) 50%,var(--surface))}
+.page>.set-sec:nth-of-type(4n)>.col-top{background-color:color-mix(in srgb,var(--clay) 60%,var(--surface))}
+.set-sec .sec-t small{color:var(--ink);opacity:.85}
+.set-sec .sec-fold svg{color:var(--ink)}
 </style>
 
 <div id="app"></div>
-<div id="splash" aria-hidden="true"><svg class="sp-bg" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice"><path id="sp-a" d="M210 -70c110-14 210 60 222 170 10 100-50 200-152 228-96 26-200-18-244-108C-8 126 26 18 112 -38c30-18 62-28 98-32z"/><path id="sp-b" d="M-70 150c44-34 112-26 146 22 30 42 22 104-18 136-40 30-98 28-132-10-34-40-32-116 4-148z"/><g id="sp-s" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path id="sp-sf" d="M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z" stroke="none" transform="translate(6 6)"/><path d="M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z"/><path d="M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46"/></g></svg><div class="sp-grain"></div><div class="sp-mid"><div class="sp-disc"><svg viewBox="0 0 120 120"><rect x="2" y="2" width="116" height="116" rx="28" fill="#8A9A7B" stroke="#26352C" stroke-width="4"/><circle cx="60" cy="66" r="44" fill="#D9A441"/><path d="M54 44V14" stroke="#26352C" stroke-width="5" stroke-linecap="round"/><path d="M54 44L94 95H14Z" fill="#FAF4E8" stroke="#FAF4E8" stroke-width="6" stroke-linejoin="round"/><path d="M54 44L94 95H54Z" fill="#E7DCC8" stroke="#E7DCC8" stroke-width="6" stroke-linejoin="round"/><path d="M54 41L97 98H11Z" fill="none" stroke="#26352C" stroke-width="4" stroke-linejoin="round"/><path d="M54 60L72 97H36Z" fill="#26352C" stroke="#26352C" stroke-width="3" stroke-linejoin="round"/><rect x="58" y="9" width="40" height="34" rx="9" fill="#A84E30" stroke="#26352C" stroke-width="4"/><path d="M67 26L74 33L88 18" fill="none" stroke="#FBF3E4" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="sp-label"><div class="sp-word">MiMaMoo</div><div class="sp-tag" dir="rtl">מי · מביא · מה</div></div></div></div>
-<script>(function(){try{var V=[['#D9A441','#A84E30','#26352C','#26352C','#FAF4E8'],['#A84E30','#D9A441','#26352C','#FBF3E4','#E6B8A0'],['#8A9A7B','#D9A441','#A84E30','#26352C','#FAF4E8'],['#E6B8A0','#26352C','#D9A441','#26352C','#A84E30'],['#26352C','#A84E30','#D9A441','#F3EBDA','#8A9A7B']],v=V[Math.floor(Math.random()*V.length)],e=document.getElementById("splash"),r=function(a,b){return Math.round(a+Math.random()*(b-a))},g=function(i){return document.getElementById(i)};e.style.background=v[0];e.style.color=v[3];g("sp-a").setAttribute("fill",v[1]);g("sp-a").setAttribute("transform","translate("+r(-170,170)+" "+r(-90,60)+") rotate("+r(0,360)+" 200 130)");g("sp-b").setAttribute("fill",v[2]);g("sp-b").setAttribute("transform","translate("+r(40,350)+" "+r(600,800)+") rotate("+r(0,360)+") scale(1.9) translate(-10 -230)");var top=Math.random()<.5;g("sp-s").setAttribute("stroke",v[3]);g("sp-sf").setAttribute("fill",v[4]);g("sp-s").setAttribute("transform","translate("+(r(30,360)-298)+" "+((top?r(70,190):r(640,770))-86)+")");}catch(x){}})()</script>
 <div id="sheet-root"></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <div id="spop" class="spop" hidden><button type="button" class="spop-back" data-act="search-close" aria-label="סגירת החיפוש" tabindex="-1"></button><div class="spop-card" role="dialog" aria-label="חיפוש"><span class="search-ic"><svg width="17" height="17" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.7" cy="8.7" r="5.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.2 4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><input type="search" id="q-pop" class="search-in" placeholder="חיפוש" enterkeyhint="search" autocomplete="off" aria-label="חיפוש"><button type="button" class="search-x" data-act="q-clear" aria-label="ניקוי החיפוש" hidden><svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button></div></div>
@@ -2031,7 +2035,7 @@ function updateHome() {
 
 /* Archive */
 function shellArchive() {
-  return '<header class="top"><div class="wrap top-in"><button class="back" data-act="home">' + ICON.back + '<span>חזרה</span></button></div></header>'
+  return '<header class="top t-arch"><div class="wrap top-in"><button class="back" data-act="home">' + ICON.back + '<span>חזרה</span></button></div></header>'
     + '<main class="wrap page arch"><h1 class="page-h">ארכיון</h1><p class="set-hint">אירועים שהסתיימו וחלוקות הוצאות ששולמו מגיעים לכאן לבד. לחיצה ארוכה על כרטיס מחזירה אותו</p><div id="r-arch" class="home-cols"></div></main>';
 }
 function updateArchive() {
@@ -3027,9 +3031,9 @@ function shellSettings() {
   const ro = S.readOnly;
   const sec = (k, title, add, body, sub) => '<section class="set-sec"><div class="col-top"><button class="sec-fold" data-fold="' + k + '" aria-expanded="false"><span class="sec-t"><h2>' + title + '</h2>' + (sub ? '<small>' + sub + '</small>' : '') + '</span>' + ICON.down + '</button>'
     + (add && !ro ? '<button class="btn primary sm" data-act="' + add + '" data-fold-add="' + k + '" hidden>+ הוספה</button>' : '') + '</div>' + body + '</section>';
-  return '<header class="top"><div class="wrap top-in"><button class="back" data-act="home">' + ICON.back + '<span>חזרה</span></button>'
-    + (window.MM_SPACE ? '<button class="icon-btn gear share-btn" data-act="share-app" aria-label="שיתוף האפליקציה" title="שיתוף האפליקציה">' + ICON.share + '</button>' : '') + '</div></header>'
-    + '<main class="wrap page"><h1 class="page-h">הגדרות</h1>' + accountHTML() + pushSecHTML()
+  return '<header class="top t-set"><div class="wrap top-in"><button class="back" data-act="home">' + ICON.back + '<span>חזרה</span></button>'
+    + (window.MM_SPACE ? '<button class="icon-btn gear share-btn" data-act="share-app" aria-label="שיתוף האפליקציה" title="שיתוף האפליקציה">' + ICON.share + '</button>' : '') + '</div><div class="wrap"><h1 class="page-h">הגדרות</h1></div></header>'
+    + '<main class="wrap page">' + accountHTML() + pushSecHTML()
     + sec('tpls', 'תבניות', 'new-tpl', '<p class="set-hint" data-fold-body="tpls" hidden>בוחרים תבנית כשיוצרים אירוע, ואפשר להחליף אותה בעריכת האירוע.</p><div id="r-tpls" class="tpl-list" data-fold-body="tpls" hidden></div>', 'ההצעות לכל סוג אירוע')
     + sec('cats', 'קטגוריות', 'new-cat', '<div id="r-cats" class="panel set-list" data-fold-body="cats" hidden></div>', 'השמות, הצבעים והסדר ברשימות')
     + sec('prefs', 'הצעות וכמויות', '', '<div id="r-prefs" class="panel set-list" data-fold-body="prefs" hidden></div>', 'הצעות כלליות וכמות בשר לאדם')
@@ -3142,7 +3146,7 @@ function openListPref(key) {
   });
 }
 function shellTemplates() {
-  return '<header class="top"><div class="wrap top-in"><button class="back" data-act="home">' + ICON.back + '<span>חזרה</span></button></div></header>'
+  return '<header class="top t-tpl"><div class="wrap top-in"><button class="back" data-act="home">' + ICON.back + '<span>חזרה</span></button></div></header>'
     + '<main class="wrap page"><div class="page-top"><h1>תבניות</h1>' + (S.readOnly ? '' : '<button class="btn primary sm" data-act="new-tpl">+ תבנית</button>') + '</div><div id="r-tpls" class="tpl-list"></div></main>';
 }
 function updateTemplates() {
@@ -3155,7 +3159,7 @@ function updateTemplates() {
 }
 function shellTemplate() {
   const t = S.templates.find(x => x.id === S.tplId), ro = S.readOnly;
-  return '<header class="top"><div class="wrap top-in"><button class="back" data-act="' + (S.tplFrom ? 'tpl-back' : 'settings') + '">' + ICON.back + '<span>' + (S.tplFrom ? 'חזרה לאירוע' : 'הגדרות') + '</span></button>'
+  return '<header class="top t-tpl"><div class="wrap top-in"><button class="back" data-act="' + (S.tplFrom ? 'tpl-back' : 'settings') + '">' + ICON.back + '<span>' + (S.tplFrom ? 'חזרה לאירוע' : 'הגדרות') + '</span></button>'
     + '</div></header>'
     + '<main class="wrap page">'
     + (ro ? '<h1 class="display trip-title" id="tpl-title"></h1>' : '<input id="tpl-name" class="title-input" maxlength="60" aria-label="שם התבנית" value="' + esc(t ? t.name : '') + '">')
