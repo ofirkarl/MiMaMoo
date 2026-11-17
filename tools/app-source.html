@@ -1082,6 +1082,9 @@ body.on-home .empty{background:transparent}
 .set-sec .sec-fold svg{color:var(--ink)}
 /* The page runs edge to edge, so colour heroes reach the sides and the top of the screen */
 html,body{margin:0}
+/* The account row stands alone, in the colour its heading used to have */
+.page>.set-sec>.acct{background-color:color-mix(in srgb,var(--ter) 30%,var(--surface))}
+.acct .acct-t small{color:var(--ink);opacity:.85}
 </style>
 
 <div id="app"></div>
@@ -1983,7 +1986,7 @@ window.MM_OPEN = eid => {
 function accountHTML() {
   if (!loginOn()) return '';
   const u = window.MM_AUTH.user();
-  return '<section class="set-sec"><div class="col-top"><h2>חשבון</h2></div><div class="panel acct">'
+  return '<section class="set-sec" aria-label="חשבון"><div class="panel acct">'
     + (u ? '<span class="acct-t"><b>' + esc(u.name || u.email) + '</b><small dir="ltr">' + esc(u.email) + '</small></span><button type="button" class="btn sm" data-act="logout">יציאה</button>'
       : '<span class="acct-t"><b>לא מחובר</b><small>עם חשבון Google הכול נשמר ומחכה לך בכל מכשיר</small></span><button type="button" class="btn primary sm" data-act="login">התחברות עם Google</button>')
     + '</div></section>';
