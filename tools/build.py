@@ -377,7 +377,7 @@ async function moveHouse(c, to) {
   document.body.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:32px 24px;direction:rtl;font-family:system-ui,sans-serif;background:#EFE6D5;color:#2B2833">'
     + '<h1 style="font-size:26px;margin:0">MiMaMoo עברה לבית חדש</h1>'
     + '<p style="font-size:17px;line-height:1.5;margin:0">כל האירועים והרשימות שלך עוברים איתך. לוחצים על הכפתור, ובדפדפן שנפתח: שיתוף ← "הוספה למסך הבית". אחר כך אפשר למחוק את האייקון הישן.</p>'
-    + '<a href="' + url + '" target="_blank" rel="noopener" style="align-self:flex-start;padding:14px 22px;border-radius:999px;background:#FFE08F;color:#5A4410;font-weight:700;font-size:17px;text-decoration:none">פתיחה בכתובת החדשה</a></div>';
+    + '<a href="' + url + '" target="_blank" rel="noopener" style="align-self:flex-start;padding:14px 22px;border-radius:999px;background:#A84E30;color:#FBF3E4;font-weight:700;font-size:17px;text-decoration:none">פתיחה בכתובת החדשה</a></div>';
 }
 
 /* The first time this device connects to the cloud, what it kept on its own (before the cloud existed)
