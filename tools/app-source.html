@@ -929,7 +929,7 @@ body{background-color:var(--bg);background-image:var(--paper)}
 .btn:active,.back:active,.round:active,.gear:active,.stepper button:active{transform:translate(2px,2px)}
 .btn.primary{background:var(--ter);color:var(--on-ter)}
 .btn.primary:hover{border-color:var(--ink)}
-.btn.tonal{background:var(--accent)}
+.btn.tonal{background:var(--accent);color:var(--accent-ink)}
 .btn.ghost{box-shadow:none}
 .btn.danger,.btn.danger.solid{box-shadow:3px 3px 0 var(--danger)}
 .btn.danger.armed{color:var(--on-ter)}
@@ -938,7 +938,7 @@ body{background-color:var(--bg);background-image:var(--paper)}
 .icon-btn{color:var(--ink)}
 .stepper button{border-width:2px}
 .srch-wrap{border-width:2px}
-.srch-wrap.on{background:var(--accent)}
+.srch-wrap.on{background:var(--accent);color:var(--accent-ink)}
 .who.also{border-width:2px}
 /* Fields */
 input,select,textarea{background:var(--surface);border:2px solid var(--ink)}
@@ -952,7 +952,7 @@ input:focus,select:focus{border-color:var(--ring);box-shadow:0 0 0 2px var(--rin
 .seg button[aria-pressed="true"],.seg-radio input:checked+span{box-shadow:inset 0 0 0 2px var(--ink)}
 .tabs{border:2px solid var(--ink)}
 .tabs button{color:var(--ink)}
-.tabs button[aria-selected="true"]{background:var(--accent);box-shadow:inset 0 0 0 2px var(--ink)}
+.tabs button[aria-selected="true"]{color:var(--accent-ink);background:var(--accent);box-shadow:inset 0 0 0 2px var(--ink)}
 .chip{border-width:2px}
 .chip.dash{border-color:var(--ink)}
 .chip.warn{border-color:var(--danger)}
@@ -970,25 +970,25 @@ input:focus,select:focus{border-color:var(--ring);box-shadow:0 0 0 2px var(--rin
 .set-row{border-top-style:dashed;border-top-color:var(--line-2)}
 .lane.is-me{box-shadow:4px 4px 0 var(--ter)}
 .panel .lane.is-me{box-shadow:none}
-.tr-item{box-shadow:3px 3px 0 var(--ink)}
+.tr-item{box-shadow:3px 3px 0 var(--sh)}
 .tr-item.mine{box-shadow:3px 3px 0 var(--ter);border-color:var(--ink)}
-.trip-card:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.trip-card:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--sh)}
 .trip-card.selected,.tpl-row.selected{box-shadow:4px 4px 0 var(--ter)}
 .empty{border:2px dashed var(--ink);color:var(--muted)}
 .item,.row{border-top-style:dashed;border-top-color:var(--line-2)}
 .sheet{border-top:2px solid var(--ink);box-shadow:none}
 @media (min-width:700px){.sheet{border:2px solid var(--ink);box-shadow:var(--shadow)}}
 .selbar{border-top:2px solid var(--ink);box-shadow:none}
-.toast{box-shadow:3px 3px 0 var(--ink)}
+.toast{box-shadow:3px 3px 0 var(--sh)}
 .banner{border-bottom:2px solid var(--ink)}
 /* Date stubs take turns: terracotta, ochre, forest */
 .stub{border:2px solid var(--ink);border-radius:17px 19px 17px 20px}
 .trips>.trip-card:nth-child(3n+1) .stub{background:var(--ter);color:var(--on-ter)}
-.trips>.trip-card:nth-child(3n+2) .stub{background:var(--och);color:var(--ink)}
-.trips>.trip-card:nth-child(3n) .stub{background:var(--ink);color:#F3EBDA}
+.trips>.trip-card:nth-child(3n+2) .stub{background:var(--och);color:var(--on-acc)}
+.trips>.trip-card:nth-child(3n) .stub{background:var(--forest);color:var(--on-forest)}
 .trip-card.themed .stub{background:rgba(250,244,232,.7);color:#26352C}
-.solo-card .stub{background:var(--clay);color:var(--ink)}
-.shop-card .stub{background:var(--sage);color:var(--ink)}
+.solo-card .stub{background:var(--clay);color:var(--on-acc)}
+.shop-card .stub{background:var(--sage);color:var(--on-acc)}
 /* Marks */
 .av{box-shadow:inset 0 0 0 1.5px var(--ink)}
 .cbox,.pk{border-width:2px}
@@ -1003,16 +1003,16 @@ body.on-home{background-color:var(--bg);background-image:var(--paper);background
 .top{background:transparent}
 .new-dot{background:var(--ter);box-shadow:0 0 0 3.5px rgba(168,78,48,.22)}
 /* Home hero: a sage band with cut-paper shapes and a torn-wave edge */
-.top:has(#r-hello){position:relative;background:var(--sage);padding-bottom:38px;overflow:hidden}
+.top:has(#r-hello){position:relative;background:var(--hero);padding-bottom:38px;overflow:hidden}
 .top:has(#r-hello)::before{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='240' viewBox='0 0 390 240'%3E%3Cpath d='M-60 -70c90-30 190 10 214 96 20 74-24 152-98 172-70 18-144-18-172-84-26-64-8-150 56-184z' fill='%23D9A441'/%3E%3Ccircle cx='40' cy='150' r='34' fill='%23A84E30'/%3E%3Cg transform='translate(112 58) scale(0.62)'%3E%3Cg transform='translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23FAF4E8' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") left top no-repeat;pointer-events:none}
-.top:has(#r-hello)::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:26px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 26' preserveAspectRatio='none'%3E%3Cpath d='M-6 34V12c46-10 94-12 138-4 50 8 86 14 140 12 46-2 86-10 124-14V34z' fill='%23EFE6D5' stroke='%2326352C' stroke-width='2' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") center/100% 100% no-repeat;pointer-events:none}
+.top:has(#r-hello)::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:26px;background:var(--wave) center/100% 100% no-repeat;pointer-events:none}
 .top:has(#r-hello)>.wrap{position:relative;z-index:1}
 .top:has(#r-hello) .logo-tag{color:var(--ink)}
 .hello{font-size:26px;font-weight:600}
 .hello-edit{color:var(--ink)}
-body:has(.top #r-hello)::before{background:var(--sage)}
+body:has(.top #r-hello)::before{background:var(--hero)}
 /* Event hero: the event's colour, flat, with shapes tucked in the corner */
-.trip-head{border-bottom:2px solid var(--ink);box-shadow:0 4px 0 var(--ink)}
+.trip-head{border-bottom:2px solid var(--ink);box-shadow:0 4px 0 var(--sh)}
 .trip-head:not(.has-cover)::after{content:"";position:absolute;left:0;top:0;width:330px;height:74px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='330' height='74' viewBox='0 0 330 74'%3E%3Cpath d='M-50 -70c60-26 138-6 164 50 22 50-2 108-54 128-48 18-106 0-130-46-24-48-20-106 20-132z' fill='%23A84E30'/%3E%3Ccircle cx='286' cy='-6' r='34' fill='%2326352C'/%3E%3Cg transform='translate(150 -44) scale(0.7)'%3E%3Cg transform='translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23FAF4E8' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") left top no-repeat;pointer-events:none;z-index:1}
 .trip-head .crew-line,.trip-head[data-theme] .crew-line{color:inherit}
 .trip-head .trip-meta,.trip-head .eyebrow{opacity:.9}
@@ -1020,12 +1020,65 @@ body:has(.top #r-hello)::before{background:var(--sage)}
 .page-top h1,.col-top h2,.sheet-title{font-weight:700}
 /* The filter row stays on one line on narrow phones; inputs that live inside another control keep that control's single frame */
 .viewbar,.col-head>.search{flex-basis:170px}
-.spop-card{border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink)}
+.spop-card{border:2px solid var(--ink);box-shadow:4px 4px 0 var(--sh)}
 .spop-card input.search-in,.spop-card input.search-in:focus,.mstep input,.mstep input:focus{border-color:transparent;box-shadow:none;background:transparent}
 .logo-ic{width:40px;height:40px;filter:none}
+
+/* ===== Light and dark (v112). Light is the default; the header switch sets data-mode on the root. ===== */
+:root{--sh:#26352C;--on-acc:#26352C;--forest:#26352C;--on-forest:#F3EBDA;--hero:#8A9A7B;--wave:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 26' preserveAspectRatio='none'%3E%3Cpath d='M-6 34V12c46-10 94-12 138-4 50 8 86 14 140 12 46-2 86-10 124-14V34z' fill='%23EFE6D5' stroke='%2326352C' stroke-width='2' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E")}
+:root[data-mode="dark"]{
+  color-scheme:dark;
+  --bg:#1E211C; --surface:#2A2E26; --sunk:#353B30; --line:#474E40; --line-2:#6B7361;
+  --ink:#F3EBDA; --muted:#C7CDBB;
+  --ter:#C9714E; --on-ter:#1E211C; --och:#D4A64A; --sage:#94A583; --clay:#D9A58C;
+  --accent:#D4A64A; --accent-ink:#1E211C; --accent-soft:#4A4226; --accent-line:#F3EBDA; --accent-deep:#E6BC6A;
+  --good:#B4CBA6; --good-bg:#34402F; --good-fill:#94A583;
+  --sel-bg:#4B3026; --sel-line:#C9714E; --sel-ink:#F0B49A;
+  --danger:#EC9478; --danger-bg:#4A2A20; --danger-line:#EC9478;
+  --ring:#E08A66; --link:#F0B49A;
+  --t-base:#D4A64A; --t-base-ink:#1E211C;
+  --t-forest:#5E6E55; --t-forest-ink:#F3EBDA;
+  --t-lake:#56706B; --t-lake-ink:#F3EBDA;
+  --t-sand:#B79A58; --t-sand-ink:#1E211C;
+  --t-sunset:#C9714E; --t-sunset-ink:#1E211C;
+  --t-night:#11140F; --t-night-ink:#F3EBDA;
+  --t-stone:#C2917A; --t-stone-ink:#1E211C;
+  --scrim:rgba(0,0,0,.6);
+  --shadow-sm:4px 4px 0 #0C0E0A; --shadow:5px 5px 0 #0C0E0A;
+  --btn-line:#F3EBDA; --btn-edge:#F3EBDA; --ctl-line:#F3EBDA;
+  --btn-shadow:3px 3px 0 #0C0E0A; --btn-shadow-warm:3px 3px 0 #0C0E0A; --btn-press:1px 1px 0 #0C0E0A;
+  --sh:#0C0E0A; --on-acc:#1E211C; --forest:#4E5B47; --on-forest:#F3EBDA; --hero:#4E5B47; --wave:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 26' preserveAspectRatio='none'%3E%3Cpath d='M-6 34V12c46-10 94-12 138-4 50 8 86 14 140 12 46-2 86-10 124-14V34z' fill='%231E211C' stroke='%23F3EBDA' stroke-width='2' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  --paper:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='360'%3E%3Cfilter id='a' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.02' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .95 0 0 0 0 .9 0 0 0 0 .8 0 0 0 .05 0'/%3E%3C/filter%3E%3Cfilter id='b' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.6' numOctaves='3' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .95 0 0 0 0 .9 0 0 0 0 .8 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='360' height='360' filter='url(%23a)'/%3E%3Crect width='360' height='360' filter='url(%23b)'/%3E%3Ccircle cx='333' cy='341' r='0.9' fill='%23F3EBDA' fill-opacity='0.10'/%3E%3Ccircle cx='110' cy='137' r='0.6' fill='%23D4A64A' fill-opacity='0.12'/%3E%3Ccircle cx='160' cy='80' r='0.7' fill='%23F3EBDA' fill-opacity='0.11'/%3E%3Ccircle cx='353' cy='179' r='0.4' fill='%23D4A64A' fill-opacity='0.19'/%3E%3Ccircle cx='129' cy='21' r='0.9' fill='%23D4A64A' fill-opacity='0.14'/%3E%3Ccircle cx='62' cy='78' r='0.8' fill='%23D4A64A' fill-opacity='0.19'/%3E%3Ccircle cx='133' cy='206' r='0.8' fill='%23F3EBDA' fill-opacity='0.17'/%3E%3Ccircle cx='293' cy='64' r='0.7' fill='%23F3EBDA' fill-opacity='0.18'/%3E%3Ccircle cx='59' cy='288' r='0.7' fill='%23D4A64A' fill-opacity='0.20'/%3E%3Ccircle cx='70' cy='41' r='0.5' fill='%23F3EBDA' fill-opacity='0.17'/%3E%3Ccircle cx='338' cy='101' r='0.8' fill='%23F3EBDA' fill-opacity='0.14'/%3E%3Ccircle cx='104' cy='110' r='0.9' fill='%23D4A64A' fill-opacity='0.13'/%3E%3Ccircle cx='54' cy='223' r='0.5' fill='%23F3EBDA' fill-opacity='0.13'/%3E%3Ccircle cx='196' cy='331' r='0.8' fill='%23F3EBDA' fill-opacity='0.12'/%3E%3Ccircle cx='351' cy='20' r='0.6' fill='%23F3EBDA' fill-opacity='0.12'/%3E%3Ccircle cx='81' cy='5' r='0.5' fill='%23D4A64A' fill-opacity='0.21'/%3E%3Ccircle cx='194' cy='356' r='0.8' fill='%23F3EBDA' fill-opacity='0.10'/%3E%3Ccircle cx='284' cy='177' r='0.4' fill='%23F3EBDA' fill-opacity='0.16'/%3E%3Ccircle cx='71' cy='336' r='1.0' fill='%23F3EBDA' fill-opacity='0.11'/%3E%3Ccircle cx='200' cy='234' r='0.8' fill='%23D4A64A' fill-opacity='0.20'/%3E%3Ccircle cx='91' cy='152' r='0.9' fill='%23F3EBDA' fill-opacity='0.19'/%3E%3Ccircle cx='236' cy='149' r='0.5' fill='%23D4A64A' fill-opacity='0.18'/%3E%3Ccircle cx='149' cy='249' r='0.9' fill='%23D4A64A' fill-opacity='0.19'/%3E%3Ccircle cx='196' cy='153' r='0.6' fill='%23D4A64A' fill-opacity='0.17'/%3E%3Ccircle cx='19' cy='103' r='0.4' fill='%23F3EBDA' fill-opacity='0.14'/%3E%3Ccircle cx='201' cy='301' r='0.5' fill='%23D4A64A' fill-opacity='0.11'/%3E%3Ccircle cx='202' cy='195' r='0.5' fill='%23D4A64A' fill-opacity='0.21'/%3E%3Ccircle cx='288' cy='356' r='0.6' fill='%23F3EBDA' fill-opacity='0.15'/%3E%3Ccircle cx='283' cy='51' r='0.9' fill='%23F3EBDA' fill-opacity='0.20'/%3E%3Ccircle cx='11' cy='236' r='0.8' fill='%23F3EBDA' fill-opacity='0.15'/%3E%3Ccircle cx='100' cy='215' r='1.0' fill='%23D4A64A' fill-opacity='0.17'/%3E%3Ccircle cx='189' cy='107' r='0.9' fill='%23F3EBDA' fill-opacity='0.13'/%3E%3Ccircle cx='22' cy='320' r='0.6' fill='%23F3EBDA' fill-opacity='0.18'/%3E%3Ccircle cx='218' cy='105' r='0.6' fill='%23F3EBDA' fill-opacity='0.20'/%3E%3Ccircle cx='99' cy='335' r='0.5' fill='%23F3EBDA' fill-opacity='0.15'/%3E%3Ccircle cx='294' cy='172' r='0.7' fill='%23F3EBDA' fill-opacity='0.16'/%3E%3Ccircle cx='249' cy='138' r='0.9' fill='%23F3EBDA' fill-opacity='0.16'/%3E%3Ccircle cx='40' cy='167' r='0.5' fill='%23D4A64A' fill-opacity='0.19'/%3E%3Ccircle cx='3' cy='13' r='0.9' fill='%23F3EBDA' fill-opacity='0.13'/%3E%3Ccircle cx='354' cy='228' r='0.4' fill='%23F3EBDA' fill-opacity='0.13'/%3E%3Ccircle cx='130' cy='53' r='0.9' fill='%23F3EBDA' fill-opacity='0.12'/%3E%3Ccircle cx='183' cy='220' r='0.6' fill='%23F3EBDA' fill-opacity='0.17'/%3E%3Ccircle cx='251' cy='218' r='0.4' fill='%23F3EBDA' fill-opacity='0.21'/%3E%3Ccircle cx='66' cy='7' r='0.8' fill='%23F3EBDA' fill-opacity='0.21'/%3E%3Ccircle cx='106' cy='323' r='0.6' fill='%23F3EBDA' fill-opacity='0.20'/%3E%3Ccircle cx='217' cy='213' r='0.6' fill='%23F3EBDA' fill-opacity='0.14'/%3E%3C/svg%3E");
+}
+:root[data-mode="dark"] .chat-send textarea{background:var(--surface)}
+:root[data-mode="dark"] .selected>.selbox,:root[data-mode="dark"] .btn.danger.armed,:root[data-mode="dark"] .badge{color:#1E211C}
+:root[data-mode="dark"] .also-mine input:checked+.tk-box{color:#1E211C}
+:root[data-mode="dark"] .also-bring input:checked+.tk-box{background:var(--accent);border-color:var(--accent);color:#1E211C}
+:root[data-mode="dark"] .trip-card.themed .stub{background:rgba(30,33,28,.55);color:#F3EBDA}
+:root[data-mode="dark"] .lane.is-me,:root[data-mode="dark"] .tr-item.mine,:root[data-mode="dark"] .trip-card.selected,:root[data-mode="dark"] .tpl-row.selected{box-shadow:4px 4px 0 var(--ter)}
+body.on-home .empty{background:transparent}
+.nav-actions .btn,.chat-send textarea{background:var(--surface)}
+.seg button[aria-pressed="true"],.seg-radio input:checked+span{color:var(--accent-ink)}
+.multi-row input:checked+.multi-sw::after{background:var(--accent-ink)}
+@media (max-width:359px){.top .gear{width:38px;height:38px}.top-acts{gap:6px}.top .logo-word{font-size:22px}}
+/* ===== Opening splash: one of five paper grounds, shapes thrown at random, the logo on a cream disc ===== */
+#splash{position:fixed;inset:0;z-index:3000;pointer-events:none;display:grid;place-items:center;overflow:hidden;background:#D9A441;color:#26352C;animation:spl-out .35s ease .95s forwards}
+#splash .sp-bg{position:absolute;inset:0;width:100%;height:100%}
+#splash .sp-grain{position:absolute;inset:0;background-image:var(--paper)}
+.sp-mid{position:relative;display:flex;flex-direction:column;align-items:center;margin-top:-5vh;direction:ltr}
+.sp-disc{display:grid;place-items:center;width:204px;height:204px;border-radius:49% 51% 50% 50%/52% 48% 52% 48%;background:#FAF4E8;border:2.5px solid #26352C;box-shadow:6px 6px 0 #26352C;animation:spl-in .45s cubic-bezier(.2,.9,.3,1.2) both}
+.sp-disc svg{width:118px;height:118px;display:block}
+.sp-label{margin-top:22px;display:flex;flex-direction:column;align-items:center;padding:12px 22px 11px;border-radius:24px 26px 24px 27px;background:#FAF4E8;color:#26352C;border:2.5px solid #26352C;box-shadow:4px 4px 0 #26352C}
+.sp-word{font-family:"Fredoka",var(--f-display);font-weight:600;font-size:36px;letter-spacing:-.02em;line-height:1}
+.sp-tag{margin-top:6px;font-family:var(--f-display);font-weight:500;font-size:16px;line-height:1}
+@keyframes spl-out{to{opacity:0;visibility:hidden}}
+@keyframes spl-in{from{transform:scale(.86);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sp-disc{animation:none}}
 </style>
 
 <div id="app"></div>
+<div id="splash" aria-hidden="true"><svg class="sp-bg" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice"><path id="sp-a" d="M210 -70c110-14 210 60 222 170 10 100-50 200-152 228-96 26-200-18-244-108C-8 126 26 18 112 -38c30-18 62-28 98-32z"/><path id="sp-b" d="M-70 150c44-34 112-26 146 22 30 42 22 104-18 136-40 30-98 28-132-10-34-40-32-116 4-148z"/><g id="sp-s" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path id="sp-sf" d="M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z" stroke="none" transform="translate(6 6)"/><path d="M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z"/><path d="M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46"/></g></svg><div class="sp-grain"></div><div class="sp-mid"><div class="sp-disc"><svg viewBox="0 0 120 120"><rect x="2" y="2" width="116" height="116" rx="28" fill="#8A9A7B" stroke="#26352C" stroke-width="4"/><circle cx="60" cy="66" r="44" fill="#D9A441"/><path d="M54 44V14" stroke="#26352C" stroke-width="5" stroke-linecap="round"/><path d="M54 44L94 95H14Z" fill="#FAF4E8" stroke="#FAF4E8" stroke-width="6" stroke-linejoin="round"/><path d="M54 44L94 95H54Z" fill="#E7DCC8" stroke="#E7DCC8" stroke-width="6" stroke-linejoin="round"/><path d="M54 41L97 98H11Z" fill="none" stroke="#26352C" stroke-width="4" stroke-linejoin="round"/><path d="M54 60L72 97H36Z" fill="#26352C" stroke="#26352C" stroke-width="3" stroke-linejoin="round"/><rect x="58" y="9" width="40" height="34" rx="9" fill="#A84E30" stroke="#26352C" stroke-width="4"/><path d="M67 26L74 33L88 18" fill="none" stroke="#FBF3E4" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="sp-label"><div class="sp-word">MiMaMoo</div><div class="sp-tag" dir="rtl">מי · מביא · מה</div></div></div></div>
+<script>(function(){try{var V=[['#D9A441','#A84E30','#26352C','#26352C','#FAF4E8'],['#A84E30','#D9A441','#26352C','#FBF3E4','#E6B8A0'],['#8A9A7B','#D9A441','#A84E30','#26352C','#FAF4E8'],['#E6B8A0','#26352C','#D9A441','#26352C','#A84E30'],['#26352C','#A84E30','#D9A441','#F3EBDA','#8A9A7B']],v=V[Math.floor(Math.random()*V.length)],e=document.getElementById("splash"),r=function(a,b){return Math.round(a+Math.random()*(b-a))},g=function(i){return document.getElementById(i)};e.style.background=v[0];e.style.color=v[3];g("sp-a").setAttribute("fill",v[1]);g("sp-a").setAttribute("transform","translate("+r(-170,170)+" "+r(-90,60)+") rotate("+r(0,360)+" 200 130)");g("sp-b").setAttribute("fill",v[2]);g("sp-b").setAttribute("transform","translate("+r(40,350)+" "+r(600,800)+") rotate("+r(0,360)+") scale(1.9) translate(-10 -230)");var top=Math.random()<.5;g("sp-s").setAttribute("stroke",v[3]);g("sp-sf").setAttribute("fill",v[4]);g("sp-s").setAttribute("transform","translate("+(r(30,360)-298)+" "+((top?r(70,190):r(640,770))-86)+")");}catch(x){}})()</script>
 <div id="sheet-root"></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <div id="spop" class="spop" hidden><button type="button" class="spop-back" data-act="search-close" aria-label="סגירת החיפוש" tabindex="-1"></button><div class="spop-card" role="dialog" aria-label="חיפוש"><span class="search-ic"><svg width="17" height="17" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.7" cy="8.7" r="5.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.2 4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><input type="search" id="q-pop" class="search-in" placeholder="חיפוש" enterkeyhint="search" autocomplete="off" aria-label="חיפוש"><button type="button" class="search-x" data-act="q-clear" aria-label="ניקוי החיפוש" hidden><svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button></div></div>
@@ -1077,6 +1130,8 @@ let SHARED_BANK = DEF_SHARED_BANK.slice();
 const PREF_LISTS = {mybank: ['ההצעות שלי לרשימה האישית', () => myBankList(), DEF_BANK], sharedbank: ['הצעות לאירוע בלי תבנית', () => SHARED_BANK, DEF_SHARED_BANK], meat: ['סוגי בשר', () => MEAT_CHOICES, DEF_MEAT], salads: ['סוגי סלט', () => SALAD_IDEAS, DEF_SALAD], soft: ['שתייה קלה', () => SOFT_IDEAS, DEF_SOFT]};
 const SIX = 'שישיות', BAG = 'שקיות';
 const ICON = {
+  moon:'<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.2 8.2 0 1 0 10.2 10.2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+  sun:'<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.800 12h2.400M5.500 5.500l1.700 1.700M16.800 16.800l1.700 1.700M5.500 18.500l1.700-1.700M16.800 7.200l1.700-1.700" fill="none" stroke="currentColor" stroke-width="1.800" stroke-linecap="round"/></svg>',
   check:'<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.6l3.2 3.1L13 4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   back:'<svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   chev:'<svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4L6.5 10l6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -1120,6 +1175,14 @@ const same = (a, b) => { const x = norm(a); return !!x && x === norm(b); };
 const MEM = new Map();
 const lsGet = k => { let v = null; try { v = localStorage.getItem('wbw:' + k); } catch (e) {} return v != null ? v : (MEM.has(k) ? MEM.get(k) : null); };
 const lsSet = (k, v) => { v == null ? MEM.delete(k) : MEM.set(k, v); try { v == null ? localStorage.removeItem('wbw:' + k) : localStorage.setItem('wbw:' + k, v); } catch (e) {} };
+/* Light or dark is this device's own choice; light unless the switch in the header was pressed. */
+const getMode = () => lsGet('mode') === 'dark' ? 'dark' : 'light';
+function applyMode() {
+  const m = getMode();
+  document.documentElement.setAttribute('data-mode', m);
+  const t = document.querySelector('meta[name="theme-color"]'); if (t) t.setAttribute('content', m === 'dark' ? '#1E211C' : '#EFE6D5');
+}
+applyMode();
 const fire = p => { if (p && p.catch) p.catch(() => {}); return p; };
 const TAB = uid('tab');
 
@@ -1774,7 +1837,7 @@ function catsHTML(list, rowFn, countFn, addCtx) {
 /* Home */
 function shellHome() {
   const ro = S.readOnly;
-  return '<header class="top"><div class="wrap top-in"><span class="logo" role="img" aria-label="MiMaMoo"><svg class="logo-ic" viewBox="0 0 120 120" aria-hidden="true"><rect x="2" y="2" width="116" height="116" rx="28" fill="#8A9A7B" stroke="#26352C" stroke-width="4"/><circle cx="60" cy="66" r="44" fill="#D9A441"/><path d="M54 44V14" stroke="#26352C" stroke-width="5" stroke-linecap="round"/><path d="M54 44L94 95H14Z" fill="#FAF4E8" stroke="#FAF4E8" stroke-width="6" stroke-linejoin="round"/><path d="M54 44L94 95H54Z" fill="#E7DCC8" stroke="#E7DCC8" stroke-width="6" stroke-linejoin="round"/><path d="M54 41L97 98H11Z" fill="none" stroke="#26352C" stroke-width="4" stroke-linejoin="round"/><path d="M54 60L72 97H36Z" fill="#26352C" stroke="#26352C" stroke-width="3" stroke-linejoin="round"/><rect x="58" y="9" width="40" height="34" rx="9" fill="#A84E30" stroke="#26352C" stroke-width="4"/><path d="M67 26L74 33L88 18" fill="none" stroke="#FBF3E4" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-text" aria-hidden="true"><span class="logo-word">MiMaMoo</span><span class="logo-tag" dir="rtl">מי · מביא · מה</span></span></span><span class="top-acts"><button class="icon-btn gear" data-act="archive" aria-label="ארכיון" title="ארכיון">' + ICON.box + '</button><button class="icon-btn gear" data-act="settings" aria-label="הגדרות">' + ICON.gear + '</button></span></div><div class="wrap" id="r-hello"></div><div class="wrap" id="r-install"></div></header>'
+  return '<header class="top"><div class="wrap top-in"><span class="logo" role="img" aria-label="MiMaMoo"><svg class="logo-ic" viewBox="0 0 120 120" aria-hidden="true"><rect x="2" y="2" width="116" height="116" rx="28" fill="#8A9A7B" stroke="#26352C" stroke-width="4"/><circle cx="60" cy="66" r="44" fill="#D9A441"/><path d="M54 44V14" stroke="#26352C" stroke-width="5" stroke-linecap="round"/><path d="M54 44L94 95H14Z" fill="#FAF4E8" stroke="#FAF4E8" stroke-width="6" stroke-linejoin="round"/><path d="M54 44L94 95H54Z" fill="#E7DCC8" stroke="#E7DCC8" stroke-width="6" stroke-linejoin="round"/><path d="M54 41L97 98H11Z" fill="none" stroke="#26352C" stroke-width="4" stroke-linejoin="round"/><path d="M54 60L72 97H36Z" fill="#26352C" stroke="#26352C" stroke-width="3" stroke-linejoin="round"/><rect x="58" y="9" width="40" height="34" rx="9" fill="#A84E30" stroke="#26352C" stroke-width="4"/><path d="M67 26L74 33L88 18" fill="none" stroke="#FBF3E4" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-text" aria-hidden="true"><span class="logo-word">MiMaMoo</span><span class="logo-tag" dir="rtl">מי · מביא · מה</span></span></span><span class="top-acts"><button class="icon-btn gear" data-act="mode" aria-pressed="' + (getMode() === 'dark') + '" aria-label="מצב כהה" title="מצב כהה">' + (getMode() === 'dark' ? ICON.sun : ICON.moon) + '</button><button class="icon-btn gear" data-act="archive" aria-label="ארכיון" title="ארכיון">' + ICON.box + '</button><button class="icon-btn gear" data-act="settings" aria-label="הגדרות">' + ICON.gear + '</button></span></div><div class="wrap" id="r-hello"></div><div class="wrap" id="r-install"></div></header>'
     + '<main class="wrap home"><div class="tabs four" role="tablist" id="r-htabs"></div>'
     + '<div class="home-cols" id="h-lists">'
     + '<section class="home-col"><div class="col-top"><h2>רשימות משותפות</h2>' + (ro ? '' : '<button class="btn primary sm" data-act="new-trip">+ הוספה</button>') + '</div><div id="r-trips" class="trips"></div></section>'
@@ -4276,6 +4339,7 @@ function disarm(t) { delete t.dataset.armed; t.innerHTML = t.dataset.label || '�
 function act(a) {
   switch (a) {
     case 'home': return goHome();
+    case 'mode': lsSet('mode', getMode() === 'dark' ? null : 'dark'); applyMode(); render(); return;
     case 'templates': case 'settings': S.tplFrom = null; stopView(); S.view = 'settings'; S.tripId = null; S.soloId = null; S.q = ''; render(); window.scrollTo(0, 0); return;
     case 'new-cat': return openCatSheet(null);
     case 'sel-cancel': return exitSel();
