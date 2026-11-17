@@ -34,7 +34,7 @@ rep('<title>MiMaMoo</title>\n<meta name="claude:viewport-fit-sides" content="cov
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>MiMaMoo</title>
 <meta name="description" content="מי מביא מה: רשימות משותפות לטיולים ולאירועים">
-<meta name="theme-color" content="#EFE6D5">
+<meta name="theme-color" content="#EBE0CC">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="MiMaMoo">
@@ -87,7 +87,7 @@ rep('<title>MiMaMoo</title>\n<meta name="claude:viewport-fit-sides" content="cov
     var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     if (ios && !standalone) {
       var base = location.origin + location.pathname, ml = document.querySelector('link[rel="manifest"]');
-      var man = {name: 'MiMaMoo', short_name: 'MiMaMoo', lang: 'he', dir: 'rtl', id: base, start_url: base + '#' + keepHash, scope: base, display: 'standalone', background_color: '#EFE6D5', theme_color: '#EFE6D5',
+      var man = {name: 'MiMaMoo', short_name: 'MiMaMoo', lang: 'he', dir: 'rtl', id: base, start_url: base + '#' + keepHash, scope: base, display: 'standalone', background_color: '#EBE0CC', theme_color: '#EBE0CC',
         icons: [{src: base + 'icons/icon-192.png', sizes: '192x192', type: 'image/png'}, {src: base + 'icons/icon-512.png', sizes: '512x512', type: 'image/png'}]};
       if (ml) ml.href = 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(man));
     }
@@ -374,7 +374,7 @@ async function moveHouse(c, to) {
   const url = to + '#import=' + pay;
   const standalone = (() => { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) { return false; } })();
   if (!standalone) { location.replace(url); return; }
-  document.body.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:32px 24px;direction:rtl;font-family:system-ui,sans-serif;background:#EFE6D5;color:#2B2833">'
+  document.body.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:32px 24px;direction:rtl;font-family:system-ui,sans-serif;background:#EBE0CC;color:#2B2833">'
     + '<h1 style="font-size:26px;margin:0">MiMaMoo עברה לבית חדש</h1>'
     + '<p style="font-size:17px;line-height:1.5;margin:0">כל האירועים והרשימות שלך עוברים איתך. לוחצים על הכפתור, ובדפדפן שנפתח: שיתוף ← "הוספה למסך הבית". אחר כך אפשר למחוק את האייקון הישן.</p>'
     + '<a href="' + url + '" target="_blank" rel="noopener" style="align-self:flex-start;padding:14px 22px;border-radius:999px;background:#A84E30;color:#FBF3E4;font-weight:700;font-size:17px;text-decoration:none">פתיחה בכתובת החדשה</a></div>';

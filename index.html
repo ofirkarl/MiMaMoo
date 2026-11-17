@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>MiMaMoo</title>
 <meta name="description" content="מי מביא מה: רשימות משותפות לטיולים ולאירועים">
-<meta name="theme-color" content="#EFE6D5">
+<meta name="theme-color" content="#EBE0CC">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="MiMaMoo">
@@ -58,7 +58,7 @@
     var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     if (ios && !standalone) {
       var base = location.origin + location.pathname, ml = document.querySelector('link[rel="manifest"]');
-      var man = {name: 'MiMaMoo', short_name: 'MiMaMoo', lang: 'he', dir: 'rtl', id: base, start_url: base + '#' + keepHash, scope: base, display: 'standalone', background_color: '#EFE6D5', theme_color: '#EFE6D5',
+      var man = {name: 'MiMaMoo', short_name: 'MiMaMoo', lang: 'he', dir: 'rtl', id: base, start_url: base + '#' + keepHash, scope: base, display: 'standalone', background_color: '#EBE0CC', theme_color: '#EBE0CC',
         icons: [{src: base + 'icons/icon-192.png', sizes: '192x192', type: 'image/png'}, {src: base + 'icons/icon-512.png', sizes: '512x512', type: 'image/png'}]};
       if (ml) ml.href = 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(man));
     }
@@ -73,7 +73,7 @@
    and five matte colours — terracotta (act, mine), ochre (chosen), sage (done), clay (soft), forest (ink). */
 :root{
   color-scheme:light;
-  --bg:#EFE6D5; --surface:#FAF4E8; --sunk:#E7DCC8; --line:#D6CAB2; --line-2:#B5A98F;
+  --bg:#EBE0CC; --surface:#F4EAD7; --sunk:#E1D5BF; --line:#D6CAB2; --line-2:#B5A98F;
   --ink:#26352C; --muted:#4A5346;
   /* Palette: forest ink for text and every outline; terracotta = the main action and "mine"; ochre = chosen;
      sage = done; clay = soft highlight. */
@@ -1067,7 +1067,7 @@ body.on-home{background-color:var(--bg);background-image:var(--paper);background
 .new-dot{background:var(--ter);box-shadow:0 0 0 3.5px rgba(168,78,48,.22)}
 /* Home hero: a sage band with cut-paper shapes and a torn-wave edge */
 .top{position:relative;background:var(--hero);padding-bottom:38px;overflow:hidden}
-.top::before{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='240' viewBox='0 0 390 240'%3E%3Cpath d='M-60 -70c90-30 190 10 214 96 20 74-24 152-98 172-70 18-144-18-172-84-26-64-8-150 56-184z' fill='%23D9A441'/%3E%3Ccircle cx='40' cy='150' r='34' fill='%23A84E30'/%3E%3Cg transform='translate(112 58) scale(0.62)'%3E%3Cg transform='translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23FAF4E8' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") left top no-repeat;pointer-events:none}
+.top::before{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='240' viewBox='0 0 390 240'%3E%3Cpath d='M-60 -70c90-30 190 10 214 96 20 74-24 152-98 172-70 18-144-18-172-84-26-64-8-150 56-184z' fill='%23D9A441'/%3E%3Ccircle cx='40' cy='150' r='34' fill='%23A84E30'/%3E%3Cg transform='translate(112 58) scale(0.62)'%3E%3Cg transform='translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23F4EAD7' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") left top no-repeat;pointer-events:none}
 .top::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:26px;background:var(--wave) center/100% 100% no-repeat;pointer-events:none}
 .top>.wrap{position:relative;z-index:1}
 .top .logo-tag{color:var(--ink)}
@@ -1079,7 +1079,7 @@ body:has(.top.t-arch)::before{background:var(--hero-arch)}
 body:has(.top.t-tpl)::before{background:var(--hero-tpl)}
 /* Event hero: the event's colour, flat, with shapes tucked in the corner */
 .trip-head{border-bottom:2px solid var(--ink);box-shadow:0 4px 0 var(--sh)}
-.trip-head:not(.has-cover)::after{content:"";position:absolute;left:0;top:0;width:330px;height:74px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='330' height='74' viewBox='0 0 330 74'%3E%3Cpath d='M-50 -70c60-26 138-6 164 50 22 50-2 108-54 128-48 18-106 0-130-46-24-48-20-106 20-132z' fill='%23A84E30'/%3E%3Ccircle cx='286' cy='-6' r='34' fill='%2326352C'/%3E%3Cg transform='translate(150 -44) scale(0.7)'%3E%3Cg transform='translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23FAF4E8' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") left top no-repeat;pointer-events:none;z-index:1}
+.trip-head:not(.has-cover)::after{content:"";position:absolute;left:0;top:0;width:330px;height:74px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='330' height='74' viewBox='0 0 330 74'%3E%3Cpath d='M-50 -70c60-26 138-6 164 50 22 50-2 108-54 128-48 18-106 0-130-46-24-48-20-106 20-132z' fill='%23A84E30'/%3E%3Ccircle cx='286' cy='-6' r='34' fill='%2326352C'/%3E%3Cg transform='translate(150 -44) scale(0.7)'%3E%3Cg transform='translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23F4EAD7' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") left top no-repeat;pointer-events:none;z-index:1}
 .trip-head .crew-line,.trip-head[data-theme] .crew-line{color:inherit}
 .trip-head .trip-meta,.trip-head .eyebrow{opacity:.9}
 .trip-title{font-weight:700}
@@ -1091,7 +1091,7 @@ body:has(.top.t-tpl)::before{background:var(--hero-tpl)}
 .logo-ic{width:40px;height:40px;filter:none}
 
 /* ===== Light and dark (v112). Light is the default; the header switch sets data-mode on the root. ===== */
-:root{--sh:#26352C;--on-acc:#26352C;--forest:#26352C;--on-forest:#F3EBDA;--hero:#8A9A7B;--wave:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 26' preserveAspectRatio='none'%3E%3Cpath d='M-6 34V12c46-10 94-12 138-4 50 8 86 14 140 12 46-2 86-10 124-14V34z' fill='%23EFE6D5' stroke='%2326352C' stroke-width='2' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E")}
+:root{--sh:#26352C;--on-acc:#26352C;--forest:#26352C;--on-forest:#F3EBDA;--hero:#8A9A7B;--wave:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 26' preserveAspectRatio='none'%3E%3Cpath d='M-6 34V12c46-10 94-12 138-4 50 8 86 14 140 12 46-2 86-10 124-14V34z' fill='%23EBE0CC' stroke='%2326352C' stroke-width='2' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E")}
 :root[data-mode="dark"]{
   color-scheme:dark;
   --bg:#1E211C; --surface:#2A2E26; --sunk:#353B30; --line:#474E40; --line-2:#6B7361;
@@ -1131,11 +1131,11 @@ body.on-home .empty{background:transparent}
 :root{--hero-set:#D9A441;--hero-arch:#E6B8A0;--hero-tpl:#A9BDB8}
 :root[data-mode="dark"]{--hero-set:#6E5A26;--hero-arch:#6C4737;--hero-tpl:#45605B}
 .top.t-set{background:var(--hero-set)}
-.top.t-set::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='240' viewBox='0 0 390 240'%3E%3Cpath d='M-60 -70c90-30 190 10 214 96 20 74-24 152-98 172-70 18-144-18-172-84-26-64-8-150 56-184z' fill='%23A84E30'/%3E%3Ccircle cx='44' cy='168' r='36' fill='%2326352C'/%3E%3Cg transform='translate(118 66) scale(0.62) translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23FAF4E8' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/svg%3E")}
+.top.t-set::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='240' viewBox='0 0 390 240'%3E%3Cpath d='M-60 -70c90-30 190 10 214 96 20 74-24 152-98 172-70 18-144-18-172-84-26-64-8-150 56-184z' fill='%23A84E30'/%3E%3Ccircle cx='44' cy='168' r='36' fill='%2326352C'/%3E%3Cg transform='translate(118 66) scale(0.62) translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23F4EAD7' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/svg%3E")}
 .top.t-arch{background:var(--hero-arch)}
-.top.t-arch::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='240' viewBox='0 0 390 240'%3E%3Cpath d='M-60 -70c90-30 190 10 214 96 20 74-24 152-98 172-70 18-144-18-172-84-26-64-8-150 56-184z' fill='%2326352C'/%3E%3Ccircle cx='44' cy='168' r='36' fill='%23D9A441'/%3E%3Cg transform='translate(124 40) scale(0.62) translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23FAF4E8' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/svg%3E")}
+.top.t-arch::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='240' viewBox='0 0 390 240'%3E%3Cpath d='M-60 -70c90-30 190 10 214 96 20 74-24 152-98 172-70 18-144-18-172-84-26-64-8-150 56-184z' fill='%2326352C'/%3E%3Ccircle cx='44' cy='168' r='36' fill='%23D9A441'/%3E%3Cg transform='translate(124 40) scale(0.62) translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23F4EAD7' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/svg%3E")}
 .top.t-tpl{background:var(--hero-tpl)}
-.top.t-tpl::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='240' viewBox='0 0 390 240'%3E%3Cpath d='M-60 -70c90-30 190 10 214 96 20 74-24 152-98 172-70 18-144-18-172-84-26-64-8-150 56-184z' fill='%23D9A441'/%3E%3Ccircle cx='44' cy='168' r='36' fill='%23A84E30'/%3E%3Cg transform='translate(110 72) scale(0.62) translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23FAF4E8' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/svg%3E")}
+.top.t-tpl::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='240' viewBox='0 0 390 240'%3E%3Cpath d='M-60 -70c90-30 190 10 214 96 20 74-24 152-98 172-70 18-144-18-172-84-26-64-8-150 56-184z' fill='%23D9A441'/%3E%3Ccircle cx='44' cy='168' r='36' fill='%23A84E30'/%3E%3Cg transform='translate(110 72) scale(0.62) translate(-248 -28)' fill='none' stroke='%2326352C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z' fill='%23F4EAD7' stroke='none' transform='translate(6 6)'/%3E%3Cpath d='M286 30c30-8 62 8 72 38 10 28-4 62-32 74-30 12-64 0-78-28-14-30 4-74 38-84z'/%3E%3Cpath d='M300 66c8 10 12 22 10 36M318 60c10 12 14 30 8 46'/%3E%3C/g%3E%3C/svg%3E")}
 .top .page-h{margin-top:14px;font-weight:700}
 .page{padding-top:6px}
 /* Settings sections take turns in colour */
@@ -1145,6 +1145,8 @@ body.on-home .empty{background:transparent}
 .page>.set-sec:nth-of-type(4n)>.col-top{background-color:color-mix(in srgb,var(--clay) 60%,var(--surface))}
 .set-sec .sec-t small{color:var(--ink);opacity:.85}
 .set-sec .sec-fold svg{color:var(--ink)}
+/* The page runs edge to edge, so colour heroes reach the sides and the top of the screen */
+html,body{margin:0}
 </style>
 </head>
 <body>
@@ -1250,7 +1252,7 @@ const getMode = () => lsGet('mode') === 'dark' ? 'dark' : 'light';
 function applyMode() {
   const m = getMode();
   document.documentElement.setAttribute('data-mode', m);
-  const t = document.querySelector('meta[name="theme-color"]'); if (t) t.setAttribute('content', m === 'dark' ? '#1E211C' : '#EFE6D5');
+  const t = document.querySelector('meta[name="theme-color"]'); if (t) t.setAttribute('content', m === 'dark' ? '#1E211C' : '#EBE0CC');
 }
 applyMode();
 const fire = p => { if (p && p.catch) p.catch(() => {}); return p; };
@@ -1895,7 +1897,7 @@ async function moveHouse(c, to) {
   const url = to + '#import=' + pay;
   const standalone = (() => { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) { return false; } })();
   if (!standalone) { location.replace(url); return; }
-  document.body.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:32px 24px;direction:rtl;font-family:system-ui,sans-serif;background:#EFE6D5;color:#2B2833">'
+  document.body.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:32px 24px;direction:rtl;font-family:system-ui,sans-serif;background:#EBE0CC;color:#2B2833">'
     + '<h1 style="font-size:26px;margin:0">MiMaMoo עברה לבית חדש</h1>'
     + '<p style="font-size:17px;line-height:1.5;margin:0">כל האירועים והרשימות שלך עוברים איתך. לוחצים על הכפתור, ובדפדפן שנפתח: שיתוף ← "הוספה למסך הבית". אחר כך אפשר למחוק את האייקון הישן.</p>'
     + '<a href="' + url + '" target="_blank" rel="noopener" style="align-self:flex-start;padding:14px 22px;border-radius:999px;background:#A84E30;color:#FBF3E4;font-weight:700;font-size:17px;text-decoration:none">פתיחה בכתובת החדשה</a></div>';
@@ -2187,7 +2189,7 @@ function catsHTML(list, rowFn, countFn, addCtx) {
 /* Home */
 function shellHome() {
   const ro = S.readOnly;
-  return '<header class="top"><div class="wrap top-in"><span class="logo" role="img" aria-label="MiMaMoo"><svg class="logo-ic" viewBox="0 0 120 120" aria-hidden="true"><rect x="2" y="2" width="116" height="116" rx="28" fill="#8A9A7B" stroke="#26352C" stroke-width="4"/><circle cx="60" cy="66" r="44" fill="#D9A441"/><path d="M54 44V14" stroke="#26352C" stroke-width="5" stroke-linecap="round"/><path d="M54 44L94 95H14Z" fill="#FAF4E8" stroke="#FAF4E8" stroke-width="6" stroke-linejoin="round"/><path d="M54 44L94 95H54Z" fill="#E7DCC8" stroke="#E7DCC8" stroke-width="6" stroke-linejoin="round"/><path d="M54 41L97 98H11Z" fill="none" stroke="#26352C" stroke-width="4" stroke-linejoin="round"/><path d="M54 60L72 97H36Z" fill="#26352C" stroke="#26352C" stroke-width="3" stroke-linejoin="round"/><rect x="58" y="9" width="40" height="34" rx="9" fill="#A84E30" stroke="#26352C" stroke-width="4"/><path d="M67 26L74 33L88 18" fill="none" stroke="#FBF3E4" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-text" aria-hidden="true"><span class="logo-word">MiMaMoo</span><span class="logo-tag" dir="rtl">מי · מביא · מה</span></span></span><span class="top-acts"><button class="icon-btn gear" data-act="mode" aria-pressed="' + (getMode() === 'dark') + '" aria-label="מצב כהה" title="מצב כהה">' + (getMode() === 'dark' ? ICON.sun : ICON.moon) + '</button><button class="icon-btn gear" data-act="archive" aria-label="ארכיון" title="ארכיון">' + ICON.box + '</button><button class="icon-btn gear" data-act="settings" aria-label="הגדרות">' + ICON.gear + '</button></span></div><div class="wrap" id="r-hello"></div><div class="wrap" id="r-install"></div></header>'
+  return '<header class="top"><div class="wrap top-in"><span class="logo" role="img" aria-label="MiMaMoo"><svg class="logo-ic" viewBox="0 0 120 120" aria-hidden="true"><rect x="2" y="2" width="116" height="116" rx="28" fill="#8A9A7B" stroke="#26352C" stroke-width="4"/><circle cx="60" cy="66" r="44" fill="#D9A441"/><path d="M54 44V14" stroke="#26352C" stroke-width="5" stroke-linecap="round"/><path d="M54 44L94 95H14Z" fill="#F4EAD7" stroke="#F4EAD7" stroke-width="6" stroke-linejoin="round"/><path d="M54 44L94 95H54Z" fill="#E7DCC8" stroke="#E7DCC8" stroke-width="6" stroke-linejoin="round"/><path d="M54 41L97 98H11Z" fill="none" stroke="#26352C" stroke-width="4" stroke-linejoin="round"/><path d="M54 60L72 97H36Z" fill="#26352C" stroke="#26352C" stroke-width="3" stroke-linejoin="round"/><rect x="58" y="9" width="40" height="34" rx="9" fill="#A84E30" stroke="#26352C" stroke-width="4"/><path d="M67 26L74 33L88 18" fill="none" stroke="#FBF3E4" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-text" aria-hidden="true"><span class="logo-word">MiMaMoo</span><span class="logo-tag" dir="rtl">מי · מביא · מה</span></span></span><span class="top-acts"><button class="icon-btn gear" data-act="mode" aria-pressed="' + (getMode() === 'dark') + '" aria-label="מצב כהה" title="מצב כהה">' + (getMode() === 'dark' ? ICON.sun : ICON.moon) + '</button><button class="icon-btn gear" data-act="archive" aria-label="ארכיון" title="ארכיון">' + ICON.box + '</button><button class="icon-btn gear" data-act="settings" aria-label="הגדרות">' + ICON.gear + '</button></span></div><div class="wrap" id="r-hello"></div><div class="wrap" id="r-install"></div></header>'
     + '<main class="wrap home"><div class="tabs four" role="tablist" id="r-htabs"></div>'
     + '<div class="home-cols" id="h-lists">'
     + '<section class="home-col"><div class="col-top"><h2>רשימות משותפות</h2>' + (ro ? '' : '<button class="btn primary sm" data-act="new-trip">+ הוספה</button>') + '</div><div id="r-trips" class="trips"></div></section>'
